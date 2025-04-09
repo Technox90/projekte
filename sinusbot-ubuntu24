@@ -1109,4 +1109,5 @@ echo "==============================" >> "$CREDENTIALS_FILE"
 # Optional: Ausgabe in der Konsole
 greenMessage "Zugangsdaten gespeichert unter: $CREDENTIALS_FILE"
 
+rm /root/wget-log*
 exit 0
