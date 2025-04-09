@@ -1110,4 +1110,6 @@ echo "==============================" >> "$CREDENTIALS_FILE"
 greenMessage "Zugangsdaten gespeichert unter: $CREDENTIALS_FILE"
 
 rm /root/wget-log*
+rm /root/TeamSpeak3-Client-linux_amd64-3.5.6.r*
+
 exit 0
