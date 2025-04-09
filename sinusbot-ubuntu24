@@ -1081,7 +1081,7 @@ if [[ "$IS_RUNNING" == true ]]; then
     fi
     greenMessage "All right. Everything is updated successfully. SinusBot is UP on '$ipaddress:8087' :)"
   else
-    greenMessage "All right. Everything is installed successfully. SinusBot is UP on '$ipaddress:8087' :) Your user = 'admin' and password = '$password'"
+    greenMessage "All right. Everything is installed successfully. SinusBot is UP on '$ipaddress:8087' :) Your user = 'admin' and password = '$password' oder '$PW'"
   fi
   if [[ "$USE_SYSTEMD" == true ]]; then
     redMessage 'Stop it with "service sinusbot stop".'
@@ -1095,7 +1095,5 @@ else
   redMessage "SinusBot could not start! Starting it directly. Look for errors"!
   su -c "$LOCATION/sinusbot" $SINUSBOTUSER
 fi
-su sinusbot 
-cd /opt/sinusbot/ && ./sinusbot --override-password=w9A2Bs9TDU2s
 
 exit 0
