@@ -1095,5 +1095,18 @@ else
   redMessage "SinusBot could not start! Starting it directly. Look for errors"!
   su -c "$LOCATION/sinusbot" $SINUSBOTUSER
 fi
+# Zugangsdaten-Datei erstellen
+CREDENTIALS_FILE="$LOCATION/sinusbot_credentials.txt"
+
+echo "==============================" > "$CREDENTIALS_FILE"
+echo "SinusBot Webinterface Zugangsdaten" >> "$CREDENTIALS_FILE"
+echo "==============================" >> "$CREDENTIALS_FILE"
+echo "Benutzername: admin" >> "$CREDENTIALS_FILE"
+echo "Passwort: $PW" >> "$CREDENTIALS_FILE"
+echo "Webinterface: http://<SERVER-IP>:8087" >> "$CREDENTIALS_FILE"
+echo "==============================" >> "$CREDENTIALS_FILE"
+
+# Optional: Ausgabe in der Konsole
+greenMessage "Zugangsdaten gespeichert unter: $CREDENTIALS_FILE"
 
 exit 0
