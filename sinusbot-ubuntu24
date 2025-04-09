@@ -188,7 +188,8 @@ if [[ $INSTALL == "Res" ]]; then
     errorExit "SinusBot wasn't found at $LOCATION. Exiting script."
   fi
 
-  PW=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1)
+  #PW=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1)
+  PW=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 12)
   SINUSBOTUSER=$(ls -ld $LOCATION | awk '{print $3}')
 
   greenMessage "Please login to your SinusBot webinterface as admin and '$PW'"
