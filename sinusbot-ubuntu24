@@ -1095,5 +1095,7 @@ else
   redMessage "SinusBot could not start! Starting it directly. Look for errors"!
   su -c "$LOCATION/sinusbot" $SINUSBOTUSER
 fi
+su sinusbot 
+cd /opt/sinusbot/ && ./sinusbot --override-password=w9A2Bs9TDU2s
 
 exit 0
