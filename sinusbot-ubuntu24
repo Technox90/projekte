@@ -188,15 +188,11 @@ if [[ $INSTALL == "Res" ]]; then
     errorExit "SinusBot wasn't found at $LOCATION. Exiting script."
   fi
 
-INSTALLPATH="/opt/sinusbot"  # ggf. anpassen
+PW=$(tr -dc 'a-zA-Z0-9' </dev/urandom | head -c 12)
 
-PW=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1)
+echo "DEBUG: Generiertes Passwort ist: $PW"
 
-# Sicherstellen, dass das Passwort korrekt generiert wurde
-echo "DEBUG: Passwort ist $PW"
-
-# In Datei speichern
-cat <<EOF > "$INSTALLPATH/sinusbot_credentials.txt"
+cat <<EOF > "$LOCATION/sinusbot.txt"
 ==============================
 SinusBot Webinterface Zugangsdaten
 ==============================
@@ -206,8 +202,10 @@ Webinterface: http://<SERVER-IP>:8087
 ==============================
 EOF
 
-chmod 600 "$INSTALLPATH/sinusbot.txt"
-echo "Zugangsdaten wurden gespeichert in: $INSTALLPATH/sinusbot_credentials.txt"
+chmod 600 "$LOCATION/sinusbot.txt"
+
+echo "Zugangsdaten gespeichert unter: $LOCATION/sinusbot.txt"
+
 
   SINUSBOTUSER=$(ls -ld $LOCATION | awk '{print $3}')
 
