@@ -11,11 +11,15 @@ Lyrics
 Lyric
 clip
 Clip
-Official Preview
-Original Mix
+Official
+review
+Original
+Mix
 GerJapDub
 GerEngSub
-DVD 480p Hi10p AAC
+DVD
+480p
+Hi10p
 613ca815
 BnP
 ABJ
@@ -32,7 +36,8 @@ x265
 CR
 WEB
 h264
-Pudding-sama
+Pudding
+-sama
 Fuuko
 Tanuki
 PCM
