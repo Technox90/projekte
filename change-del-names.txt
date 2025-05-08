@@ -48,3 +48,5 @@ OFFICIAL VIDEO
 ]
 [
 ..
+10bit
+AV1-AO
