@@ -60,3 +60,4 @@ AC3
 1080p
 -ABJ
 Rip
+DK
