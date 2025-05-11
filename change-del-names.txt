@@ -61,3 +61,7 @@ AC3
 -ABJ
 Rip
 DK
+ FLAC
+  CNY
+FLAC
+CNY
