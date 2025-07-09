@@ -1,0 +1,11 @@
+#Ad-List die Wichtig sind für das Netzwerk
+#Microsoft Dienste
+dns.msftncsi.com
+activation.sls.microsoft.com
+officecdn.microsoft.com
+#Zeitserver Dienste
+*.pool.ntp.org
+#Samsung
+api.samsungcloud.com
+#Apple
+*.apple.com
