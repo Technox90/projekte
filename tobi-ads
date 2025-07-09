@@ -1,13 +1,66 @@
-#Ad-List die Wichtig sind für das Netzwerk
-#Microsoft Dienste
-dns.msftncsi.com
-activation.sls.microsoft.com
-officecdn.microsoft.com
-#Zeitserver Dienste
-*.pool.ntp.org
-#Samsung
-api.samsungcloud.com
-#Apple
-*.apple.com
-#Netzwerk Verwaltung
-*dns.resolver.arpa
+###########################################
+# TOBI'S WHITELIST
+# Beschreibung: Domains die trotz Blocklisten erlaubt bleiben sollen.
+# Quelle: Eigene Erfahrungen + Empfehlungen
+# Stand: 2025-07-09
+###########################################
+
+###########################################
+# WINDOWS / MICROSOFT DIENSTE
+###########################################
+dns.msftncsi.com           # Windows Netzwerkstatusprüfung (NCSI)
+activation.sls.microsoft.com  # Windows Aktivierung / Lizenzserver
+officecdn.microsoft.com    # Office Updates
+windowsupdate.microsoft.com # Windows Update-Dienste
+*.update.microsoft.com     # Updates allgemein
+*.windowsupdate.com
+*.microsoftonline.com      # MS-Logins/OneDrive
+
+###########################################
+# ZEITSERVER (NTP)
+###########################################
+*.pool.ntp.org             # Öffentliche Zeitserver
+
+###########################################
+# SMARTTV / SAMSUNG / FIRETV
+###########################################
+api.samsungcloud.com       # Samsung Cloud Dienste
+ocsp.samsungcloudsolution.net # Samsung Cloud Zertifikatprüfung
+www.samsungcloud.com
+config.samsungcloud.com
+log-config.samsungcloudsolution.net
+time.samsungcloudsolution.net
+
+###########################################
+# STREAMING / SPOTIFY
+###########################################
+apresolve.spotify.com      # Spotify API/Playlists
+
+###########################################
+# APPLE DIENSTE
+###########################################
+*.apple.com                # Apple Dienste allgemein (Updates, iCloud)
+
+###########################################
+# FRITZ!BOX / LOKAL
+###########################################
+fritz.box                  # Zugriff auf Fritz!Box Web-UI
+myfritz.net                # MyFritz-Dienst
+
+###########################################
+# SONSTIGE GERÄTE / IOT (Beispiele)
+###########################################
+ntp.org                    # Zeitserver allgemein
+time.google.com            # Google NTP (z. B. Android)
+
+###########################################
+# DEINE EIGENEN DOMAIN-BEISPIELE (ANPASSEN!)
+###########################################
+# Hier kannst du deine eigenen Domains einfügen, die du immer brauchst.
+# Beispiel:
+# meine.webseite.de
+# mein.api.server.de
+
+###########################################
+# ENDE DER LISTE
+###########################################
