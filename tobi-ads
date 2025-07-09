@@ -9,3 +9,5 @@ officecdn.microsoft.com
 api.samsungcloud.com
 #Apple
 *.apple.com
+#Netzwerk Verwaltung
+*dns.resolver.arpa
