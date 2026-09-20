@@ -1,0 +1,222 @@
+Wir arbeiten an meinem Proxmox-Komplettinstaller im GitHub-Repository:
+
+Repository:
+Technox90/homeatic
+
+Dateien:
+proxmox/proxmox.sh
+proxmox/history.txt
+
+Branch:
+main
+
+Bitte direkt im GitHub-Repository weiterarbeiten, Änderungen committen und history.txt aktualisieren. Nicht nur Code vorschlagen, sondern den Installer tatsächlich ändern.
+
+Aktueller Stand:
+V130
+
+Aktueller Commit:
+6bd3cea8493ad7438c63979bc311d74733e38b5a
+
+Die letzten wichtigen Änderungen waren:
+
+V128
+- Im Dashboard-Seitenmenü wurde direkt unter „⚙ Einstellungen“ ein dezenter GitHub-Link eingebaut:
+  GitHub
+  Technox90 / homeatic
+- Ziel:
+  https://github.com/Technox90/homeatic
+- Öffnet in neuem Tab.
+
+V129
+- Pi-hole SQLite-Fehler behoben.
+- Die ungültige SQLite-Option „-ni“ wurde vollständig entfernt.
+- docker exec -i bleibt für SQL über STDIN bestehen.
+- Es dürfen keine Aufrufe wie „sqlite3 -ni“ mehr im Script vorhanden sein.
+
+V130
+- Automatischer Pi-hole Local-DNS-Sync wurde eingebaut.
+- Helper:
+  /usr/local/sbin/pve-pihole-dns-sync
+- Quellen-Priorität:
+  1. tatsächlich erkannte Proxmox VM/LXC-IP
+  2. private IPv4 aus Dashboard-Links
+  3. pihole/dns/custom.list aus GitHub als Fallback
+- Proxmox-Host soll automatisch pve.lan bekommen.
+- LXC:
+  laufende IP über hostname -I,
+  sonst statische IP aus der Proxmox-Konfiguration.
+- QEMU:
+  IP über QEMU Guest Agent, wenn verfügbar.
+- Dashboard-Daten liegen in:
+  /var/lib/pve-sensor-dashboard-web/links.json
+- Dashboard-Einträge enthalten u. a.:
+  name
+  url
+  type
+  id
+- Nur private RFC1918-IP-Adressen aus Dashboard-URLs dürfen automatisch als DNS-Einträge übernommen werden.
+- Öffentliche Ziele wie GitHub dürfen NICHT zu .lan-Einträgen werden.
+- systemd Path-Watcher:
+  /var/lib/pve-sensor-dashboard-web/links.json
+- zusätzlicher Fallback-Timer:
+  alle 10 Minuten.
+
+Bekannte gewünschte DNS-Namen:
+
+Proxmox → pve.lan
+Home Assistant → homeassistant.lan
+Paperless → paperless.lan
+Pi-hole → pihole.lan
+NetAlertX → netalert.lan
+Uptime Kuma → uptime.lan
+Stirling PDF → pdf.lan
+Speedtest Tracker → speedtest.lan
+Scrutiny → scrutiny.lan
+PVE-UPS → ups.lan
+
+Weitere private Dashboard-Dienste sollen automatisch einen normalisierten <name>.lan-Eintrag bekommen.
+
+GitHub-Dateien:
+
+pihole/dns/custom.list
+pihole/cname/cname.txt
+pihole/allowlist/allowlist.txt
+pihole/blocklist/blocklist.txt
+
+WICHTIGER AKTUELLER FEHLER:
+
+Pi-hole v6 zeigt rechts die CNAME-Einträge korrekt an, z. B.:
+
+dashboard.lan -> pve.lan
+ha.lan -> homeassistant.lan
+paperless -> paperless.lan
+pihole -> pihole.lan
+proxmox.lan -> pve.lan
+
+ABER links unter:
+
+„Lokale DNS-Einträge“
+
+steht weiterhin:
+
+„Es sind keine lokalen DNS-Einträge definiert.“
+
+Wir haben inzwischen festgestellt, warum:
+
+V130 schreibt seine Local-DNS-Einträge noch direkt nach:
+
+/opt/pihole/etc-pihole/custom.list
+
+Bei Pi-hole v6 werden die Local-DNS-Einträge der Weboberfläche aber über:
+
+dns.hosts
+
+verwaltet.
+
+Der offizielle FTL-Code bestätigt:
+config.dns.hosts ist ein Array von Einträgen im Format:
+
+[
+  "192.168.178.100 pve.lan",
+  "192.168.178.101 homeassistant.lan"
+]
+
+und:
+
+pihole-FTL --config dns.hosts ...
+
+schreibt daraus auch custom.list neu.
+
+AUFGABE:
+
+Bitte V130 zu V131 weiterentwickeln.
+
+Der automatische DNS-Sync soll NICHT mehr direkt custom.list als primäre Datenquelle beschreiben.
+
+Stattdessen soll er Pi-hole v6 korrekt über:
+
+docker exec pihole pihole-FTL --config dns.hosts ...
+
+aktualisieren.
+
+Dabei unbedingt:
+
+1. Bestehende manuelle Local-DNS-Einträge aus dns.hosts erhalten.
+
+2. Nur die automatisch verwalteten Hostnamen ersetzen/aktualisieren.
+
+3. Keine manuellen fremden DNS-Einträge löschen.
+
+4. Automatisch verwaltete Einträge dynamisch aus:
+   - Proxmox VM/LXC
+   - Dashboard
+   - GitHub-Fallback
+   erzeugen.
+
+5. Priorität weiterhin:
+   Proxmox-Gast-IP > Dashboard-IP > GitHub-Fallback.
+
+6. Wenn sich eine Container-IP ändert, muss der alte Auto-Eintrag entfernt und der neue gesetzt werden.
+
+7. Wenn im Dashboard eine private IP geändert wird, soll der Path-Watcher automatisch den Sync auslösen.
+
+8. Öffentliche URLs/IPs ignorieren.
+
+9. CNAME-Konfiguration weiterhin separat über:
+   dns.cnameRecords
+   verwalten.
+
+10. Nach dem Setzen von dns.hosts prüfen:
+    pihole-FTL --config dns.hosts
+    und anschließend echte DNS-Abfragen gegen:
+    @127.0.0.1
+
+11. Beispiele prüfen:
+    pve.lan
+    pihole.lan
+    paperless.lan
+    homeassistant.lan
+
+12. Pi-hole möglichst NICHT unnötig neu starten.
+    Wenn Pi-hole v6 dns.hosts direkt neu lädt bzw. custom.list selbst neu schreibt, diesen vorgesehenen Mechanismus verwenden.
+
+13. Der Sync muss idempotent sein:
+    Wenn sich nichts geändert hat, nichts neu schreiben/restarten.
+
+14. systemd:
+    pve-pihole-dns-sync.service
+    pve-pihole-dns-sync.path
+    pve-pihole-dns-sync.timer
+    sollen bestehen bleiben.
+
+15. Cleanup/„PROXMOX AUF NULL“ muss Helper, Units und State sauber entfernen.
+
+16. history.txt um V131 ergänzen.
+
+17. Version überall sauber von V130 auf V131 erhöhen:
+    - Hauptheader
+    - Versionsanzeige
+    - installer_version
+    - sonstige aktuelle Versionsstellen
+
+18. Nach Änderung bitte gezielt kontrollieren:
+    - keine sqlite3 -ni mehr vorhanden
+    - dns.hosts wird verwendet
+    - keine direkte Vollüberschreibung von custom.list mehr durch den V130-Sync
+    - CNAME bleibt erhalten
+    - GitHub-Link aus V128 bleibt erhalten
+    - systemd Path-Watcher und Timer bleiben erhalten
+
+Zusätzlich möchte ich nach dem GitHub-Update einen Reparaturblock für meinen BEREITS LAUFENDEN Pi-hole haben, damit ich nicht neu installieren muss.
+
+Der Reparaturblock soll auf root@pve ausgeführt werden und:
+- aktuellen Pi-hole-LXC automatisch finden
+- Proxmox-/Dashboard-IP-Adressen ermitteln
+- bestehende dns.hosts auslesen
+- Auto-Einträge sauber zusammenführen
+- dns.hosts setzen
+- anschließend die Local-DNS-Einträge anzeigen
+- DNS-Auflösung testen
+
+Bitte zuerst den aktuellen main-Stand im Repository prüfen und dann direkt weiterarbeiten.
