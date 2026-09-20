@@ -220,3 +220,42 @@ Der Reparaturblock soll auf root@pve ausgeführt werden und:
 - DNS-Auflösung testen
 
 Bitte zuerst den aktuellen main-Stand im Repository prüfen und dann direkt weiterarbeiten.
+
+
+WICHTIGE DAUERREGEL FÜR DIE WEITERE ARBEIT:
+
+Nach jeder neuen Installer-Version oder jeder größeren/entscheidenden Änderung bitte zusätzlich den aktuellen Übergabe-Prompt in folgendem Repository aktualisieren:
+
+Repository:
+Technox90/projekte
+
+Datei:
+homelab.txt
+
+Branch:
+main
+
+Die Datei homelab.txt soll dabei NICHT nur ergänzt werden, sondern als vollständiger, aktueller Übergabe-Prompt gepflegt werden, damit ein neuer Chat sofort nahtlos weiterarbeiten kann.
+
+Nach jeder relevanten Änderung sollen dort mindestens aktuell gehalten werden:
+- aktuelle Installer-Version
+- aktueller Commit-SHA von Technox90/homeatic
+- zuletzt durchgeführte Änderungen
+- wichtige technische Entscheidungen
+- bekannte Fehler bzw. noch offene Probleme
+- aktuell relevante Dateipfade, Dienste und Konfigurationen
+- nächste geplante Aufgabe / aktueller Arbeitsstand
+- wichtige Sicherheits-/Kompatibilitätsregeln, die nicht verloren gehen dürfen
+
+Wenn im Laufe der Arbeit neue Funktionen, Fehlerbehebungen oder Architekturentscheidungen hinzukommen, diese selbstständig in homelab.txt einarbeiten.
+
+Nach dem Aktualisieren von:
+Technox90/homeatic
+
+bitte also auch:
+Technox90/projekte/homelab.txt
+
+aktualisieren und committen.
+
+Wichtig:
+homelab.txt soll immer einen eigenständigen Prompt enthalten, den ich komplett in einen neuen Chat kopieren kann, ohne vorherigen Gesprächskontext zu benötigen.
