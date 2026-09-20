@@ -15,10 +15,10 @@ Bitte direkt im GitHub-Repository weiterarbeiten, Änderungen committen und hist
 AKTUELLER STAND
 
 Installer-Version:
-V134
+V135
 
 Aktueller Commit von Technox90/homeatic:
-9ee914678878f8087edd5da2175fc698abbba45f
+3d16cbc65e5876861b95336894bfed870a378b0c
 
 Der GitHub-main-Stand ist die maßgebliche Quelle.
 
@@ -159,6 +159,24 @@ V134
 - Neu erkannte Links werden vor der Standardkategorie-Zuordnung ergänzt und können dadurch automatisch in Basics/Extras einsortiert werden.
 - Theme-Migration, GitHub-Link, Pi-hole-v6 dns.hosts und SQLite-Schutzregeln bleiben erhalten.
 
+V135
+- Paperless-ngx HTTPS-/CSRF-Fehler hinter nginx behoben.
+- Fehlerbild:
+  HTTP 403 „CSRF-Verifizierung fehlgeschlagen. Anfrage abgebrochen.“ beim Login über https://<paperless-ip>/.
+- Ursache:
+  Paperless lief intern auf HTTP:8000 und nginx terminierte TLS, aber im Paperless-Container fehlten die offiziellen Reverse-Proxy-/Origin-Einstellungen.
+- Neu im Paperless-Compose:
+  PAPERLESS_URL=https://<paperless-ip>
+  PAPERLESS_PROXY_SSL_HEADER=["HTTP_X_FORWARDED_PROTO", "https"]
+  PAPERLESS_TRUSTED_PROXIES=127.0.0.1
+  PAPERLESS_ALLAUTH_TRUSTED_CLIENT_IP_HEADER=HTTP_X_REAL_IP
+- Für vorhandene Installationen existiert:
+  repair_existing_paperless_https_v135
+- Die Migration erkennt hostname=paperless, ermittelt die private IPv4, ergänzt nur die vier verwalteten Reverse-Proxy-Werte, validiert docker compose und recreatet nur den Webserver.
+- Paperless-Datenbank, Dokumente, Media, Consume, Export, Redis, Postgres und Ollama werden nicht gelöscht.
+- Die Migration wird auch bei einem reinen Dashboard-Update ausgeführt, damit ein bestehender Paperless-CT ohne Neuinstallation repariert werden kann.
+- V134 Dashboard-Link-Abgleich, Theme, GitHub-Link, Pi-hole-v6 dns.hosts und SQLite-Schutz bleiben erhalten.
+
 WICHTIGE DASHBOARD-PFADE
 
 Dashboard App:
@@ -232,28 +250,27 @@ WICHTIGE TECHNISCHE REGELN
 
 AKTUELLER TEST-/ARBEITSSTAND
 
-V134 ist im Repository committed.
+V135 ist im Repository committed.
 
-Beim nächsten Praxistest bitte den aktuellen main-Stand laden und „Server-Dashboard installieren / aktualisieren“ erneut ausführen.
+Nächster Praxistest:
+- aktuellen main-Stand laden,
+- „Server-Dashboard installieren / aktualisieren“ ausführen,
+- dabei muss zusätzlich der Schritt „Paperless HTTPS / CSRF prüfen“ laufen,
+- anschließend Paperless unter https://192.168.178.102/ öffnen,
+- Login erneut testen,
+- der 403-CSRF-Fehler darf nicht mehr auftreten.
 
-Danach prüfen:
-- Browser mit STRG + F5 neu laden.
-- Trenner + „⚙ Einstellungen“ + GitHub sollen wieder am unteren Rand des Seitenmenüs stehen.
-- Bei vielen Links muss das Seitenmenü scrollbar bleiben.
-- Bereits vorhandene bekannte Web-CTs sollen automatisch wieder als fehlende Links erscheinen.
-- Insbesondere vorhandene Zusatzdienste wie Uptime Kuma, Stirling PDF, Speedtest Tracker, Scrutiny, Pulse, PVE-UPS, Semaphore, Prometheus, PVE Exporter, Grafana und EMQX prüfen, soweit sie auf dem Host tatsächlich existieren.
-- Bestehende manuell angepasste Links dürfen nicht überschrieben werden.
-- Neu erkannte Dienste sollen automatisch Basics/Extras zugeordnet werden.
-- „⚙ Einstellungen“ öffnen und im Dashboard-Reiter weiterhin die 11 Farbwähler prüfen.
-- Live-Vorschau, Speichern, Standardfarben, HTTPS, Favicon, Webseitenname und Menüname weiterhin testen.
-- Pi-hole-v6 dns.hosts unverändert lassen, sofern kein konkreter Fehler vorliegt.
+Bei Bedarf prüfen:
+  PL_ID="$(pct list | awk 'tolower($3)=="paperless"{print $1; exit}')"
+  pct exec "$PL_ID" -- bash -lc 'cd /opt/paperless && docker compose config | grep -E "PAPERLESS_(URL|PROXY_SSL_HEADER|TRUSTED_PROXIES|ALLAUTH_TRUSTED_CLIENT_IP_HEADER)"'
+  pct exec "$PL_ID" -- bash -lc 'cd /opt/paperless && docker compose ps'
+  pct exec "$PL_ID" -- bash -lc 'cd /opt/paperless && docker compose logs --tail=100 webserver'
 
-Falls Links nach V134 weiterhin fehlen, bitte auf dem Proxmox-Host ausführen:
-  pct list
-  cat /var/lib/pve-sensor-dashboard-web/links.json
-  cat /var/lib/pve-sensor-dashboard-web/categories.json
-
-Dann kann anhand der tatsächlichen CT-Hostnamen geprüft werden, ob ein weiterer Alias in dashboard_reconcile_existing_guests_v134 ergänzt werden muss.
+Zusätzlich V134 weiter prüfen:
+- Trenner + „⚙ Einstellungen“ + GitHub unten im Seitenmenü.
+- Vorhandene bekannte Web-CTs automatisch als fehlende Links ergänzen.
+- Manuelle Links nicht überschreiben.
+- Theme-/Farbverwaltung weiterhin funktionsfähig.
 
 Bei weiteren Praxisfehlern direkt die nächste Installer-Version erstellen, history.txt aktualisieren und anschließend auch diesen Übergabe-Prompt vollständig aktualisieren.
 
