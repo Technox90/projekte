@@ -15,10 +15,10 @@ Bitte direkt im GitHub-Repository weiterarbeiten, Änderungen committen und hist
 AKTUELLER STAND
 
 Installer-Version:
-V136
+V137
 
 Aktueller Commit von Technox90/homeatic:
-3bf1adb83948d0bbec9295a43936b09397875ceb
+31cb5cc935dc8f4dae76dac000453405491cf5ce
 
 Der GitHub-main-Stand ist die maßgebliche Quelle.
 
@@ -193,6 +193,27 @@ V136
 - Ein eventuell zusätzlich gesetztes PAPERLESS_CSRF_TRUSTED_ORIGINS wird entfernt, weil PAPERLESS_URL denselben Origin bereits automatisch in Django ergänzt.
 - HTTPS bleibt Standard; HTTP ist für diesen Fehler nicht notwendig.
 
+V137
+- Alle bestätigten Paperless-Reverse-Proxy-/Login-Korrekturen direkt in die Neuinstallation übernommen.
+- Neue Paperless-Installationen setzen fest:
+  PAPERLESS_URL=https://<Paperless-IP>
+  PAPERLESS_PROXY_SSL_HEADER=["HTTP_X_FORWARDED_PROTO", "https"]
+  PAPERLESS_TRUSTED_PROXIES=127.0.0.1
+  PAPERLESS_ALLAUTH_TRUSTED_CLIENT_IP_HEADER=X-Real-IP
+- PAPERLESS_CSRF_TRUSTED_ORIGINS wird nicht zusätzlich gesetzt, weil PAPERLESS_URL denselben Origin bereits automatisch in Django ergänzt.
+- Neue Abschlussprüfung verify_paperless_proxy_v137:
+  * docker compose config prüfen,
+  * Webserver healthy/running prüfen,
+  * echte Container-Environment-Werte prüfen,
+  * Django CSRF_TRUSTED_ORIGINS prüfen,
+  * SECURE_PROXY_SSL_HEADER prüfen,
+  * nginx X-Real-IP und X-Forwarded-Proto=https prüfen.
+- Eine Neuinstallation gilt erst als erfolgreich, wenn diese Prüfung vollständig besteht.
+- repair_existing_paperless_proxy_v137 bleibt für vorhandene Installationen bzw. reine Dashboard-Updates erhalten.
+- Bei gleichzeitigem INSTALL_PAPERLESS wird die Reparatur nicht doppelt ausgeführt.
+- Beschädigten/duplizierten V136-Patchbereich entfernt; die echte Pi-hole-Funktion ist wieder nur einmal vorhanden.
+- V134 Dashboard-Link-Abgleich, Theme, GitHub-Link, Pi-hole-v6 dns.hosts und SQLite-Schutz bleiben erhalten.
+
 WICHTIGE DASHBOARD-PFADE
 
 Dashboard App:
@@ -266,24 +287,29 @@ WICHTIGE TECHNISCHE REGELN
 
 AKTUELLER TEST-/ARBEITSSTAND
 
-V136 ist im Repository committed.
+V137 ist im Repository committed.
 
-Nächster Praxistest:
-- aktuellen main-Stand laden,
-- „Server-Dashboard installieren / aktualisieren“ ausführen,
-- dabei muss der Schritt „Paperless HTTPS / CSRF / Login-IP prüfen“ laufen,
-- anschließend Paperless weiter über https://192.168.178.102/ öffnen,
-- Login erneut testen.
-- Der frühere CSRF-Fehler „Origin checking failed“ ist behoben.
-- Der danach aufgetretene allauth-Fehler „Unable to determine client IP address“ muss mit V136 ebenfalls verschwinden.
-
-Bei Bedarf prüfen:
-  PL_ID="$(pct list | awk 'tolower($3)=="paperless"{print $1; exit}')"
-  pct exec "$PL_ID" -- bash -lc 'cd /opt/paperless && docker compose exec -T webserver env | grep -E "PAPERLESS_(URL|PROXY_SSL_HEADER|TRUSTED_PROXIES|ALLAUTH_TRUSTED_CLIENT_IP_HEADER)"'
-  pct exec "$PL_ID" -- bash -lc 'cd /opt/paperless && docker compose logs --since=5m webserver'
-
-Erwartet:
+Der Nutzer installiert Paperless jetzt neu. Für diesen Test gilt:
+- unbedingt aktuellen main-Stand laden; Hauptmenü muss V137 anzeigen.
+- Paperless neu installieren.
+- Die erzeugte /opt/paperless/docker-compose.yml muss direkt folgende Werte enthalten:
+  PAPERLESS_URL=https://<Paperless-IP>
+  PAPERLESS_PROXY_SSL_HEADER=["HTTP_X_FORWARDED_PROTO", "https"]
+  PAPERLESS_TRUSTED_PROXIES=127.0.0.1
   PAPERLESS_ALLAUTH_TRUSTED_CLIENT_IP_HEADER=X-Real-IP
+- PAPERLESS_CSRF_TRUSTED_ORIGINS soll NICHT zusätzlich gesetzt sein.
+- Nach nginx/TLS-Konfiguration muss verify_paperless_proxy_v137 automatisch laufen.
+- Die Installation darf nur erfolgreich enden, wenn Webserver, Container-Environment, Django-CSRF/Proxy-Settings und nginx-Header geprüft wurden.
+- Danach Login über https://<Paperless-IP>/ testen.
+- Weder „Origin checking failed“ noch „Unable to determine client IP address“ dürfen auftreten.
+
+Bei Fehlern bitte senden:
+  pct list
+  PL_ID="$(pct list | awk 'tolower($3)=="paperless"{print $1; exit}')"
+  pct exec "$PL_ID" -- bash -lc 'cd /opt/paperless && docker compose config'
+  pct exec "$PL_ID" -- bash -lc 'cd /opt/paperless && docker compose ps'
+  pct exec "$PL_ID" -- bash -lc 'cd /opt/paperless && docker compose logs --since=10m webserver'
+  pct exec "$PL_ID" -- cat /etc/nginx/conf.d/pve-master-standard-web.conf
 
 Zusätzlich V134 weiter prüfen:
 - Trenner + „⚙ Einstellungen“ + GitHub unten im Seitenmenü.
