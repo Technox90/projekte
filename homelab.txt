@@ -15,10 +15,10 @@ Bitte direkt im GitHub-Repository weiterarbeiten, Änderungen committen und hist
 AKTUELLER STAND
 
 Installer-Version:
-V135
+V136
 
 Aktueller Commit von Technox90/homeatic:
-3d16cbc65e5876861b95336894bfed870a378b0c
+3bf1adb83948d0bbec9295a43936b09397875ceb
 
 Der GitHub-main-Stand ist die maßgebliche Quelle.
 
@@ -177,6 +177,22 @@ V135
 - Die Migration wird auch bei einem reinen Dashboard-Update ausgeführt, damit ein bestehender Paperless-CT ohne Neuinstallation repariert werden kann.
 - V134 Dashboard-Link-Abgleich, Theme, GitHub-Link, Pi-hole-v6 dns.hosts und SQLite-Schutz bleiben erhalten.
 
+V136
+- Paperless Login-403 nach dem CSRF-Fix behoben.
+- Neues Fehlerbild:
+  django.core.exceptions.PermissionDenied: Unable to determine client IP address
+- Ursache:
+  PAPERLESS_ALLAUTH_TRUSTED_CLIENT_IP_HEADER war fälschlich als HTTP_X_REAL_IP gesetzt.
+- Laut aktueller Paperless/allauth-Konfiguration muss hier der echte Headername verwendet werden:
+  PAPERLESS_ALLAUTH_TRUSTED_CLIENT_IP_HEADER=X-Real-IP
+- nginx setzt bereits:
+  proxy_set_header X-Real-IP $remote_addr;
+- PAPERLESS_TRUSTED_PROXIES=127.0.0.1 bleibt bestehen.
+- Bestehende Paperless-CTs werden über repair_existing_paperless_proxy_v136 migriert.
+- Die Migration recreatet den Webserver mit --force-recreate und prüft anschließend die Environment-Werte.
+- Ein eventuell zusätzlich gesetztes PAPERLESS_CSRF_TRUSTED_ORIGINS wird entfernt, weil PAPERLESS_URL denselben Origin bereits automatisch in Django ergänzt.
+- HTTPS bleibt Standard; HTTP ist für diesen Fehler nicht notwendig.
+
 WICHTIGE DASHBOARD-PFADE
 
 Dashboard App:
@@ -250,21 +266,24 @@ WICHTIGE TECHNISCHE REGELN
 
 AKTUELLER TEST-/ARBEITSSTAND
 
-V135 ist im Repository committed.
+V136 ist im Repository committed.
 
 Nächster Praxistest:
 - aktuellen main-Stand laden,
 - „Server-Dashboard installieren / aktualisieren“ ausführen,
-- dabei muss zusätzlich der Schritt „Paperless HTTPS / CSRF prüfen“ laufen,
-- anschließend Paperless unter https://192.168.178.102/ öffnen,
-- Login erneut testen,
-- der 403-CSRF-Fehler darf nicht mehr auftreten.
+- dabei muss der Schritt „Paperless HTTPS / CSRF / Login-IP prüfen“ laufen,
+- anschließend Paperless weiter über https://192.168.178.102/ öffnen,
+- Login erneut testen.
+- Der frühere CSRF-Fehler „Origin checking failed“ ist behoben.
+- Der danach aufgetretene allauth-Fehler „Unable to determine client IP address“ muss mit V136 ebenfalls verschwinden.
 
 Bei Bedarf prüfen:
   PL_ID="$(pct list | awk 'tolower($3)=="paperless"{print $1; exit}')"
-  pct exec "$PL_ID" -- bash -lc 'cd /opt/paperless && docker compose config | grep -E "PAPERLESS_(URL|PROXY_SSL_HEADER|TRUSTED_PROXIES|ALLAUTH_TRUSTED_CLIENT_IP_HEADER)"'
-  pct exec "$PL_ID" -- bash -lc 'cd /opt/paperless && docker compose ps'
-  pct exec "$PL_ID" -- bash -lc 'cd /opt/paperless && docker compose logs --tail=100 webserver'
+  pct exec "$PL_ID" -- bash -lc 'cd /opt/paperless && docker compose exec -T webserver env | grep -E "PAPERLESS_(URL|PROXY_SSL_HEADER|TRUSTED_PROXIES|ALLAUTH_TRUSTED_CLIENT_IP_HEADER)"'
+  pct exec "$PL_ID" -- bash -lc 'cd /opt/paperless && docker compose logs --since=5m webserver'
+
+Erwartet:
+  PAPERLESS_ALLAUTH_TRUSTED_CLIENT_IP_HEADER=X-Real-IP
 
 Zusätzlich V134 weiter prüfen:
 - Trenner + „⚙ Einstellungen“ + GitHub unten im Seitenmenü.
