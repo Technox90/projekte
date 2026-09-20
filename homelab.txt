@@ -15,10 +15,10 @@ Bitte direkt im GitHub-Repository weiterarbeiten, Änderungen committen und hist
 AKTUELLER STAND
 
 Installer-Version:
-V137
+V138
 
 Aktueller Commit von Technox90/homeatic:
-31cb5cc935dc8f4dae76dac000453405491cf5ce
+ee72805d0fbbb816df0698b08e73c591876b7e81
 
 Der GitHub-main-Stand ist die maßgebliche Quelle.
 
@@ -214,6 +214,25 @@ V137
 - Beschädigten/duplizierten V136-Patchbereich entfernt; die echte Pi-hole-Funktion ist wieder nur einmal vorhanden.
 - V134 Dashboard-Link-Abgleich, Theme, GitHub-Link, Pi-hole-v6 dns.hosts und SQLite-Schutz bleiben erhalten.
 
+V138
+- Paperless NAS-Inbox/Consume auf Netzwerkspeicher korrigiert.
+- Problem:
+  * Paperless selbst war healthy,
+  * Uploads über die Weboberfläche wurden verarbeitet,
+  * Dokumente in der NAS-Inbox blieben liegen.
+- Ursache:
+  * /usr/src/paperless/consume liegt bei externer Paperless-Ablage auf /mnt/paperless-storage,
+  * NFS/SMB liefert inotify-Dateisystemereignisse nicht zuverlässig.
+- Neu bei der Paperless-Neuinstallation:
+  * PAPERLESS_CONSUMER_POLLING_INTERVAL=10 bei PAPERLESS_EXTERNAL_STORAGE,
+  * lokale Ablage verwendet weiterhin 0/inotify.
+- verify_paperless_proxy_v138 prüft zusätzlich:
+  * Polling-Wert im laufenden Container,
+  * /usr/src/paperless/consume existiert,
+  * NAS-Inbox ist lesbar und beschreibbar.
+- repair_existing_paperless_proxy_v138 zieht vorhandene Installationen ebenfalls nach.
+- V137 HTTPS/CSRF/allauth bleibt vollständig erhalten.
+
 WICHTIGE DASHBOARD-PFADE
 
 Dashboard App:
@@ -287,28 +306,31 @@ WICHTIGE TECHNISCHE REGELN
 
 AKTUELLER TEST-/ARBEITSSTAND
 
-V137 ist im Repository committed.
+V138 ist im Repository committed.
 
-Der Nutzer installiert Paperless jetzt neu. Für diesen Test gilt:
-- unbedingt aktuellen main-Stand laden; Hauptmenü muss V137 anzeigen.
+Der Nutzer installiert Paperless neu. Beim Praxistest gilt:
+- unbedingt aktuellen main-Stand laden; Hauptmenü muss V138 anzeigen.
 - Paperless neu installieren.
-- Die erzeugte /opt/paperless/docker-compose.yml muss direkt folgende Werte enthalten:
-  PAPERLESS_URL=https://<Paperless-IP>
-  PAPERLESS_PROXY_SSL_HEADER=["HTTP_X_FORWARDED_PROTO", "https"]
-  PAPERLESS_TRUSTED_PROXIES=127.0.0.1
-  PAPERLESS_ALLAUTH_TRUSTED_CLIENT_IP_HEADER=X-Real-IP
-- PAPERLESS_CSRF_TRUSTED_ORIGINS soll NICHT zusätzlich gesetzt sein.
-- Nach nginx/TLS-Konfiguration muss verify_paperless_proxy_v137 automatisch laufen.
-- Die Installation darf nur erfolgreich enden, wenn Webserver, Container-Environment, Django-CSRF/Proxy-Settings und nginx-Header geprüft wurden.
-- Danach Login über https://<Paperless-IP>/ testen.
-- Weder „Origin checking failed“ noch „Unable to determine client IP address“ dürfen auftreten.
+- Bei externer NAS-Ablage muss die erzeugte Compose-Konfiguration enthalten:
+  PAPERLESS_CONSUMER_POLLING_INTERVAL=10
+- Im laufenden Paperless-Webserver muss derselbe Wert aktiv sein.
+- /usr/src/paperless/consume muss im Container lesbar und beschreibbar sein.
+- Bereits vorhandene Dokumente in der NAS-Inbox sollen innerhalb des Polling-Intervalls als Consumer-Aufgaben erscheinen und nach erfolgreicher Verarbeitung aus der Inbox verschwinden.
+- Web-Upload und Inbox-Import getrennt testen.
+
+HTTPS/Login weiterhin prüfen:
+- PAPERLESS_URL=https://<Paperless-IP>
+- PAPERLESS_PROXY_SSL_HEADER=["HTTP_X_FORWARDED_PROTO", "https"]
+- PAPERLESS_TRUSTED_PROXIES=127.0.0.1
+- PAPERLESS_ALLAUTH_TRUSTED_CLIENT_IP_HEADER=X-Real-IP
+- PAPERLESS_CSRF_TRUSTED_ORIGINS nicht zusätzlich setzen.
 
 Bei Fehlern bitte senden:
   pct list
   PL_ID="$(pct list | awk 'tolower($3)=="paperless"{print $1; exit}')"
-  pct exec "$PL_ID" -- bash -lc 'cd /opt/paperless && docker compose config'
-  pct exec "$PL_ID" -- bash -lc 'cd /opt/paperless && docker compose ps'
-  pct exec "$PL_ID" -- bash -lc 'cd /opt/paperless && docker compose logs --since=10m webserver'
+  pct exec "$PL_ID" -- bash -lc 'cd /opt/paperless && docker compose exec -T webserver env | grep -E "PAPERLESS_(CONSUMER_POLLING_INTERVAL|URL|PROXY_SSL_HEADER|TRUSTED_PROXIES|ALLAUTH_TRUSTED_CLIENT_IP_HEADER)"'
+  pct exec "$PL_ID" -- bash -lc 'cd /opt/paperless && docker compose exec -T webserver ls -lah /usr/src/paperless/consume'
+  pct exec "$PL_ID" -- bash -lc 'cd /opt/paperless && docker compose logs --since=10m webserver | grep -Ei "consumer|consume|error|warning|failed"'
   pct exec "$PL_ID" -- cat /etc/nginx/conf.d/pve-master-standard-web.conf
 
 Zusätzlich V134 weiter prüfen:
