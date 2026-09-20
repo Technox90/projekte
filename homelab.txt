@@ -15,10 +15,10 @@ Bitte direkt im GitHub-Repository weiterarbeiten, Änderungen committen und hist
 AKTUELLER STAND
 
 Installer-Version:
-V133
+V134
 
 Aktueller Commit von Technox90/homeatic:
-267361d0702f40016be574e80a99547b286f0cc8
+9ee914678878f8087edd5da2175fc698abbba45f
 
 Der GitHub-main-Stand ist die maßgebliche Quelle.
 
@@ -139,6 +139,26 @@ V133
   Theme-API theme_bg
 - Pi-hole-v6 dns.hosts, CNAME-Sync und SQLite-Korrekturen bleiben unverändert.
 
+V134
+- Menüfooter korrigiert:
+  * V133 hatte „⚙ Einstellungen“ mit margin-top:0 direkt unter den dynamischen Diensten platziert.
+  * V134 hält stattdessen den Trenner #navSettingsDivider per margin-top:auto unten.
+  * Trenner + „⚙ Einstellungen“ + GitHub bilden wieder den unteren Abschluss des Seitenmenüs.
+  * Bei vielen Diensten bleibt die Sidebar scrollbar.
+- Fehlende Links vorhandener CTs beim reinen Dashboard-Update behoben.
+- Ursache:
+  * Zusatzlinks wurden bisher nur gesetzt, wenn der jeweilige INSTALL_* Schalter im aktuellen Lauf aktiv war.
+  * Bei einem reinen Dashboard-Update waren vorhandene Zusatz-CTs deshalb nicht erneut in die Linkliste aufgenommen worden.
+- Neuer Abgleich:
+  dashboard_reconcile_existing_guests_v134
+- Der Abgleich scannt vorhandene LXC über pct, liest Hostname und private IPv4 und ergänzt nur fehlende Links bekannter Installer-Webdienste.
+- Erkannt werden u. a.:
+  Paperless, Pi-hole, NetAlertX, Uptime Kuma, Vaultwarden, Caddy, Stirling PDF, ntfy, Forgejo, Syncthing, Speedtest Tracker, Scrutiny, Mealie, Proxmox Backup Server, Pulse, PVE-UPS, Semaphore, Pocket ID, Prometheus, PVE Exporter, Grafana, Pangolin, Gatus, Homepage, Nginx Proxy Manager und EMQX.
+- Newt und CrowdSec werden bewusst nicht als Weblink ergänzt.
+- Bestehende Links/URLs und manuelle Einträge werden NICHT überschrieben oder gelöscht.
+- Neu erkannte Links werden vor der Standardkategorie-Zuordnung ergänzt und können dadurch automatisch in Basics/Extras einsortiert werden.
+- Theme-Migration, GitHub-Link, Pi-hole-v6 dns.hosts und SQLite-Schutzregeln bleiben erhalten.
+
 WICHTIGE DASHBOARD-PFADE
 
 Dashboard App:
@@ -212,32 +232,30 @@ WICHTIGE TECHNISCHE REGELN
 
 AKTUELLER TEST-/ARBEITSSTAND
 
-V133 ist im Repository committed. Der V132-Praxisfehler beim Aktualisieren eines bereits vorhandenen Dashboards wurde im Installer korrigiert.
+V134 ist im Repository committed.
 
-Bei der nächsten Arbeit bitte zuerst den aktuellen main-Stand lesen und dann V133 auf dem bereits laufenden Dashboard praktisch prüfen:
+Beim nächsten Praxistest bitte den aktuellen main-Stand laden und „Server-Dashboard installieren / aktualisieren“ erneut ausführen.
 
-- Dashboard installieren/aktualisieren.
-- Browser danach mit STRG + F5 neu laden.
-- Im Seitenmenü muss direkt unter dem sichtbaren Trenner „⚙ Einstellungen“ erscheinen.
-- Direkt darunter muss der GitHub-Link „Technox90 / homeatic“ erscheinen.
-- „⚙ Einstellungen“ öffnen und den Reiter „Dashboard“ aufrufen.
-- Prüfen, ob alle 11 Farbwähler sichtbar sind.
-- Eine oder mehrere Farben ändern und Live-Vorschau prüfen.
-- Ohne Speichern schließen und prüfen, ob die gespeicherten Farben zurückkehren.
-- Erneut ändern, Sicherheitscode eingeben und speichern.
-- /etc/pve-sensor-dashboard/ui.json kontrollieren.
-- Browser neu laden und Persistenz prüfen.
-- „Standardfarben“ testen.
-- Desktop- und mobile Darstellung prüfen.
-- HTTPS/Favicon/Webseitenname/Menüname weiterhin testen.
-- Pi-hole-V131-dns.hosts-Funktion dabei unverändert lassen, sofern kein konkreter Fehler vorliegt.
+Danach prüfen:
+- Browser mit STRG + F5 neu laden.
+- Trenner + „⚙ Einstellungen“ + GitHub sollen wieder am unteren Rand des Seitenmenüs stehen.
+- Bei vielen Links muss das Seitenmenü scrollbar bleiben.
+- Bereits vorhandene bekannte Web-CTs sollen automatisch wieder als fehlende Links erscheinen.
+- Insbesondere vorhandene Zusatzdienste wie Uptime Kuma, Stirling PDF, Speedtest Tracker, Scrutiny, Pulse, PVE-UPS, Semaphore, Prometheus, PVE Exporter, Grafana und EMQX prüfen, soweit sie auf dem Host tatsächlich existieren.
+- Bestehende manuell angepasste Links dürfen nicht überschrieben werden.
+- Neu erkannte Dienste sollen automatisch Basics/Extras zugeordnet werden.
+- „⚙ Einstellungen“ öffnen und im Dashboard-Reiter weiterhin die 11 Farbwähler prüfen.
+- Live-Vorschau, Speichern, Standardfarben, HTTPS, Favicon, Webseitenname und Menüname weiterhin testen.
+- Pi-hole-v6 dns.hosts unverändert lassen, sofern kein konkreter Fehler vorliegt.
 
-Falls „⚙ Einstellungen“, der GitHub-Link oder die Farbwähler nach V133 weiterhin fehlen, zuerst direkt auf dem Proxmox-Host prüfen:
-  grep -nE 'dashboardSettingsHubButton|dashboardGithubLink|themeBg|PVE_SETTINGS_MENU_VISIBILITY_V133' /opt/pve-sensor-dashboard/static/index.html
-  grep -n 'theme_bg' /opt/pve-sensor-dashboard/app.py
-  cat /etc/pve-sensor-dashboard/ui.json
+Falls Links nach V134 weiterhin fehlen, bitte auf dem Proxmox-Host ausführen:
+  pct list
+  cat /var/lib/pve-sensor-dashboard-web/links.json
+  cat /var/lib/pve-sensor-dashboard-web/categories.json
 
-Bei weiteren Praxisfehlern bitte direkt die nächste Installer-Version erstellen, history.txt aktualisieren und anschließend auch diesen Übergabe-Prompt wieder vollständig auf den neuen Stand bringen.
+Dann kann anhand der tatsächlichen CT-Hostnamen geprüft werden, ob ein weiterer Alias in dashboard_reconcile_existing_guests_v134 ergänzt werden muss.
+
+Bei weiteren Praxisfehlern direkt die nächste Installer-Version erstellen, history.txt aktualisieren und anschließend auch diesen Übergabe-Prompt vollständig aktualisieren.
 
 WICHTIGE DAUERREGEL FÜR DIE WEITERE ARBEIT
 
