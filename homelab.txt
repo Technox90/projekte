@@ -15,10 +15,10 @@ Bitte direkt im GitHub-Repository weiterarbeiten, Änderungen committen und hist
 AKTUELLER STAND
 
 Installer-Version:
-V132
+V133
 
 Aktueller Commit von Technox90/homeatic:
-dc314de5f802cdadb48ca95dd8fda2fd4717a6db
+267361d0702f40016be574e80a99547b286f0cc8
 
 Der GitHub-main-Stand ist die maßgebliche Quelle.
 
@@ -112,6 +112,33 @@ V132
 - Karten, Dialoge, Navigation, Buttons, aktive Zeitbereiche und Statusfarben reagieren auf das gewählte Farbschema.
 - TUI_TITLE, Hauptmenü-Version, Setup-Profil installer_version, Secret-Index und Backtitle wurden auf V132 aktualisiert.
 
+V133
+- Updatepfad für bereits bestehende Dashboard-Installationen repariert.
+- Ursache des V132-Praxisfehlers:
+  * V132 enthielt die Theme-Funktionen für Neuinstallationen,
+  * bei vorhandenen V131/V132-Dashboards wurden neue Theme-Bestandteile wegen zu grober Idempotenz-Prüfungen übersprungen.
+- Bestehende Dashboards werden jetzt explizit migriert:
+  * /etc/pve-sensor-dashboard/ui.json bekommt fehlende bzw. ungültige Theme-Defaults,
+  * bestehende read_ui_settings()-Defaults werden um Theme-Felder ergänzt,
+  * bestehendes helper_payload der /api/ui-settings-Route wird um Theme-Felder ergänzt,
+  * bestehender Settings-Dialog bekommt die 11 Farbwähler nachgerüstet,
+  * bestehendes Frontend-JavaScript bekommt Theme-Laden, Live-Vorschau und Speichern nachgerüstet.
+- Menü-Sichtbarkeit korrigiert:
+  * der Trenner vor „⚙ Einstellungen“ war bereits vorhanden,
+  * .navManage mit margin-top:auto drückte den Button ans Ende des Sidebars,
+  * #dashboardSettingsHubButton steht jetzt direkt unter dem Trenner,
+  * GitHub-Link steht direkt darunter,
+  * Sidebar ist vertikal scrollbar.
+- Beim Schließen ohne Speichern wird die Live-Farbvorschau wieder auf den gespeicherten Stand gesetzt.
+- Temporärer Settings-Patchpfad korrigiert:
+  /tmp/pve-dashboard-settings-v4.$
+- Finale Dashboard-Prüfung kontrolliert jetzt zusätzlich:
+  dashboardGithubLink
+  PVE_SETTINGS_MENU_VISIBILITY_V133
+  themeBg
+  Theme-API theme_bg
+- Pi-hole-v6 dns.hosts, CNAME-Sync und SQLite-Korrekturen bleiben unverändert.
+
 WICHTIGE DASHBOARD-PFADE
 
 Dashboard App:
@@ -185,12 +212,15 @@ WICHTIGE TECHNISCHE REGELN
 
 AKTUELLER TEST-/ARBEITSSTAND
 
-V132 ist im Repository committed, aber die neue Farbverwaltung muss noch auf einem tatsächlich laufenden Dashboard geprüft werden.
+V133 ist im Repository committed. Der V132-Praxisfehler beim Aktualisieren eines bereits vorhandenen Dashboards wurde im Installer korrigiert.
 
-Bei der nächsten Arbeit bitte zuerst den aktuellen main-Stand lesen und dann insbesondere testen bzw. bei Fehlern reparieren:
+Bei der nächsten Arbeit bitte zuerst den aktuellen main-Stand lesen und dann V133 auf dem bereits laufenden Dashboard praktisch prüfen:
 
 - Dashboard installieren/aktualisieren.
-- „☰ Menü → ⚙ Einstellungen“ öffnen.
+- Browser danach mit STRG + F5 neu laden.
+- Im Seitenmenü muss direkt unter dem sichtbaren Trenner „⚙ Einstellungen“ erscheinen.
+- Direkt darunter muss der GitHub-Link „Technox90 / homeatic“ erscheinen.
+- „⚙ Einstellungen“ öffnen und den Reiter „Dashboard“ aufrufen.
 - Prüfen, ob alle 11 Farbwähler sichtbar sind.
 - Eine oder mehrere Farben ändern und Live-Vorschau prüfen.
 - Ohne Speichern schließen und prüfen, ob die gespeicherten Farben zurückkehren.
@@ -198,11 +228,16 @@ Bei der nächsten Arbeit bitte zuerst den aktuellen main-Stand lesen und dann in
 - /etc/pve-sensor-dashboard/ui.json kontrollieren.
 - Browser neu laden und Persistenz prüfen.
 - „Standardfarben“ testen.
-- Desktop- und mobile Darstellung des vergrößerten Einstellungsdialogs prüfen.
-- HTTPS/Favicon/Webseitenname/Menüname weiterhin testen, damit V132 keine Regression verursacht.
+- Desktop- und mobile Darstellung prüfen.
+- HTTPS/Favicon/Webseitenname/Menüname weiterhin testen.
 - Pi-hole-V131-dns.hosts-Funktion dabei unverändert lassen, sofern kein konkreter Fehler vorliegt.
 
-Wenn bei diesem Praxistest Fehler auftreten, bitte direkt als nächste Version beheben und history.txt entsprechend fortschreiben.
+Falls „⚙ Einstellungen“, der GitHub-Link oder die Farbwähler nach V133 weiterhin fehlen, zuerst direkt auf dem Proxmox-Host prüfen:
+  grep -nE 'dashboardSettingsHubButton|dashboardGithubLink|themeBg|PVE_SETTINGS_MENU_VISIBILITY_V133' /opt/pve-sensor-dashboard/static/index.html
+  grep -n 'theme_bg' /opt/pve-sensor-dashboard/app.py
+  cat /etc/pve-sensor-dashboard/ui.json
+
+Bei weiteren Praxisfehlern bitte direkt die nächste Installer-Version erstellen, history.txt aktualisieren und anschließend auch diesen Übergabe-Prompt wieder vollständig auf den neuen Stand bringen.
 
 WICHTIGE DAUERREGEL FÜR DIE WEITERE ARBEIT
 
@@ -229,4 +264,4 @@ Nach jeder relevanten Änderung müssen dort mindestens aktuell gehalten werden:
 - nächste geplante Aufgabe / aktueller Arbeitsstand
 - wichtige Sicherheits- und Kompatibilitätsregeln
 
-Nach dem Aktualisieren von Technox90/homeatic also auch Technox90/projekte/homelab.txt aktualisieren und committen.
+Nach dem Aktualisieren von Technox90/homeatic also IMMER auch Technox90/projekte/homelab.txt aktualisieren und committen. Diese Übergabe-Prompt-Aktualisierung ist fester Bestandteil jeder neuen Version bzw. größeren/entscheidenden Änderung und darf nicht ausgelassen werden.
