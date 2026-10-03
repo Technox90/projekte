@@ -20,6 +20,16 @@ try {
       throw "GitHub-Datei ungueltig: $name"
     }
   }
+  # Fixed Git commit: only the two Bob/Angel source lines already validated on AMP.
+  $patchUrl='https://raw.githubusercontent.com/Technox90/projekte/f05dc2345dcad068b6a94c5b05ebab3c7c30703b/Factorio/BBQ-Angels-Client-Patch.ps1'
+  $patchFile=Join-Path $work 'BBQ-Angels-Client-Patch.ps1'
+  Remove-Item -LiteralPath $patchFile -Force -ErrorAction SilentlyContinue
+  Invoke-WebRequest -Uri ($patchUrl+'?nocache='+[guid]::NewGuid().ToString('N')) -OutFile $patchFile -UseBasicParsing -TimeoutSec 60 -ErrorAction Stop | Out-Null
+  $patchSource=Get-Content -LiteralPath $patchFile -Raw -Encoding UTF8
+  if(-not $patchSource.StartsWith('# BBQ_ANGELS_PATCH_VERSION=20261003_1')){throw 'Unpassender Angel-Patch von GitHub'}
+  $parseTokens=$null;$parseErrors=$null
+  [void][System.Management.Automation.Language.Parser]::ParseFile($patchFile,[ref]$parseTokens,[ref]$parseErrors)
+  if($parseErrors.Count -gt 0){throw "Angel-Patch hat PowerShell-Syntaxfehler: $($parseErrors[0].Message)"}
   $listFile=Join-Path $work 'mod-list.json'
   $list=Get-Content -LiteralPath $listFile -Raw -Encoding UTF8 | ConvertFrom-Json
   # Variable Anzahl zulassen, damit spaetere Modlisten-Aenderungen ohne
@@ -57,7 +67,17 @@ try {
   Write-Host ("BBQ CHAOS | GitHub geladen: {0} Mods, {1} aktiv" -f @($list.mods).Count,$enabled.Count)
   if($TestParser){ & $scriptPath -ModList $listFile -TestParser }
   elseif($CheckOnly){ & $scriptPath -ModList $listFile -CheckOnly }
-  else{ & $scriptPath -ModList $listFile -DownloadAvailable }
+  else{
+    # Downloader downloads official ZIPs, verifies SHA1, writes mod-list.json.
+    # Angel's post-processing then brings the ZIP contents in line with AMP.
+    $global:LASTEXITCODE=0
+    & $scriptPath -ModList $listFile -DownloadAvailable
+    $downloadCode=[int]$global:LASTEXITCODE
+    & $patchFile -ModsDir (Join-Path $env:APPDATA 'Factorio\mods')
+    if($downloadCode -ne 0){
+      throw "Download noch unvollstaendig (Core-Code $downloadCode). Pruefe fehlende private Mod und Report."
+    }
+  }
 } catch {
   Write-Host ("FEHLER: GitHub-Downloader nicht gestartet: "+$_.Exception.Message) -ForegroundColor Red
   exit 10
