@@ -11,6 +11,23 @@ on:
   workflow_dispatch:
 
 jobs:
+  amp-python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse AMP official-portal sync and verify no ZIP modifications
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile Factorio/BBQ-AMP-Portal-Sync.py
+          grep -q "sha1_file(staged_zip)" Factorio/BBQ-AMP-Portal-Sync.py || { echo 'Checksum verification missing'; exit 1; }
+          grep -q "os.replace(old_mods, backup)" Factorio/BBQ-AMP-Portal-Sync.py || { echo 'AMP backup missing'; exit 1; }
+          grep -q "os.replace(stage, old_mods)" Factorio/BBQ-AMP-Portal-Sync.py || { echo 'Atomic swap missing'; exit 1; }
+          if grep -Eq "ZipArchive|data-updates[.]lua|BBQ-Angels-Client-Patch" Factorio/BBQ-AMP-Portal-Sync.py; then
+            echo 'Unexpected custom ZIP patching reference'
+            exit 1
+          fi
+
   windows-powershell:
     runs-on: windows-latest
     steps:
