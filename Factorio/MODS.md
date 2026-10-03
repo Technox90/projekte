@@ -1,6 +1,6 @@
 # BBQ CHAOS – Modkatalog
 
-**Factorio 2.0.77 · Bob's + Angel's + Space Age · 110 Mods (100 aktiv / 10 deaktiviert)**
+**Factorio 2.0.77 · Bob's + Angel's + Space Age · 111 Mods (99 aktiv / 12 deaktiviert)**
 
 Modnamen sind die exakten IDs. Die Beschreibungen dienen zur Orientierung; die tatsächliche Kompatibilität des gesamten Pakets ist noch nicht durch einen Factorio-Spielstart nachgewiesen. Unklare Forks/Erweiterungen werden nicht als geprüft dargestellt. Über den Namen gelangst du direkt zur Beschreibung im Modportal.
 
@@ -55,8 +55,10 @@ Modnamen sind die exakten IDs. Die Beschreibungen dienen zur Orientierung; die t
 | Aktiv | [`angelssmelting`](https://mods.factorio.com/mod/angelssmelting) | Metallverhüttung |
 | Aktiv | [`angelssmeltinggraphics`](https://mods.factorio.com/mod/angelssmeltinggraphics) | Angel-Zusatzmod bzw. Grafik-/Funktionsbaustein |
 | Aktiv | [`AngelBob`](https://mods.factorio.com/mod/AngelBob) | Angel-/Bob-Integrationspaket |
-| Aktiv | [`angelsaddons-space-age`](https://mods.factorio.com/mod/angelsaddons-space-age) | Space-Age-Kompatibilität für Angel |
-| Aktiv | [`angels-space-age-tungsten-compat`](https://mods.factorio.com/mod/angels-space-age-tungsten-compat) | Wolfram-Kompatibilität |
+| Deaktiviert | [`angelsaddons-space-age`](https://mods.factorio.com/mod/angelsaddons-space-age) | Fehlerhafte Originalmod: ersetzt Schwefelsäure in Batterierezepten durch nicht existierende Flüssigkeit; siehe [Bug](https://mods.factorio.com/mod/angelsaddons-space-age/discussion/6a75e6058f9c45953f49b836). |
+| Aktiv | [`angelsaddons-space-age-revived`](https://mods.factorio.com/mod/angelsaddons-space-age-revived) **0.0.14** | Korrigierter Fork; beseitigt den `quality`/Batterie-Recycling-Absturz. |
+
+| Deaktiviert | [`angels-space-age-tungsten-compat`](https://mods.factorio.com/mod/angels-space-age-tungsten-compat) | Benötigt ausdrücklich die **fehlerhafte Originalmod** `angelsaddons-space-age`; daher vorerst deaktiviert. Wolfram-Integration bleibt separat zu testen. |
 
 ## Grafik- und Bibliotheksmods
 
@@ -139,9 +141,13 @@ Modnamen sind die exakten IDs. Die Beschreibungen dienen zur Orientierung; die t
 | Aktiv | [`WhereIsMyBody`](https://mods.factorio.com/mod/WhereIsMyBody) **2.0.15** | Leiche wiederfinden |
 | Aktiv | [`DiscoScience`](https://mods.factorio.com/mod/DiscoScience) **2.0.1** | Leuchtende Wissenschaftslabore |
 
+## Reparatur vom 03.10.2026 – Quality / Battery-Recycling
+
+Beim Laden von `quality` entstand `Recipe battery has malformed ingredients: ingredient fluid 'angels-liquid-sulfuric-acid' does not exist`. Ursache: `angelsaddons-space-age` (0.0.13). Umstellung auf den korrigierten Fork `angelsaddons-space-age-revived` **0.0.14**, Original und abhängigen Wolfram-Patch vorerst deaktiviert. Wichtig: Gleicher Effekt auf Windows und AMP nur bei identischem Modstand; kompletten Spielstart sowie Rezepte und den Wolfram-Fortschritt testen. [Changelog des Forks](https://mods.factorio.com/mod/angelsaddons-space-age-revived/changelog).
+
 ## Achtung
 
 - `early_construction_modified_private` könnte nur lokal verfügbar sein; der Downloader kann private Mods nicht selbst beschaffen.
-- Zehn deaktivierte Einträge bleiben deaktiviert, darunter Space-Age-Konflikte und vorsorglich pausierte Mods.
+- Zwölf deaktivierte Einträge bleiben deaktiviert, darunter Space-Age-Konflikte und vorsorglich pausierte Mods.
 - Die Versions-Pins betreffen genau sechs neu hinzugefügte QoL-Mods. Alle anderen Releases wählt der Downloader anhand der Portal-Abhängigkeiten passend für Factorio 2.0; daraus folgt keine Garantie für 2.0.77-Spielbarkeit.
 - Vor AMP-Einsatz einen neuen Spielstand laden, alle Planeten überprüfen und UPS messen.
