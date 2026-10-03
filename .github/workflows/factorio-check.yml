@@ -55,6 +55,8 @@ jobs:
             if ($ids.ContainsKey($entry.name)) { throw "Duplicate mod: $($entry.name)" }
             $ids[$entry.name] = $entry.enabled
           }
+          if (@($all | Where-Object { -not $_.enabled }).Count -gt 0) { throw 'Disabled mods must not remain in GitHub list' }
+          if ($ids.ContainsKey('AutoDeconstruct')) { throw 'Optional AutoDeconstruct has been removed' }
           if (-not $ids['base']) { throw 'base must be enabled' }
           if ($ids['saplib'] -and $ids['cargo-ships']) { throw 'saplib conflicts with cargo-ships resource autoplace in this pack' }
           if ($ids['angelsaddons-space-age']) { throw 'Broken Angel Space Age original must remain disabled' }
