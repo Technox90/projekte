@@ -20,7 +20,8 @@ jobs:
         run: |
           set -euo pipefail
           python3 -m py_compile Factorio/BBQ-AMP-Portal-Sync.py
-          grep -q "sha1_file(staged_zip)" Factorio/BBQ-AMP-Portal-Sync.py || { echo 'Checksum verification missing'; exit 1; }
+          grep -q "sha1_file(path)" Factorio/BBQ-AMP-Portal-Sync.py || { echo 'Checksum function missing'; exit 1; }
+          grep -q "validate_archive(staged_zip" Factorio/BBQ-AMP-Portal-Sync.py || { echo 'ZIP checksum validation missing'; exit 1; }
           grep -q "os.replace(old_mods, backup)" Factorio/BBQ-AMP-Portal-Sync.py || { echo 'AMP backup missing'; exit 1; }
           grep -q "os.replace(stage, old_mods)" Factorio/BBQ-AMP-Portal-Sync.py || { echo 'Atomic swap missing'; exit 1; }
           if grep -Eq "ZipArchive|data-updates[.]lua|BBQ-Angels-Client-Patch" Factorio/BBQ-AMP-Portal-Sync.py; then
