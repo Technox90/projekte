@@ -101,17 +101,39 @@ def get_login():
     return username, token
 
 
-def validate_archive(path, name, version, sha1):
-    if not path.is_file() or sha1_file(path) != sha1.lower():
-        return False
+def archive_problem(path, name, version, sha1):
+    """None if the exact original portal ZIP is valid; otherwise a precise reason.
+    Official hashes are mandatory. ZIP root folder spelling is NOT a trust check:
+    official releases may use a different root folder or store info.json at root.
+    """
+    if not path.is_file():
+        return "Datei fehlt"
+    actual_sha1 = sha1_file(path)
+    if actual_sha1 != sha1.lower():
+        return f"SHA1 falsch (Portal: {sha1.lower()}, Datei: {actual_sha1})"
     try:
         with ZipFile(path) as archive:
-            info = json.loads(archive.read(f"{name}_{version}/info.json").decode("utf-8-sig"))
-            if info.get("name") != name or info.get("version") != version:
-                return False
-    except (KeyError, OSError, ValueError, BadZipFile):
-        return False
-    return True
+            candidates = [x for x in archive.namelist() if x == "info.json" or x.endswith("/info.json")]
+            if not candidates:
+                return "Gueltige Portal-SHA1, aber kein info.json im Archiv"
+            observed = []
+            for entry in candidates:
+                try:
+                    info = json.loads(archive.read(entry).decode("utf-8-sig"))
+                except (KeyError, ValueError, UnicodeError):
+                    continue
+                seen_name, seen_version = info.get("name"), info.get("version")
+                observed.append(f"{seen_name}@{seen_version}")
+                if seen_name == name and seen_version == version:
+                    return None
+            return (f"Gueltige Portal-SHA1, aber info.json hat andere ID/Version "
+                    f"(erwartet {name}@{version}; gefunden: {', '.join(observed) or 'nicht lesbar'})")
+    except (OSError, BadZipFile, ValueError) as error:
+        return f"Gueltige Portal-SHA1, aber ZIP nicht lesbar: {type(error).__name__}"
+
+
+def validate_archive(path, name, version, sha1):
+    return archive_problem(path, name, version, sha1) is None
 
 
 def download_release(name, release, old_mods, stage, creds):
@@ -136,9 +158,10 @@ def download_release(name, release, old_mods, stage, creds):
     except Exception:
         staged_zip.unlink(missing_ok=True)
         raise RuntimeError(f"Modportal-Download fehlgeschlagen: {filename} (Login/Netzwerk pruefen)") from None
-    if not validate_archive(staged_zip, name, version, expected):
+    problem = archive_problem(staged_zip, name, version, expected)
+    if problem:
         staged_zip.unlink(missing_ok=True)
-        raise ValueError(f"{filename}: SHA1/ZIP/Mod-ID stimmen NICHT zum offiziellen Modportal")
+        raise ValueError(f"{filename}: {problem}")
     return f"Heruntergeladen: {filename}"
 
 
