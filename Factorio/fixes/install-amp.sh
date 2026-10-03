@@ -4,9 +4,9 @@ set -Eeuo pipefail
 ROOT="/home/amp/.ampdata/instances/Factorio01/factorio/server/mods"
 LIST="$ROOT/mod-list.json"
 NAME="bbq-chaos-belt-compat"
-VER="1.0.2"
+VER="1.0.3"
 # Unveraenderlicher Git-Commit, kein veraltetes Cache und kein unkontrolliertes main.
-BASE="https://raw.githubusercontent.com/Technox90/projekte/0d13a07d9a6ca43b16021373f1531638154be13c/Factorio/fixes/$NAME-$VER"
+BASE="https://raw.githubusercontent.com/Technox90/projekte/470a61f4213ea2065a9f104f7ea9813d299a4796/Factorio/fixes/$NAME-$VER"
 if [[ ! -f "$LIST" ]]; then echo "FEHLER: $LIST nicht vorhanden" >&2; exit 1; fi
 python3 - "$ROOT" "$LIST" "$NAME" "$VER" "$BASE" <<'PY'
 import datetime
@@ -35,7 +35,7 @@ for item in ("info.json", "data-final-fixes.lua"):
 info = json.loads(contents["info.json"].decode("utf-8"))
 if info.get("name") != name or info.get("version") != version:
     raise SystemExit("FEHLER: Unpassende GitHub Mod-Metadaten")
-if not contents["data-final-fixes.lua"].decode("utf-8").find("BBQ CHAOS BELT FIX v1.0.2") >= 0:
+if not contents["data-final-fixes.lua"].decode("utf-8").find("BBQ CHAOS BELT FIX v1.0.3") >= 0:
     raise SystemExit("FEHLER: Unpassende GitHub Lua-Version")
 prefix = f"{name}_{version}/"
 buffer = io.BytesIO()
@@ -85,5 +85,5 @@ with zipfile.ZipFile(zpath) as arch:
     print("ZIP enthält: " + ", ".join(arch.namelist()))
 stored = json.loads(p.read_text(encoding="utf-8"))
 print("Modliste: " + str(next((m for m in stored["mods"] if m["name"] == name), "FEHLT")))
-print("Jetzt Factorio01 in AMP starten. Im Log MUSS Loading mod bbq-chaos-belt-compat 1.0.2 stehen.")
+print("Jetzt Factorio01 in AMP starten. Im Log MUSS Loading mod bbq-chaos-belt-compat 1.0.3 stehen.")
 PY
