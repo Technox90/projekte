@@ -174,6 +174,8 @@ def main():
         raise ValueError("Version-Pin fuer deaktivierte/nicht vorhandene Mod")
     for v in pins.values():
         parsed_version(v)
+    if not BUILTIN.issubset(seen):
+        raise ValueError("Basis-/Space-Age-Eintraege fehlen")
     print(f"GitHub: {len(entries)} Eintraege / {len(active)} herunterzuladende Mod-Archive")
 
     selections = {}
@@ -191,6 +193,23 @@ def main():
     if failures:
         print("\n".join(sorted(failures)))
         raise SystemExit(f"Abbruch: {len(failures)} Mod(s) im Portal nicht passend gefunden; AMP unveraendert.")
+    # Every hard dependency must be active. Optional/conflicting declarations
+    # remain game-managed; this is a protective preflight, not a playability test.
+    enabled = {item["name"] for item in entries if item["enabled"]}
+    missing_dependencies = []
+    for name, release in selections.items():
+        for raw in release.get("info_json", {}).get("dependencies", []):
+            dep = str(raw).strip()
+            if not dep or dep.startswith(("?", "~", "!", "(?)", "(!)")):
+                continue
+            if dep.startswith("^"):
+                dep = dep[1:].strip()
+            dependency = re.split(r"\s+[<>=]+\s*\d", dep, maxsplit=1)[0].strip()
+            if dependency and dependency not in enabled:
+                missing_dependencies.append(f"{name} benoetigt {dependency}")
+    if missing_dependencies:
+        print("\n".join(sorted(missing_dependencies)))
+        raise SystemExit("Abbruch: verpflichtende Mod-Abhaengigkeiten fehlen; AMP unveraendert.")
     print(f"Vorabpruefung bestanden: {len(selections)} offizielle Versionen.")
     for name, rel in sorted(selections.items()):
         print(f"  {name}: {rel['version']}")
