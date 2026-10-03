@@ -38,6 +38,10 @@ jobs:
             $ids[$entry.name] = $entry.enabled
           }
           if (-not $ids['base']) { throw 'base must be enabled' }
+          if ($ids['angelsaddons-space-age']) { throw 'Broken Angel Space Age original must remain disabled' }
+          if (-not $ids['angelsaddons-space-age-revived']) { throw 'Fixed Angel Space Age fork must be enabled' }
+          if ($ids['angels-space-age-tungsten-compat']) { throw 'Tungsten patch requires disabled Angel original' }
+          if ($pins.'angelsaddons-space-age-revived' -ne '0.0.14') { throw 'Missing known-good version pin for Angel Space Age fork' }
           foreach ($p in $pins.PSObject.Properties) {
             if (-not $ids[$p.Name]) { throw "Pinned mod not enabled: $($p.Name)" }
             if ($p.Value -notmatch '^[0-9]+[.][0-9]+[.][0-9]+$') { throw "Invalid pin: $($p.Name)" }
