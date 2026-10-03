@@ -58,6 +58,23 @@ try {
   if($TestParser){ & $scriptPath -ModList $listFile -TestParser }
   elseif($CheckOnly){ & $scriptPath -ModList $listFile -CheckOnly }
   else{
+    # Archive known obsolete local test mods WITHOUT editing ZIP contents.
+    # Disabled Angel fork 0.0.14 is also removed; portal download cannot activate it.
+    $modsDir=Join-Path $env:APPDATA 'Factorio\mods'
+    if(Test-Path -LiteralPath $modsDir){
+      $oldMods=@(Get-ChildItem -LiteralPath $modsDir -Force |
+        Where-Object { $_.Name -like 'bbq-chaos-belt-compat_*' -or
+          $_.Name -eq 'angelsaddons-space-age-revived_0.0.14.zip' })
+      if($oldMods.Count -gt 0){
+        $archive=Join-Path $env:APPDATA ('Factorio\BBQ-CHAOS-Backups\obsolete-'+(Get-Date -Format 'yyyyMMdd-HHmmss-fff'))
+        New-Item -ItemType Directory -Force -Path $archive | Out-Null
+        foreach($item in $oldMods){
+          Move-Item -LiteralPath $item.FullName -Destination (Join-Path $archive $item.Name) -ErrorAction Stop
+          Write-Host "BBQ: Nicht aktives Testarchiv gesichert: $($item.Name)"
+        }
+        Write-Host "BBQ: Archivierte Testmods: $archive"
+      }
+    }
     # Unmodified official modportal archives ONLY. No ZIP edits or custom patches.
     # Keep the core in a separate process so its 'exit' cannot bypass error checking.
     Write-Host "BBQ: Lade unveraenderte Original-Mods aus dem Factorio-Modportal."
