@@ -35,6 +35,40 @@ Die neue **AngelBob Space Age Rebalance** ist im Modportal verfuegbar, verlangt 
 
 Das **Serververzeichnis von AMP wird vom Windows-Updater nicht veraendert**. Die AMP-Instanz war zwischenzeitlich mit einer **lokal gepatchten** Angel-Fork startfaehig und laeuft damit **nicht** mit den unveraenderten Windows-Mods synchron. Vor dem naechsten Multiplayerstart **Server herunterfahren, Konfiguration und Save sichern**, alte BBQ-Testfix-ZIPs entfernen, **Originaldateien aus dem offiziellen Modportal** verwenden und die `mod-list.json` auf den neuen Stand bringen. Ein neues Spiel ist bei Aenderungen an Angel/Bob/Space-Age-Rezepten unter Umstaenden erforderlich. **Diese README ist keine Aussage, dass AMP bereits umgestellt ist.**
 
+## AMP-Server direkt aus dem Factorio-Modportal synchronisieren
+
+Die Windows-CMD laedt **nicht** in die Factorio01-AMP-Instanz. Fuer AMP steht jetzt
+[BBQ-AMP-Portal-Sync.py](BBQ-AMP-Portal-Sync.py) bereit, eine reine
+**Administrationshilfe** (keine Factorio-Mod). Die GitHub-Liste und sechs Pins
+werden direkt vom Repository gelesen; ZIPs kommen nur von **mods.factorio.com**,
+sind unveraendert und muessen zu den vom Modportal angegebenen SHA1-Pruefsummen
+und Original-\`info.json\` passen. Es werden keine externen ZIPs und keine
+Lua-Reparaturen hinzugefuegt.
+
+1. Factorio01 **in AMP stoppen**. **Savegames separat sichern.**
+2. Das GitHub-Python-Skript per \`curl\` unter \`/tmp\` speichern.
+3. \`sudo python3 /tmp/BBQ-AMP-Portal-Sync.py --check\`: 2.0-Verfuegbarkeit, Pins
+   und verpflichtende Mod-Abhaengigkeiten **ohne Aenderung** vorpruefen.
+4. \`sudo python3 /tmp/BBQ-AMP-Portal-Sync.py --apply\`: verwendet falls vorhanden
+   lokale \`player-data.json\`-Daten \`service-username\` und \`service-token\`;
+   sonst werden Zugangsdaten **nur im SSH-Terminal** erfragt (Token unsichtbar).
+   **Nie** Zugangsdaten an Chat/GitHub schicken.
+5. Script laedt alle ZIPs zuerst in ein staging-Verzeichnis; originale bestehende
+   ZIPs duerfen nur bei **korrekt verifizierter SHA1-Pruefsumme** kopiert werden.
+   \`mod-settings.dat\` wird erhalten, \`mod-list.json\` von GitHub uebernommen.
+   Erst wenn alle Downloads erfolgreich sind, wird das alte AMP-Verzeichnis
+   nach \`mods-BBQ-backup-<Datum>\` verschoben, das neue aktiv geschaltet.
+   Fehler vor dem Swap lassen die aktiven Mods unveraendert.
+6. Danach Factorio01 in AMP starten und \`factorio-current.log\` pruefen.
+
+Dieses Skript **loescht keine Welt** und veraendert keine Mod-Inhalte.
+Ein alter Spielstand kann aber noch von den deaktivierten Angel-Patches
+abhaengen. Fuer eine andere Rezept-/Prototypkombination ist ein **neuer
+Spielstand** als erster Test empfehlenswert. Ein erfolgreicher Download
+garantiert nicht, dass das gesamte Bob/Angel/Space-Age-Modpack spielbar
+ist. Kein vorheriges serverseitiges \`--create\` mit geaenderten Mods
+erzwingen, bevor die neue Liste fehlerfrei geladen wird.
+
 ## Sicherheit / GitHub-Checks
 
 - Keine Accounts, privaten Dateien, Tokens, Passwoerter, `mod-settings.dat` oder Savegames auf GitHub hochladen.
