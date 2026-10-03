@@ -20,7 +20,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $root = 'Factorio'
-          $files = @((Join-Path $root 'BBQ-GitHub-Launcher.ps1'), (Join-Path $root 'BBQ-GitHub-Launcher-v2.ps1'))
+          $files = @((Join-Path $root 'BBQ-GitHub-Launcher.ps1'), (Join-Path $root 'BBQ-GitHub-Launcher-v2.ps1'), (Join-Path $root 'BBQ-Angels-Client-Patch.ps1'))
           foreach ($file in $files) {
             $tokens = $null
             $errors = $null
@@ -62,3 +62,41 @@ jobs:
           [void][System.Management.Automation.Language.Parser]::ParseFile($core,[ref]$tokens,[ref]$errors)
           if ($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_.Message }; throw 'Core parse error' }
           Write-Host "OK: $($all.Count) Mods, $($pins.PSObject.Properties.Count) pins; scripts parsed on Windows PowerShell."
+          # Integration test with a synthetic copy of the exact Angel 0.0.14 code lines
+          # patched on the working AMP Linux server. No network / credentials needed.
+          Add-Type -AssemblyName System.IO.Compression
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $testDir=Join-Path $env:TEMP ([guid]::NewGuid().ToString('N'))
+          $testMods=Join-Path $testDir 'mods'
+          New-Item -ItemType Directory -Force -Path $testMods | Out-Null
+          $modName='angelsaddons-space-age-revived_0.0.14'
+          $testZip=Join-Path $testMods ($modName+'.zip')
+          $testData=@(
+            [pscustomobject]@{Path=("$modName/data.lua"); Text='OV.global_replace_item("turbo-transport-belt", "bob-turbo-transport-belt")'},
+            [pscustomobject]@{Path=("$modName/data-updates.lua"); Text='bobmods.lib.recipe.replace_ingredient("loader-mini5", "bob-turbo-transport-belt", "bob-ultimate-transport-belt")'}
+          )
+          $testArchive=[IO.Compression.ZipFile]::Open($testZip,[IO.Compression.ZipArchiveMode]::Create)
+          try {
+            foreach($f in $testData){
+              $entry=$testArchive.CreateEntry($f.Path)
+              $writer=[IO.StreamWriter]::new($entry.Open(),[Text.UTF8Encoding]::new($false))
+              try { $writer.Write($f.Text) } finally { $writer.Dispose() }
+            }
+          } finally { $testArchive.Dispose() }
+          & (Join-Path $root 'BBQ-Angels-Client-Patch.ps1') -ModsDir $testMods
+          if(-not $?){throw "Angel patch failed first run"}
+          & (Join-Path $root 'BBQ-Angels-Client-Patch.ps1') -ModsDir $testMods
+          if(-not $?){throw "Angel patch failed second (idempotent) run"}
+          $testArchive=[IO.Compression.ZipFile]::OpenRead($testZip)
+          try {
+            $data=@{}
+            foreach($entry in $testArchive.Entries){
+              $reader=[IO.StreamReader]::new($entry.Open(),[Text.UTF8Encoding]::new($false))
+              try { $data[$entry.FullName]=$reader.ReadToEnd() } finally { $reader.Dispose() }
+            }
+            if($data["$modName/data.lua"] -cne '-- Disabled: obsolete Bob turbo-belt mapping'){throw "Angel data.lua mismatch"}
+            if($data["$modName/data-updates.lua"] -cne 'bobmods.lib.recipe.replace_ingredient("loader-mini5", "turbo-transport-belt", "bob-ultimate-transport-belt")'){throw "Angel data-updates.lua mismatch"}
+          } finally { $testArchive.Dispose() }
+          Remove-Item -LiteralPath $testDir -Recurse -Force
+          Write-Host "OK: Angel patch applies exact AMP replacements and is idempotent."
+
