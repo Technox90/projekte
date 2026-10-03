@@ -136,7 +136,7 @@ def validate_archive(path, name, version, sha1):
     return archive_problem(path, name, version, sha1) is None
 
 
-def download_release(name, release, old_mods, stage, creds):
+def download_release(name, release, old_mods, stage, cache, creds):
     filename = release["file_name"]
     version = release["version"]
     expected = release["sha1"].lower()
@@ -146,6 +146,10 @@ def download_release(name, release, old_mods, stage, creds):
         # Copy only a byte-identical original ZIP; never reuse patched ZIPs.
         shutil.copy2(old_zip, staged_zip)
         return f"Vorhandenes Portal-Original: {filename}"
+    cached_zip = cache / filename
+    if validate_archive(cached_zip, name, version, expected):
+        shutil.copy2(cached_zip, staged_zip)
+        return f"Aus verifiziertem Portal-Cache: {filename}"
 
     username, token = creds
     query = urlencode({"username": username, "token": token})
@@ -162,7 +166,15 @@ def download_release(name, release, old_mods, stage, creds):
     if problem:
         staged_zip.unlink(missing_ok=True)
         raise ValueError(f"{filename}: {problem}")
-    return f"Heruntergeladen: {filename}"
+    # Remember only verified byte-identical ZIPs, so retries don't re-download
+    # every previously successful file after a different mod fails.
+    tmpcache = cache / (filename + ".tmp")
+    try:
+        shutil.copy2(staged_zip, tmpcache)
+        os.replace(tmpcache, cached_zip)
+    finally:
+        tmpcache.unlink(missing_ok=True)
+    return f"Heruntergeladen (Original im Cache gesichert): {filename}"
 
 
 def main():
@@ -249,8 +261,11 @@ def main():
         print("OK: --check ohne Aenderungen. Beachte: Rezepte/Dependencies nicht spielgetestet.")
         return
 
+    cache = SERVER / ".bbq-modportal-cache"
+    cache.mkdir(mode=0o755, exist_ok=True)
     creds = get_login() if any(
-        not validate_archive(old_mods / rel["file_name"], name, rel["version"], rel["sha1"])
+        not (validate_archive(old_mods / rel["file_name"], name, rel["version"], rel["sha1"])
+             or validate_archive(cache / rel["file_name"], name, rel["version"], rel["sha1"]))
         for name, rel in selections.items()
     ) else (None, None)
     stage = Path(tempfile.mkdtemp(prefix=".bbq-portal-stage-", dir=SERVER))
@@ -264,7 +279,7 @@ def main():
         if settings.is_file():
             shutil.copy2(settings, stage / settings.name)
         for name, rel in sorted(selections.items()):
-            message = download_release(name, rel, old_mods, stage, creds)
+            message = download_release(name, rel, old_mods, stage, cache, creds)
             print(message, flush=True)
         destination = stage / "mod-list.json"
         destination.write_text(json.dumps(modlist, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
