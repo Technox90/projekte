@@ -314,7 +314,7 @@
     },
     {
       "name": "saplib",
-      "enabled": true
+      "enabled": false
     },
     {
       "name": "ScienceCostTweakerM",
