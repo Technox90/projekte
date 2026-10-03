@@ -20,6 +20,32 @@ jobs:
         run: |
           set -euo pipefail
           python3 -m py_compile Factorio/BBQ-AMP-Portal-Sync.py
+          python3 - <<'PY'
+          import hashlib
+          import importlib.util
+          import io
+          import json
+          import tempfile
+          from pathlib import Path
+          from zipfile import ZipFile
+          spec = importlib.util.spec_from_file_location("amp_sync", "Factorio/BBQ-AMP-Portal-Sync.py")
+          module = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(module)
+          with tempfile.TemporaryDirectory() as tmp:
+              path = Path(tmp) / "Flare Stack_4.1.1.zip"
+              for inner in ("Flare Stack_4.1.1/info.json", "info.json", "special-folder/info.json"):
+                  with ZipFile(path, "w") as z:
+                      z.writestr(inner, json.dumps({"name": "Flare Stack", "version": "4.1.1"}))
+                  digest = hashlib.sha1(path.read_bytes()).hexdigest()
+                  assert module.archive_problem(path, "Flare Stack", "4.1.1", digest) is None
+                  assert module.archive_problem(path, "Flare Stack", "4.1.1", "0" * 40).startswith("SHA1 falsch")
+                  assert "andere ID/Version" in module.archive_problem(path, "Fake", "4.1.1", digest)
+              with ZipFile(path, "w") as z:
+                  z.writestr("weird-folder/info.json", json.dumps({"name": "BadID", "version": "4.1.1"}))
+              digest = hashlib.sha1(path.read_bytes()).hexdigest()
+              assert "andere ID/Version" in module.archive_problem(path, "Flare Stack", "4.1.1", digest)
+          print("OK: real SHA1, flat and nested info.json and incorrect ID checks")
+          PY
           grep -q "sha1_file(path)" Factorio/BBQ-AMP-Portal-Sync.py || { echo 'Checksum function missing'; exit 1; }
           grep -q "validate_archive(staged_zip" Factorio/BBQ-AMP-Portal-Sync.py || { echo 'ZIP checksum validation missing'; exit 1; }
           grep -q "os.replace(old_mods, backup)" Factorio/BBQ-AMP-Portal-Sync.py || { echo 'AMP backup missing'; exit 1; }
