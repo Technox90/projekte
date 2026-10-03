@@ -1,0 +1,14 @@
+{
+  "name": "bbq-chaos-belt-compat",
+  "version": "1.0.0",
+  "title": "BBQ CHAOS - Bob/Space Age Belt Recipe Compatibility",
+  "author": "BBQ CHAOS",
+  "factorio_version": "2.0",
+  "description": "Targeted conditional recipe fix for missing bob-turbo-transport-belt references with Bob's Logistics 2.1.1 and Space Age. Test build.",
+  "dependencies": [
+    "base >= 2.0.0",
+    "space-age >= 2.0.0",
+    "boblogistics >= 2.0.0",
+    "angelsaddons-space-age-revived >= 0.0.14"
+  ]
+}
