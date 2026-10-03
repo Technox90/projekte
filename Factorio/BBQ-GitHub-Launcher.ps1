@@ -38,28 +38,7 @@ try {
   if($null -eq $pin){throw 'GitHub-Versionsvorgaben fehlen.'}
   foreach($p in @($pin.PSObject.Properties)){
     if(-not $seen.ContainsKey($p.Name) -or -not $seen[$p.Name]){throw "Version-Pin fuer nicht aktiven Mod: $($p.Name)"}
-    if([string]$p.Value -notmatch '^\d+\.\d+\.\d+
-  $b64=[IO.File]::ReadAllText((Join-Path $work 'BBQ-ModDownloader-core.ps1.gz.b64')).Trim()
-  $raw=[Convert]::FromBase64String($b64)
-  $mem=[IO.MemoryStream]::new($raw)
-  $gz=[IO.Compression.GZipStream]::new($mem,[IO.Compression.CompressionMode]::Decompress)
-  $scriptPath=Join-Path $work 'BBQ-ModDownloader.ps1'
-  try {
-    $out=[IO.File]::Create($scriptPath)
-    try{$gz.CopyTo($out)}finally{$out.Dispose()}
-  } finally {$gz.Dispose();$mem.Dispose()}
-  $expected='c029f896eb20fb81023e32266ebda0689d2b3c96004eb9cd300b43811e7b0405'
-  $actual=(Get-FileHash -LiteralPath $scriptPath -Algorithm SHA256).Hash
-  if($actual -ine $expected){throw 'Pruefsumme des Downloaders ist falsch. Abbruch!'}
-  Write-Host ("BBQ CHAOS | GitHub geladen: {0} Mods, {1} aktiv" -f @($list.mods).Count,$enabled.Count)
-  if($TestParser){ & $scriptPath -ModList $listFile -TestParser }
-  elseif($CheckOnly){ & $scriptPath -ModList $listFile -CheckOnly }
-  else{ & $scriptPath -ModList $listFile -DownloadAvailable }
-} catch {
-  Write-Host ("FEHLER: GitHub-Downloader nicht gestartet: "+$_.Exception.Message) -ForegroundColor Red
-  exit 10
-}
-){throw "Ungueltiger Version-Pin: $($p.Name)"}
+    if([string]$p.Value -notmatch '^[0-9]+[.][0-9]+[.][0-9]+$'){throw "Ungueltiger Version-Pin: $($p.Name)"}
   }
   $b64=[IO.File]::ReadAllText((Join-Path $work 'BBQ-ModDownloader-core.ps1.gz.b64')).Trim()
   $raw=[Convert]::FromBase64String($b64)
