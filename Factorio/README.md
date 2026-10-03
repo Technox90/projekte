@@ -5,7 +5,7 @@ Verwaltete Modliste für **Bob's + Angel's + Space Age** mit QoL-Erweiterungen. 
 ## Dateien
 
 - [MODS.md](MODS.md) – komplette Liste aller **111 Mods**, mit Status, Zweck und Modportal-Links.
-- [mod-list.json](mod-list.json) – **maßgebliche zentrale Modauswahl**: 99 aktiviert, 12 deaktiviert.
+- [mod-list.json](mod-list.json) – **maßgebliche zentrale Modauswahl**: 98 aktiviert, 13 deaktiviert.
 - [version-pins.json](version-pins.json) – **sieben** Versionsvorgaben (sechs QoL-Mods und ein Fehlerfix) (Factorio 2.0).
 - **[BBQ-UPDATE.cmd](BBQ-UPDATE.cmd) – EINZIGE auf Windows benötigte Datei.** Direkt von GitHub herunterladen, doppelklicken; lädt bei jedem Lauf die aktuelle GitHub-Modliste und den geprüften Core.
 - [BBQ-STARTEN.cmd](BBQ-STARTEN.cmd) – älterer Start für vollständig entpackte Ordner (nur aus Kompatibilitätsgründen behalten).
@@ -33,6 +33,10 @@ Verwaltete Modliste für **Bob's + Angel's + Space Age** mit QoL-Erweiterungen. 
 Wenn Factorio beim Start meldet: `Recipe battery has malformed ingredients: ingredient fluid 'angels-liquid-sulfuric-acid' does not exist`, ist die frühere Mod `angelsaddons-space-age` beteiligt. Der [Revived-Fork](https://mods.factorio.com/mod/angelsaddons-space-age-revived) **0.0.14** behebt exakt diese fehlerhafte Flüssigkeitsumbenennung. Die alte Mod und `angels-space-age-tungsten-compat` (welche die alte Mod voraussetzt) sind **deaktiviert**. Der Wolfram-Spielverlauf bleibt separat zu prüfen.
 
 Beim nächsten `BBQ-UPDATE.cmd` wird die neue Version anhand der aktuellen GitHub-Liste geladen; Factorio schließen, den Vorgang beenden lassen, anschließend neu starten. Die vorhandenen alten ZIP-Dateien dürfen verbleiben, müssen aber **deaktiviert** sein. Unabhängig davon ist der Start mit sämtlichen übrigen Mods nicht vollständig geprüft.
+
+## Cargo Ships Startfehler (03.10.2026)
+
+Fehler: `cargo-ships` bricht in `core/lualib/resource-autoplace.lua:7`/`resources-new.lua:126` ab. Identischer Bericht im [Modportal](https://mods.factorio.com/mod/cargo-ships/discussion/69e39fdb1e5c761124092ec2): Deaktivieren der `saplib`-Bibliothek behob den Konflikt. Deshalb `saplib` in `mod-list.json` **aus**; `cargo-ships` und `cargo-ships-graphics` bleiben an. Nicht benötigte Grafikdateien müssen nicht gelöscht werden. Dies ist noch kein vollständiger Spieltest. Auf dem AMP-Server zusätzlich die dortige `mod-list.json` entsprechend einstellen: der Windows-Downloader aktualisiert AMP **nicht** automatisch.
 
 ## Änderungen
 
