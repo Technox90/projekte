@@ -1,47 +1,37 @@
-# Experimenteller Turbo-Band-Rezeptfix (AMP / Factorio 2.0.77)
+# BBQ CHAOS – Turbo-Transport-Belt-Kompatibilitätsfix
 
-**Version: 1.0.1 – noch nicht mit dem vollständigen Modpack im Spiel getestet.**
+**Testversion 1.0.2 · Factorio 2.0.77 · AMP Linux · Noch nicht als vollständiges Modpack getestet**
 
-### Ausgangsfehler
+## Beobachtete Fehler
 
-Nach dem erfolgreichen Laden von Quality und Cargo Ships tritt bei der Endprüfung auf:
+- Bob's Logistics 2.1.1 hat die ID `bob-turbo-transport-belt` zugunsten von `turbo-transport-belt` geändert.
+- Factorio beim `assignID`: `Source: turbo-transport-belt (recipe)` mit nicht existierender `bob-turbo-transport-belt`-ID.
+- **v1.0.0:** fand keine Zutat (ingredients=0); Fehler blieb.
+- **v1.0.1:** ersetzte einen Ergebnisverweis (results=1), Fehler blieb. Log belegte, dass **reskins-library**, **reskins-bobs**, **squeak-through-2**, **reskins-angels** erst **nach** v1.0.1 ihre finalen Änderungen ausführten.
 
-```text
-Error in assignID: item with name 'bob-turbo-transport-belt' does not exist.
-Source: turbo-transport-belt (recipe).
-```
+## v1.0.2 – gezielter Folgetest
 
-Bob's Logistics 2.1.0/2.1.1 verwendet für Turbo-Bänder andere IDs als ältere Integrationen. Der fehlerhafte Rezeptverweis kann eine **Zutat oder ein Ergebnis** sein; die ursprüngliche Testversion 1.0.0 korrigierte nur Zutaten.
+- Die optionalen Abhängigkeiten `? reskins-library`, `? reskins-bobs`, `? reskins-angels`, `? squeak-through-2` ordnen die Reparatur **nach** diesen aktiven Mods ein.
+- Nur im Rezept `turbo-transport-belt`: alte Bob-Referenz in Zutaten durch `express-transport-belt`, in Ergebnissen/`main_product` durch `turbo-transport-belt` ersetzen, falls das alte Item nicht existiert.
+- Vorher und nachher werden alle verbliebenen direkten und verschachtelten Vorkommen der Legacy-ID im Rezept protokolliert.
+- **Keine weiteren Bob-Mods deaktiviert.** Auch dies ist keine offiziell bestätigte Balancing-Regel und erfordert einen echten Spieltest.
 
-### Wirkung von 1.0.1
+## AMP Installation
 
-Die Testmod `bbq-chaos-belt-compat` greift ausschließlich bei `data.raw.recipe["turbo-transport-belt"]` ein und nur, falls das alte Item nicht existiert:
-
-- Fehlende **Zutaten** `bob-turbo-transport-belt` werden zu `express-transport-belt`.
-- Fehlende **Ergebnisse** und `main_product` werden zu `turbo-transport-belt`.
-- Im Log wird protokolliert: `[BBQ CHAOS BELT FIX v1.0.1] recipe=... ingredients=N results=N main_products=N`.
-- Bestehende Items und andere Rezepte bleiben unverändert.
-
-Das ist ein gezielter **Testfix**, keine bestätigte offizielle Rezeptbalance.
-
-### Installation auf Factorio01
-
-1. **Factorio01 in AMP stoppen.**
-2. Im SSH-Terminal die Datei `Factorio/fixes/install-amp.sh` ausführen (als root/sudo). Erzeugt vor Änderungen ein Backup von `mod-list.json`.
-3. Es wird `bbq-chaos-belt-compat_1.0.1.zip` mit dem korrekten Mod-Ordner ins AMP-Verzeichnis geschrieben und die Mod aktiviert.
-4. Server in AMP starten, **vollständigen** Start-Log lesen. Im Log muss `Loading mod bbq-chaos-belt-compat 1.0.1 (data-final-fixes.lua)` stehen und eine eigene `[BBQ CHAOS BELT FIX v1.0.1]`-Zeile erscheinen.
-
-**Diagnose auf AMP:**
+1. `Factorio01` in AMP stoppen.
+2. Das Skript [install-amp.sh](install-amp.sh) als Administrator ausführen (neueste Fassung lädt `1.0.2`). Das Skript sichert die `mod-list.json` und archiviert alte Testfix-ZIPs außerhalb des Modordners.
+3. Server in AMP starten und das **neue** `factorio-current.log` prüfen.
+4. Erwartetes Logging:
+    - `Loading mod bbq-chaos-belt-compat 1.0.2 (data-final-fixes.lua)`
+    - `[BBQ CHAOS BELT FIX v1.0.2] BEFORE legacy_references=N`
+    - `[BBQ CHAOS BELT FIX v1.0.2] CHANGED ingredients=N results=N main_products=N`
+    - `[BBQ CHAOS BELT FIX v1.0.2] AFTER legacy_references=N`
+    - ggf. `UNRESOLVED_PATH recipe.<Feld>`
 
 ```bash
 D=/home/amp/.ampdata/instances/Factorio01/factorio/server
-grep -inE 'bbq-chaos-belt-compat|BBQ CHAOS BELT FIX|Error in assignID' "$D/factorio-current.log" | tail -25
-grep -A2 -B2 'bbq-chaos-belt-compat' "$D/mods/mod-list.json"
-ls -lh "$D/mods"/bbq-chaos-belt-compat*
+stat -c '%y' "$D/factorio-current.log"
+grep -inE 'bbq-chaos-belt-compat|BBQ CHAOS BELT FIX|Error|Saving' "$D/factorio-current.log" | tail -45
 ```
 
-Wenn `Loading mod` fehlt, liegt das Problem an der tatsächlichen AMP-Modauswahl, nicht an der Rezeptkorrektur. Fehlt dagegen die alte ID in Zutaten und Ergebnissen, ist der Ursprung möglicherweise in einem anderen Feld oder einer späteren Änderung zu suchen; dann ist der vollständige Log nötig.
-
-### Wichtig
-
-Die GitHub-Standardliste und der **Windows-Downloader installieren diesen privaten Testfix nicht**. Vor produktivem Multiplayer müssen Server und Clients dieselbe gültige, getestete Version der Mod verwenden. Danach kann der Fix in den gemeinsamen GitHub-Download integriert werden.
+**Wichtig:** Die modifizierte `bbq-chaos-belt-compat`-ZIP ist derzeit ein lokaler AMP-Testfix, **nicht** Teil der öffentlichen GitHub-`mod-list.json` oder des Windows-Downloaders. Auf dem Multiplayer-Server wird ein anderer Modsatz als auf Windows geladen, bis die getestete Fassung auf beiden Seiten übernommen wurde. Den Server bitte nicht für Spieler öffnen, bevor Client und Server übereinstimmen.
