@@ -10,7 +10,7 @@ Verwaltete Modliste für **Bob's + Angel's + Space Age** mit QoL-Erweiterungen. 
 - **[BBQ-UPDATE.cmd](BBQ-UPDATE.cmd) – EINZIGE auf Windows benötigte Datei.** Direkt von GitHub herunterladen, doppelklicken; lädt bei jedem Lauf die aktuelle GitHub-Modliste und den geprüften Core.
 - [BBQ-STARTEN.cmd](BBQ-STARTEN.cmd) – älterer Start für vollständig entpackte Ordner (nur aus Kompatibilitätsgründen behalten).
 - [BBQ-NUR-PRUEFEN.cmd](BBQ-NUR-PRUEFEN.cmd) – älterer Prüflauf; bei der Ein-Datei-Lösung stattdessen `BBQ-UPDATE.cmd pruefen` verwenden.
-- [BBQ-GitHub-Launcher.ps1](BBQ-GitHub-Launcher.ps1) – GitHub-Downloader/Startlogik.
+- [BBQ-GitHub-Launcher-v2.ps1](BBQ-GitHub-Launcher-v2.ps1) – aktuelle GitHub-Downloader/Startlogik.
 - [BBQ-ModDownloader-core.ps1.gz.b64](BBQ-ModDownloader-core.ps1.gz.b64) – komprimierte, unveränderte Downloader-Core-Version aus dem zuletzt funktionierenden Paket (im Launcher SHA-256-geprüft).
 
 ## Installation auf Windows – nur eine CMD-Datei
@@ -33,6 +33,41 @@ Verwaltete Modliste für **Bob's + Angel's + Space Age** mit QoL-Erweiterungen. 
 Wenn Factorio beim Start meldet: `Recipe battery has malformed ingredients: ingredient fluid 'angels-liquid-sulfuric-acid' does not exist`, ist die frühere Mod `angelsaddons-space-age` beteiligt. Der [Revived-Fork](https://mods.factorio.com/mod/angelsaddons-space-age-revived) **0.0.14** behebt exakt diese fehlerhafte Flüssigkeitsumbenennung. Die alte Mod und `angels-space-age-tungsten-compat` (welche die alte Mod voraussetzt) sind **deaktiviert**. Der Wolfram-Spielverlauf bleibt separat zu prüfen.
 
 Beim nächsten `BBQ-UPDATE.cmd` wird die neue Version anhand der aktuellen GitHub-Liste geladen; Factorio schließen, den Vorgang beenden lassen, anschließend neu starten. Die vorhandenen alten ZIP-Dateien dürfen verbleiben, müssen aber **deaktiviert** sein. Unabhängig davon ist der Start mit sämtlichen übrigen Mods nicht vollständig geprüft.
+
+## Angel's Space Age Revived + Bob's Logistics 2.1.1 (AMP-erprobter Fix)
+
+Bob's Logistics 2.1.0 entfernte den `bob-`-Prefix bei Turbo-Baendern. Die veroeffentlichte
+`angelsaddons-space-age-revived_0.0.14.zip` referenziert weiterhin
+`bob-turbo-transport-belt`; damit brechen diverse Rezepte einschliesslich
+`turbo-loader` und `turbo-transport-belt` beim Laden ab.
+
+Auf AMP wurde in **genau zwei Dateien** der Revived-ZIP folgender Fix gemacht:
+
+- `data.lua`: `OV.global_replace_item("turbo-transport-belt", "bob-turbo-transport-belt")`
+  → `-- Disabled: obsolete Bob turbo-belt mapping`
+- `data-updates.lua`: bei `replace_ingredient("loader-mini5", ...)`
+  `"bob-turbo-transport-belt"` → `"turbo-transport-belt"`
+
+**Windows:** `BBQ-UPDATE.cmd` laedt weiterhin das **offizielle Mod-Archiv mit Portal-SHA1-Pruefung**,
+danach holt der Launcher v2 das an einen Git-Commit fest gebundene Skript
+[BBQ-Angels-Client-Patch.ps1](BBQ-Angels-Client-Patch.ps1).
+Dieses wendet **dieselben zwei Lua-Replacements** an, prueft erwarteten Quelltext,
+sichert das originale ZIP ausserhalb des Modordners unter
+`%APPDATA%\Factorio\BBQ-CHAOS-Backups` und kontrolliert das Resultat. Fuer einen
+bereits gepatchten Stand ist es idempotent. Weil die lokal korrigierte ZIP vom
+**Portal-SHA1** abweicht, kann der Core sie beim naechsten Lauf erneut herunterladen
+und der Launcher sie anschliessend erneut korrigieren. Die lauffaehige
+`BBQ-UPDATE.cmd` selbst muss fuer diese Aenderung nicht neu bezogen werden,
+da sie Launcher v2 bei jedem Start nachlaedt.
+
+**Vor dem Leeren des Windows-Modordners** die private ZIP
+`early_construction_modified_private_*.zip`, `mod-settings.dat` und `mod-list.json`
+sichern. Die private Mod ist im Factorio-Modportal nicht allgemein
+herunterladbar und muss vor dem Downloaderlauf vorhanden sein.
+`%APPDATA%\Factorio\saves` bleibt unangetastet. AMP-Mods werden vom
+Windows-Downloader nicht verwaltet. Ein mit beiden Seiten identischer
+Lua-Datei-Inhalt ist vorgesehen, aber erfolgreicher Multiplayer-Handshake
+und vollstaendige CI-Tests sind separat zu pruefen.
 
 ## Cargo Ships Startfehler (03.10.2026)
 
