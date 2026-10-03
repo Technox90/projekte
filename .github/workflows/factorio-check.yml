@@ -38,6 +38,7 @@ jobs:
             $ids[$entry.name] = $entry.enabled
           }
           if (-not $ids['base']) { throw 'base must be enabled' }
+          if ($ids['saplib'] -and $ids['cargo-ships']) { throw 'saplib conflicts with cargo-ships resource autoplace in this pack' }
           if ($ids['angelsaddons-space-age']) { throw 'Broken Angel Space Age original must remain disabled' }
           if (-not $ids['angelsaddons-space-age-revived']) { throw 'Fixed Angel Space Age fork must be enabled' }
           if ($ids['angels-space-age-tungsten-compat']) { throw 'Tungsten patch requires disabled Angel original' }
