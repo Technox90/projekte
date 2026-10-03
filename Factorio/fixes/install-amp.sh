@@ -4,9 +4,9 @@ set -Eeuo pipefail
 ROOT="/home/amp/.ampdata/instances/Factorio01/factorio/server/mods"
 LIST="$ROOT/mod-list.json"
 NAME="bbq-chaos-belt-compat"
-VER="1.0.1"
+VER="1.0.2"
 # Unveraenderlicher Git-Commit, kein veraltetes Cache und kein unkontrolliertes main.
-BASE="https://raw.githubusercontent.com/Technox90/projekte/7d116fc6b867121188f7eef8eb37ebc9b851d376/Factorio/fixes/$NAME-$VER"
+BASE="https://raw.githubusercontent.com/Technox90/projekte/0d13a07d9a6ca43b16021373f1531638154be13c/Factorio/fixes/$NAME-$VER"
 if [[ ! -f "$LIST" ]]; then echo "FEHLER: $LIST nicht vorhanden" >&2; exit 1; fi
 python3 - "$ROOT" "$LIST" "$NAME" "$VER" "$BASE" <<'PY'
 import datetime
@@ -35,7 +35,7 @@ for item in ("info.json", "data-final-fixes.lua"):
 info = json.loads(contents["info.json"].decode("utf-8"))
 if info.get("name") != name or info.get("version") != version:
     raise SystemExit("FEHLER: Unpassende GitHub Mod-Metadaten")
-if not contents["data-final-fixes.lua"].decode("utf-8").find("BBQ CHAOS BELT FIX v1.0.1") >= 0:
+if not contents["data-final-fixes.lua"].decode("utf-8").find("BBQ CHAOS BELT FIX v1.0.2") >= 0:
     raise SystemExit("FEHLER: Unpassende GitHub Lua-Version")
 prefix = f"{name}_{version}/"
 buffer = io.BytesIO()
@@ -67,11 +67,23 @@ try:
 finally:
     if tmp.exists(): tmp.unlink()
 
+# Ältere Versionen nur nach erfolgreicher Installation archivieren.
+old_dir = pathlib.Path(root).parent / "old-mods"
+old = sorted(pathlib.Path(root).glob(f"{name}_*"))
+old = [q for q in old if q.name != zpath.name and
+       (q.is_file() and q.suffix == ".zip" or q.is_dir())]
+for f in old:
+    old_dir.mkdir(parents=True, exist_ok=True)
+    target = old_dir / f.name
+    if target.exists():
+        target = old_dir / (f.name + "." + datetime.datetime.now().strftime("%Y%m%d%H%M%S"))
+    shutil.move(str(f), str(target))
+    print("Archiviert: " + str(f) + " -> " + str(target))
 print("OK: "+str(zpath))
 print("OK: "+name+" "+version+" aktiviert. Backup: "+str(backup))
 with zipfile.ZipFile(zpath) as arch:
     print("ZIP enthält: " + ", ".join(arch.namelist()))
 stored = json.loads(p.read_text(encoding="utf-8"))
 print("Modliste: " + str(next((m for m in stored["mods"] if m["name"] == name), "FEHLT")))
-print("Jetzt Factorio01 in AMP starten. Im Log MUSS Loading mod bbq-chaos-belt-compat 1.0.1 stehen.")
+print("Jetzt Factorio01 in AMP starten. Im Log MUSS Loading mod bbq-chaos-belt-compat 1.0.2 stehen.")
 PY
