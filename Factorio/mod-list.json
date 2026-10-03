@@ -370,11 +370,15 @@
     },
     {
       "name": "angelsaddons-space-age",
+      "enabled": false
+    },
+    {
+      "name": "angelsaddons-space-age-revived",
       "enabled": true
     },
     {
       "name": "angels-space-age-tungsten-compat",
-      "enabled": true
+      "enabled": false
     },
     {
       "name": "BottleneckLite",
