@@ -17,6 +17,7 @@ import shutil
 import sys
 import tempfile
 from urllib.parse import quote, urlencode
+from uuid import uuid4
 from urllib.request import Request, urlopen
 from zipfile import ZipFile, BadZipFile
 
@@ -27,7 +28,7 @@ BUILTIN = {"base", "quality", "space-age", "elevated-rails"}
 SAFE = re.compile(r"^[\w .-]{1,128}$", re.ASCII)
 SHA1 = re.compile(r"^[a-fA-F0-9]{40}$")
 VERSION = re.compile(r"^\d+\.\d+\.\d+$")
-HEADERS = {"User-Agent": "BBQ-CHAOS-AMP-original-portal-sync/1.0"}
+HEADERS = {"User-Agent": "BBQ-CHAOS-AMP-original-portal-sync/1.1", "Cache-Control": "no-cache, no-store", "Pragma": "no-cache"}
 
 
 def fetch_bytes(url):
@@ -156,9 +157,16 @@ def main():
         raise_if_running()
 
     print("Hole offizielle GitHub-Modauswahl und Versionsvorgaben ...", flush=True)
-    modlist = fetch_json(GITHUB + "mod-list.json")
-    pins = fetch_json(GITHUB + "version-pins.json")
+    # Each GitHub request receives a fresh query string to defeat raw CDN caches.
+    modlist = fetch_json(GITHUB + "mod-list.json?nocache=" + uuid4().hex)
+    pins = fetch_json(GITHUB + "version-pins.json?nocache=" + uuid4().hex)
     entries = modlist["mods"]
+    # No disabled entries or retired optional mods belong in the curated list.
+    # Fail safely before touching any ZIP if an obsolete CDN response is seen.
+    if any(x.get("enabled") is not True for x in entries):
+        raise SystemExit("Alte/ungueltige GitHub-Liste: deaktivierte Mods enthalten. Erneut versuchen.")
+    if any(x.get("name") == "AutoDeconstruct" for x in entries):
+        raise SystemExit("Veraltete GitHub-Liste erkannt (AutoDeconstruct). Erneut versuchen; AMP unveraendert.")
     seen = set()
     active = []
     for item in entries:
@@ -176,7 +184,7 @@ def main():
         parsed_version(v)
     if not BUILTIN.issubset(seen):
         raise ValueError("Basis-/Space-Age-Eintraege fehlen")
-    print(f"GitHub: {len(entries)} Eintraege / {len(active)} herunterzuladende Mod-Archive")
+    print(f"GitHub aktuell: {len(entries)} von {len(entries)} aktiv, {len(active)} Portal-ZIPs; AutoDeconstruct ist NICHT enthalten.", flush=True)
 
     selections = {}
     failures = []
