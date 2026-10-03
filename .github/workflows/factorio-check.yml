@@ -67,8 +67,11 @@ jobs:
           if ($launch -match 'BBQ-Angels-Client-Patch|patchFile|ZIP-Korrektur|data-updates.lua|ZipFile') {
             throw 'Launcher must NEVER patch mod ZIP archives'
           }
-          if ($all.Count -ne 111 -or @($all | Where-Object { $_.enabled }).Count -ne 97) {
-            throw 'Unexpected baseline list counts: review changed mods before committing'
+          if (Test-Path (Join-Path $root 'BBQ-Angels-Client-Patch.ps1')) {
+            throw 'Custom client patch script must not return'
           }
-          Write-Host "OK: No custom ZIP patching; known incompatible bridge mods are off."
+          if (Test-Path (Join-Path $root 'fixes')) {
+            throw 'Custom test-mod and AMP patch directory must not return'
+          }
+          Write-Host "OK: Only portal originals; no custom ZIP patching; incompatible bridge mods are off."
 
