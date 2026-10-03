@@ -7,19 +7,23 @@ Verwaltete Modliste für **Bob's + Angel's + Space Age** mit QoL-Erweiterungen. 
 - [MODS.md](MODS.md) – komplette Liste aller **110 Mods**, mit Status, Zweck und Modportal-Links.
 - [mod-list.json](mod-list.json) – **maßgebliche zentrale Modauswahl**: 100 aktiviert, 10 deaktiviert.
 - [version-pins.json](version-pins.json) – **sechs** festgelegte QoL-Versionen (Factorio 2.0).
-- [BBQ-STARTEN.cmd](BBQ-STARTEN.cmd) – Windows-Start (lädt **GitHub-Liste bei jedem Lauf**).
-- [BBQ-NUR-PRUEFEN.cmd](BBQ-NUR-PRUEFEN.cmd) – nur Abhängigkeiten prüfen, nichts installieren.
+- **[BBQ-UPDATE.cmd](BBQ-UPDATE.cmd) – EINZIGE auf Windows benötigte Datei.** Direkt von GitHub herunterladen, doppelklicken; lädt bei jedem Lauf die aktuelle GitHub-Modliste und den geprüften Core.
+- [BBQ-STARTEN.cmd](BBQ-STARTEN.cmd) – älterer Start für vollständig entpackte Ordner (nur aus Kompatibilitätsgründen behalten).
+- [BBQ-NUR-PRUEFEN.cmd](BBQ-NUR-PRUEFEN.cmd) – älterer Prüflauf; bei der Ein-Datei-Lösung stattdessen `BBQ-UPDATE.cmd pruefen` verwenden.
 - [BBQ-GitHub-Launcher.ps1](BBQ-GitHub-Launcher.ps1) – GitHub-Downloader/Startlogik.
 - [BBQ-ModDownloader-core.ps1.gz.b64](BBQ-ModDownloader-core.ps1.gz.b64) – komprimierte, unveränderte Downloader-Core-Version aus dem zuletzt funktionierenden Paket (im Launcher SHA-256-geprüft).
 
-## Installation auf Windows
+## Installation auf Windows – nur eine CMD-Datei
 
 1. **Factorio schließen**.
-2. Im GitHub-Repo oben **Code → Download ZIP** wählen und entpacken, oder nur den Unterordner `Factorio` lokal bereitstellen.
-3. `BBQ-STARTEN.cmd` doppelklicken. Die aktuelle Liste, Versionsvorgaben und der Downloader-Core kommen **jedes Mal von GitHub**.
-4. Das Programm lädt ZIP-Mods **nur vom offiziellen Factorio-Modportal**. Benötigt wird ein gültiger Factorio.com-Benutzername/Token; bestehende Anmeldedaten aus `%APPDATA%\Factorio\player-data.json` können lokal verwendet werden.
-5. Im Programm die Installation bestätigen. Bei ungelösten Abhängigkeiten lädt es verfügbare Mods herunter, **aktiviert aber kein unvollständiges Set**.
-6. Neue Welt testen; erst danach auf AMP übernehmen.
+2. Nur die Datei **[BBQ-UPDATE.cmd](BBQ-UPDATE.cmd)** herunterladen (auf GitHub `Raw` / `Download raw file`). **Keine weiteren lokalen Skriptdateien erforderlich.**
+3. `BBQ-UPDATE.cmd` doppelklicken: Die aktuelle Modliste, sechs Versionsvorgaben und der Downloader-Core werden bei jedem Lauf von `Technox90/projekte/main/Factorio` über HTTPS bezogen.
+4. Der Core ist mit einer fest hinterlegten SHA-256-Prüfsumme geschützt; bei GitHub-/Integritätsfehlern Abbruch **ohne stillen Rückgriff auf einen alten Stand**.
+5. Zum reinen Prüfen: `BBQ-UPDATE.cmd pruefen` über Eingabeaufforderung; Parser-Test: `BBQ-UPDATE.cmd test`.
+6. Factorio.com-Benutzername/Token bleiben lokal; Mods werden vom offiziellen Factorio-Modportal geladen. Bei ungeklärten Abhängigkeiten können gültige ZIPs geladen werden, die Modliste wird aber nicht als vollständiger Satz aktiviert.
+7. Neue Welt testen, erst danach auf AMP übernehmen.
+
+**Wichtig:** Nur **eine CMD-Datei lokal** heißt nicht, dass der Code nur aus einer Datei besteht: Launcher, Modliste, Versionsvorgaben und geprüfter Core bleiben auf GitHub und werden automatisch heruntergeladen. `BBQ-STARTEN.cmd` und `BBQ-NUR-PRUEFEN.cmd` werden nicht mehr benötigt.
 
 **Direkte Downloadquelle für die Liste:**
 `https://raw.githubusercontent.com/Technox90/projekte/main/Factorio/mod-list.json`
