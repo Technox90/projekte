@@ -1,92 +1,43 @@
-# 🔥 BBQ CHAOS – Factorio 2.0.77 Modpack
+# BBQ CHAOS – Factorio 2.0.77 · Bob's + Angel's + Space Age
 
-Verwaltete Modliste für **Bob's + Angel's + Space Age** mit QoL-Erweiterungen. Ziel: dieselbe Auswahl auf Windows-PC und AMP-Multiplayer-Server; zunächst lokal testen.
+**Leitlinie seit 03.10.2026:** ausschliesslich **unveraenderte Original-ZIP-Dateien aus dem offiziellen [Factorio-Modportal](https://mods.factorio.com/)**. Keine selbst erstellten BBQ-Reparaturmods, Lua-Eingriffe, gepatchten ZIPs, alternativen Downloadquellen oder grossen zusaetzlichen Planetensammlungen.
 
-## Dateien
+## Modpack-Zusammensetzung
 
-- [MODS.md](MODS.md) – komplette Liste aller **111 Mods**, mit Status, Zweck und Modportal-Links.
-- [mod-list.json](mod-list.json) – **maßgebliche zentrale Modauswahl**: 98 aktiviert, 13 deaktiviert.
-- [version-pins.json](version-pins.json) – **sieben** Versionsvorgaben (sechs QoL-Mods und ein Fehlerfix) (Factorio 2.0).
-- **[BBQ-UPDATE.cmd](BBQ-UPDATE.cmd) – EINZIGE auf Windows benötigte Datei.** Direkt von GitHub herunterladen, doppelklicken; lädt bei jedem Lauf die aktuelle GitHub-Modliste und den geprüften Core.
-- [BBQ-STARTEN.cmd](BBQ-STARTEN.cmd) – älterer Start für vollständig entpackte Ordner (nur aus Kompatibilitätsgründen behalten).
-- [BBQ-NUR-PRUEFEN.cmd](BBQ-NUR-PRUEFEN.cmd) – älterer Prüflauf; bei der Ein-Datei-Lösung stattdessen `BBQ-UPDATE.cmd pruefen` verwenden.
-- [BBQ-GitHub-Launcher-v2.ps1](BBQ-GitHub-Launcher-v2.ps1) – aktuelle GitHub-Downloader/Startlogik.
-- [BBQ-ModDownloader-core.ps1.gz.b64](BBQ-ModDownloader-core.ps1.gz.b64) – komprimierte, unveränderte Downloader-Core-Version aus dem zuletzt funktionierenden Paket (im Launcher SHA-256-geprüft).
+- [mod-list.json](mod-list.json): **111 Eintraege – 97 aktiviert, 14 deaktiviert**. Originalauswahl einschliesslich Bob's, Angel's und Space Age sowie bereits gewuenschter QoL-Mods, nicht pauschal um neue Overhauls erweitert.
+- [MODS.md](MODS.md): alle Mods, Stati und Modportal-Links.
+- [version-pins.json](version-pins.json): **sechs** festgelegte QoL-Modversionen; keine Version fuer deaktivierte Mods.
+- [BBQ-UPDATE.cmd](BBQ-UPDATE.cmd): **einzige notwendige Windows-Startdatei**.
+- [BBQ-GitHub-Launcher-v2.ps1](BBQ-GitHub-Launcher-v2.ps1): laedt Liste, Pins und den auf SHA-256 geprueften Downloader-Core; **keine ZIP-Nachbearbeitung**.
+- [BBQ-ModDownloader-core.ps1.gz.b64](BBQ-ModDownloader-core.ps1.gz.b64): offizieller Portal-Downloader aus dem bisherigen Paket (verifiziert via SHA-256 `c029f896eb20fb81023e32266ebda0689d2b3c96004eb9cd300b43811e7b0405`).
+- [BBQ-STARTEN.cmd](BBQ-STARTEN.cmd), [BBQ-NUR-PRUEFEN.cmd](BBQ-NUR-PRUEFEN.cmd), [BBQ-GitHub-Launcher.ps1](BBQ-GitHub-Launcher.ps1): alte Skripte, nicht fuer das neue Setup verwenden.
 
-## Installation auf Windows – nur eine CMD-Datei
+## Was wurde deaktiviert, und warum?
 
-1. **Factorio schließen**.
-2. Nur die Datei **[BBQ-UPDATE.cmd](BBQ-UPDATE.cmd)** herunterladen (auf GitHub `Raw` / `Download raw file`) und eine **bereits vorhandene ältere BBQ-UPDATE.cmd einmalig ersetzen**. **Keine weiteren lokalen Skriptdateien erforderlich.**
-3. `BBQ-UPDATE.cmd` doppelklicken: die CMD lädt den Launcher v2 mit Cache-Bypass und Syntaxkontrolle. Aktuelle Modliste, sieben Versionsvorgaben und Downloader-Core kommen bei jedem Lauf von `Technox90/projekte/main/Factorio` über HTTPS.
-4. Der Core ist mit einer fest hinterlegten SHA-256-Prüfsumme geschützt; bei GitHub-/Integritätsfehlern Abbruch **ohne stillen Rückgriff auf einen alten Stand**.
-5. Zum reinen Prüfen: `BBQ-UPDATE.cmd pruefen` über Eingabeaufforderung; Parser-Test: `BBQ-UPDATE.cmd test`.
-6. Factorio.com-Benutzername/Token bleiben lokal; Mods werden vom offiziellen Factorio-Modportal geladen. Bei ungeklärten Abhängigkeiten können gültige ZIPs geladen werden, die Modliste wird aber nicht als vollständiger Satz aktiviert.
-7. Neue Welt testen, erst danach auf AMP übernehmen.
+- `angelsaddons-space-age`: Original-Kompatibilitaetsmod verursacht ungueltigen Schwefelsaeure-Referenznamen bei Quality/Battery-Recycling.
+- `angelsaddons-space-age-revived` **0.0.14**: Offizielle Fork-ZIP behebt obigen Fehler, verwendet aber `bob-turbo-transport-belt`, das in Bob's Logistics 2.1.1 nicht mehr existiert. Fehler unter anderem im `turbo-transport-belt`- und `turbo-loader`-Rezept. **Unmodifiziert verwenden wir diese Fork nicht**.
+- `angels-space-age-tungsten-compat`: benoetigt die deaktivierte Originalmod.
+- `saplib`: Konflikt mit `cargo-ships` in `resource-autoplace.lua`, reproduziert; `cargo-ships` und `cargo-ships-graphics` bleiben aktiv. `TurboBelt`, das `saplib` und die Abwesenheit von Space Age verlangt, bleibt deaktiviert.
+- Weitere bereits zuvor deaktivierte Mods bleiben deaktiviert, siehe Katalog.
 
-**Wichtig:** Nur **eine CMD-Datei lokal** heißt nicht, dass der Code nur aus einer Datei besteht: Launcher, Modliste, Versionsvorgaben und geprüfter Core bleiben auf GitHub und werden automatisch heruntergeladen. `BBQ-STARTEN.cmd` und `BBQ-NUR-PRUEFEN.cmd` werden nicht mehr benötigt.
+Die neue **AngelBob Space Age Rebalance** ist im Modportal verfuegbar, verlangt aber viele zusaetzliche grosse Planeten-/Grafikmods. Sie wurde **bewusst nicht ungefragt** in das Modpack aufgenommen. Ohne spezifische Space-Age-Integration sind **Spielstart und komplette Progression auf allen Planeten nicht garantiert**. Modportal-Verfuegbarkeit ist keine Garantie fuer gemeinsame Kompatibilitaet.
 
-**Direkte Downloadquelle für die Liste:**
-`https://raw.githubusercontent.com/Technox90/projekte/main/Factorio/mod-list.json`
+`AngelBob` ist ein **offizieller Modportal-Metapack-Mod**, der laut Autor selbst nichts am Spiel aendert, sondern Angel/Bob-Abhaengigkeiten buendelt. `early_construction_modified_private` traegt zwar „private“ im Namen, ist aber unter diesem **exakten ID-Namen im offiziellen Modportal** als „Early Construction“ in Version 2.0.1 veroeffentlicht. Nur unveraenderte Originaldateien zulassen.
 
-## Bekannter Ladefehler behoben: Quality / Battery-Recycling
+## Windows: Neuinstallation / Update
 
-Wenn Factorio beim Start meldet: `Recipe battery has malformed ingredients: ingredient fluid 'angels-liquid-sulfuric-acid' does not exist`, ist die frühere Mod `angelsaddons-space-age` beteiligt. Der [Revived-Fork](https://mods.factorio.com/mod/angelsaddons-space-age-revived) **0.0.14** behebt exakt diese fehlerhafte Flüssigkeitsumbenennung. Die alte Mod und `angels-space-age-tungsten-compat` (welche die alte Mod voraussetzt) sind **deaktiviert**. Der Wolfram-Spielverlauf bleibt separat zu prüfen.
+1. **Factorio schliessen**. `%APPDATA%\Factorio\saves`, `mod-settings.dat`, `mod-list.json` und gegebenenfalls eigene Backups sichern.
+2. Bereits manuell modifizierte `angelsaddons-space-age-revived_0.0.14.zip`, `bbq-chaos-belt-compat_*.zip` sowie sonstige selbstveraenderte ZIPs aus dem **aktiven** `%APPDATA%\Factorio\mods`-Verzeichnis herausnehmen (nicht blind alles loeschen); die lokale Modliste deaktiviert den Fork ohnehin.
+3. Falls eine fruehere `BBQ-UPDATE.cmd` den v2-Launcher verwendet, ist **kein Austausch** notwendig: sie laedt bei jedem Start die aktualisierte Launcher-Datei von GitHub. Andernfalls die Datei aus diesem Ordner einmal neu beziehen.
+4. `BBQ-UPDATE.cmd` doppelklicken. Aktive Mods werden ausschliesslich **original** aus dem offiziellen Modportal geladen und auf Portalpruefsummen geprueft. Beim Fehlschlag ist der Bericht unter `%APPDATA%\Factorio\BBQ-CHAOS-Reports` massgeblich. Keine automatischen Eigenpatches.
+5. `BBQ-UPDATE.cmd pruefen` fuer reine Pruefung, `BBQ-UPDATE.cmd test` fuer den Parser-Test. **Keine veraenderten Original-ZIPs wieder in das Verzeichnis legen.**
+6. Factorio auf einem **neuen Test-Spielstand** starten und Planeten-/Produktionsketten testen, bevor derselbe Satz im Multiplayer verwendet wird.
 
-Beim nächsten `BBQ-UPDATE.cmd` wird die neue Version anhand der aktuellen GitHub-Liste geladen; Factorio schließen, den Vorgang beenden lassen, anschließend neu starten. Die vorhandenen alten ZIP-Dateien dürfen verbleiben, müssen aber **deaktiviert** sein. Unabhängig davon ist der Start mit sämtlichen übrigen Mods nicht vollständig geprüft.
+Das **Serververzeichnis von AMP wird vom Windows-Updater nicht veraendert**. Die AMP-Instanz war zwischenzeitlich mit einer **lokal gepatchten** Angel-Fork startfaehig und laeuft damit **nicht** mit den unveraenderten Windows-Mods synchron. Vor dem naechsten Multiplayerstart **Server herunterfahren, Konfiguration und Save sichern**, alte BBQ-Testfix-ZIPs entfernen, **Originaldateien aus dem offiziellen Modportal** verwenden und die `mod-list.json` auf den neuen Stand bringen. Ein neues Spiel ist bei Aenderungen an Angel/Bob/Space-Age-Rezepten unter Umstaenden erforderlich. **Diese README ist keine Aussage, dass AMP bereits umgestellt ist.**
 
-## Angel's Space Age Revived + Bob's Logistics 2.1.1 (AMP-erprobter Fix)
+## Sicherheit / GitHub-Checks
 
-Bob's Logistics 2.1.0 entfernte den `bob-`-Prefix bei Turbo-Baendern. Die veroeffentlichte
-`angelsaddons-space-age-revived_0.0.14.zip` referenziert weiterhin
-`bob-turbo-transport-belt`; damit brechen diverse Rezepte einschliesslich
-`turbo-loader` und `turbo-transport-belt` beim Laden ab.
-
-Auf AMP wurde in **genau zwei Dateien** der Revived-ZIP folgender Fix gemacht:
-
-- `data.lua`: `OV.global_replace_item("turbo-transport-belt", "bob-turbo-transport-belt")`
-  → `-- Disabled: obsolete Bob turbo-belt mapping`
-- `data-updates.lua`: bei `replace_ingredient("loader-mini5", ...)`
-  `"bob-turbo-transport-belt"` → `"turbo-transport-belt"`
-
-**Windows:** Seit Launcher-Update 2026-10-03 wird der Mod-Downloader als **separater PowerShell-Prozess** gestartet, damit ein internes `exit` die nachfolgende Korrektur nicht mehr ueberspringt. Der Angel-Patch laeuft danach ebenfalls in einem getrennten Prozess; ein Fehlercode wird sichtbar gemeldet. Eine bereits vorhandene `BBQ-UPDATE.cmd` mit Launcher-v2-Marker laedt den aktualisierten Launcher automatisch nach. Unmittelbarer Fix ohne Full-Re-Download: `BBQ-Angels-Client-Patch.ps1` bei **geschlossenem Spiel** einmal ausfuehren.
-
-**Windows:** `BBQ-UPDATE.cmd` laedt weiterhin das **offizielle Mod-Archiv mit Portal-SHA1-Pruefung**,
-danach holt der Launcher v2 das an einen Git-Commit fest gebundene Skript
-[BBQ-Angels-Client-Patch.ps1](BBQ-Angels-Client-Patch.ps1).
-Dieses wendet **dieselben zwei Lua-Replacements** an, prueft erwarteten Quelltext,
-sichert das originale ZIP ausserhalb des Modordners unter
-`%APPDATA%\Factorio\BBQ-CHAOS-Backups` und kontrolliert das Resultat. Fuer einen
-bereits gepatchten Stand ist es idempotent. Weil die lokal korrigierte ZIP vom
-**Portal-SHA1** abweicht, kann der Core sie beim naechsten Lauf erneut herunterladen
-und der Launcher sie anschliessend erneut korrigieren. Die lauffaehige
-`BBQ-UPDATE.cmd` selbst muss fuer diese Aenderung nicht neu bezogen werden,
-da sie Launcher v2 bei jedem Start nachlaedt.
-
-**Vor dem Leeren des Windows-Modordners** die private ZIP
-`early_construction_modified_private_*.zip`, `mod-settings.dat` und `mod-list.json`
-sichern. Die private Mod ist im Factorio-Modportal nicht allgemein
-herunterladbar und muss vor dem Downloaderlauf vorhanden sein.
-`%APPDATA%\Factorio\saves` bleibt unangetastet. AMP-Mods werden vom
-Windows-Downloader nicht verwaltet. Ein mit beiden Seiten identischer
-Lua-Datei-Inhalt ist vorgesehen, aber erfolgreicher Multiplayer-Handshake
-und vollstaendige CI-Tests sind separat zu pruefen.
-
-## Cargo Ships Startfehler (03.10.2026)
-
-Fehler: `cargo-ships` bricht in `core/lualib/resource-autoplace.lua:7`/`resources-new.lua:126` ab. Identischer Bericht im [Modportal](https://mods.factorio.com/mod/cargo-ships/discussion/69e39fdb1e5c761124092ec2): Deaktivieren der `saplib`-Bibliothek behob den Konflikt. Deshalb `saplib` in `mod-list.json` **aus**; `cargo-ships` und `cargo-ships-graphics` bleiben an. Nicht benötigte Grafikdateien müssen nicht gelöscht werden. Dies ist noch kein vollständiger Spieltest. Auf dem AMP-Server zusätzlich die dortige `mod-list.json` entsprechend einstellen: der Windows-Downloader aktualisiert AMP **nicht** automatisch.
-
-## Änderungen
-
-Für neue Mods ausschließlich die zentrale `mod-list.json` bearbeiten. Achtung: Der Factorio-Modmanager kann beim Spielen die *lokale* Liste ändern, diese Änderungen werden **nicht** automatisch nach GitHub übertragen. Beim nächsten Downloaderlauf hat wieder die GitHub-Liste Vorrang. Im Zweifelsfall zunächst `BBQ-NUR-PRUEFEN.cmd` ausführen.
-
-## Sicherheit und bekannte Grenzen
-
-- Niemals Account-Passwörter, API-Token, `player-data.json`, `mod-settings.dat` oder private ZIPs nach GitHub hochladen. Dieses Repository ist **öffentlich**.
-- `early_construction_modified_private` muss bei fehlender Modportal-Veröffentlichung manuell besorgt werden. Der Downloader erhält dabei die bisherige Konfiguration und erzeugt einen Bericht.
-- Eine veröffentlichte 2.0-Version bedeutet **nicht** automatisch, dass alle 100 aktiven Mods gemeinsam unter 2.0.77 laden. Vor Servereinsatz einschließlich aller Space-Age-Planeten prüfen.
-- Der Launcher lädt **fest benannte Dateien ausschließlich aus diesem Repository**, mit SHA-256-Prüfung für den Downloader-Core. Kein stiller Fallback auf veraltete lokale Listen.
-- Ein AMP-/Linux-Installationsprozess ist nicht Bestandteil dieses Windows-Downloaders.
-
-## Modpacksprache und ursprüngliche Zusammenstellung
-
-BBQ CHAOS · Deutsch · neue Spielwelt möglich · Space Age aktiv. Konflikt-/Experimentmods bleiben deaktiviert; sechs angeforderte QoL-Mods sind hinzugefügt und fixiert. Der Stand ist ein *Testkandidat*, keine getestete Veröffentlichung.
+- Keine Accounts, privaten Dateien, Tokens, Passwoerter, `mod-settings.dat` oder Savegames auf GitHub hochladen.
+- Die aktuelle CMD laedt genau festgelegte Dateien aus `Technox90/projekte`; SHA-256 verifiziert den Downloader-Core. Downloads aus dem Modportal muessen zu den vom Portal veroeffentlichten ZIP-Hashes passen.
+- GitHub Actions prueft JSON, Pins, bekannte Inkompatibilitaeten und PowerShell-Syntax; sie kann **keinen vollstaendigen Spieltest oder die Funktion aller Rezepte beweisen**.
+- Downloaderfehler nicht durch das Ausschalten von `quality`, `space-age` oder grosser Bob-/Angel-Kernbereiche umgehen.
