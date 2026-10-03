@@ -20,7 +20,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $root = 'Factorio'
-          $files = @((Join-Path $root 'BBQ-GitHub-Launcher.ps1'))
+          $files = @((Join-Path $root 'BBQ-GitHub-Launcher.ps1'), (Join-Path $root 'BBQ-GitHub-Launcher-v2.ps1'))
           foreach ($file in $files) {
             $tokens = $null
             $errors = $null
