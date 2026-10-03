@@ -85,10 +85,6 @@
       "enabled": true
     },
     {
-      "name": "AutoDeconstruct",
-      "enabled": true
-    },
-    {
       "name": "Automatic_Train_Painter",
       "enabled": true
     },
@@ -201,18 +197,6 @@
       "enabled": true
     },
     {
-      "name": "ev-assets",
-      "enabled": false
-    },
-    {
-      "name": "ev-mining-drills",
-      "enabled": false
-    },
-    {
-      "name": "ev-refining",
-      "enabled": false
-    },
-    {
       "name": "even-distribution",
       "enabled": true
     },
@@ -313,20 +297,8 @@
       "enabled": true
     },
     {
-      "name": "saplib",
-      "enabled": false
-    },
-    {
-      "name": "ScienceCostTweakerM",
-      "enabled": false
-    },
-    {
       "name": "shield-generators",
       "enabled": true
-    },
-    {
-      "name": "shield-projector",
-      "enabled": false
     },
     {
       "name": "shortwave_fix",
@@ -337,16 +309,8 @@
       "enabled": true
     },
     {
-      "name": "SpaceModFeorasFork",
-      "enabled": false
-    },
-    {
       "name": "squeak-through-2",
       "enabled": true
-    },
-    {
-      "name": "stack-inserters",
-      "enabled": false
     },
     {
       "name": "stdlib2",
@@ -357,28 +321,12 @@
       "enabled": true
     },
     {
-      "name": "TurboBelt",
-      "enabled": false
-    },
-    {
       "name": "wood-to-landfill-spaceage",
       "enabled": true
     },
     {
       "name": "AngelBob",
       "enabled": true
-    },
-    {
-      "name": "angelsaddons-space-age",
-      "enabled": false
-    },
-    {
-      "name": "angelsaddons-space-age-revived",
-      "enabled": false
-    },
-    {
-      "name": "angels-space-age-tungsten-compat",
-      "enabled": false
     },
     {
       "name": "BottleneckLite",
@@ -411,14 +359,6 @@
     {
       "name": "automatic-station-painter",
       "enabled": true
-    },
-    {
-      "name": "even-pickier-dollies",
-      "enabled": false
-    },
-    {
-      "name": "RailSignalPlanner",
-      "enabled": false
     },
     {
       "name": "belt-visualizer",
