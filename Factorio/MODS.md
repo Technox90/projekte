@@ -1,6 +1,6 @@
 # BBQ CHAOS – Modkatalog
 
-**Factorio 2.0.77 · Bob's + Angel's + Space Age · 111 Mods (99 aktiv / 12 deaktiviert)**
+**Factorio 2.0.77 · Bob's + Angel's + Space Age · 111 Mods (98 aktiv / 13 deaktiviert)**
 
 Modnamen sind die exakten IDs. Die Beschreibungen dienen zur Orientierung; die tatsächliche Kompatibilität des gesamten Pakets ist noch nicht durch einen Factorio-Spielstart nachgewiesen. Unklare Forks/Erweiterungen werden nicht als geprüft dargestellt. Über den Namen gelangst du direkt zur Beschreibung im Modportal.
 
@@ -70,7 +70,7 @@ Modnamen sind die exakten IDs. Die Beschreibungen dienen zur Orientierung; die t
 | Aktiv | [`reskins-angels`](https://mods.factorio.com/mod/reskins-angels) | Angel-Grafiken |
 | Aktiv | [`reskins-bobs`](https://mods.factorio.com/mod/reskins-bobs) | Bob-Grafiken |
 | Aktiv | [`reskins-library`](https://mods.factorio.com/mod/reskins-library) | Grafik-Bibliothek |
-| Aktiv | [`saplib`](https://mods.factorio.com/mod/saplib) | Details, Abhängigkeiten und genaue Funktion im Modportal prüfen |
+| Deaktiviert | [`saplib`](https://mods.factorio.com/mod/saplib) | Space Age Prototypes Library. Identischer `cargo-ships`-`resource-autoplace.lua`-Absturz wurde durch Deaktivierung behoben; derzeit keine aktive Pflichtabhängigkeit im Modpack ersichtlich (deaktiviertes `TurboBelt` benötigt `saplib`). |
 | Aktiv | [`stdlib2`](https://mods.factorio.com/mod/stdlib2) | Details, Abhängigkeiten und genaue Funktion im Modportal prüfen |
 
 ## Weitere Mods und QoL
@@ -145,9 +145,13 @@ Modnamen sind die exakten IDs. Die Beschreibungen dienen zur Orientierung; die t
 
 Beim Laden von `quality` entstand `Recipe battery has malformed ingredients: ingredient fluid 'angels-liquid-sulfuric-acid' does not exist`. Ursache: `angelsaddons-space-age` (0.0.13). Umstellung auf den korrigierten Fork `angelsaddons-space-age-revived` **0.0.14**, Original und abhängigen Wolfram-Patch vorerst deaktiviert. Wichtig: Gleicher Effekt auf Windows und AMP nur bei identischem Modstand; kompletten Spielstart sowie Rezepte und den Wolfram-Fortschritt testen. [Changelog des Forks](https://mods.factorio.com/mod/angelsaddons-space-age-revived/changelog).
 
+## Reparatur vom 03.10.2026 – Cargo Ships / Ressourcengenerierung
+
+Der Server meldete beim Kartenerstellen `Failed to load mod cargo-ships`, `resource-autoplace.lua:7`, `resources-new.lua:126`. Im offiziellen [Cargo-Ships-Fehlerbericht](https://mods.factorio.com/mod/cargo-ships/discussion/69e39fdb1e5c761124092ec2) wurde exakt derselbe Stacktrace durch Abschalten von `saplib 0.0.3` behoben. Daher **`saplib` deaktiviert**, `cargo-ships` und `cargo-ships-graphics` bleiben aktiv. **Keine weiteren Mods ersetzt.** `TurboBelt` war bereits deaktiviert und ist die einzige hier bekannte Mod, die `saplib` als Pflichtabhängigkeit fordert. Die erfolgreiche Initialisierung im kompletten Bob/Angel-Modpack muss noch getestet werden.
+
 ## Achtung
 
 - `early_construction_modified_private` könnte nur lokal verfügbar sein; der Downloader kann private Mods nicht selbst beschaffen.
-- Zwölf deaktivierte Einträge bleiben deaktiviert, darunter Space-Age-Konflikte und vorsorglich pausierte Mods.
+- Dreizehn deaktivierte Einträge bleiben deaktiviert, darunter Space-Age-Konflikte und vorsorglich pausierte Mods.
 - Die Versions-Pins betreffen genau sechs neu hinzugefügte QoL-Mods. Alle anderen Releases wählt der Downloader anhand der Portal-Abhängigkeiten passend für Factorio 2.0; daraus folgt keine Garantie für 2.0.77-Spielbarkeit.
 - Vor AMP-Einsatz einen neuen Spielstand laden, alle Planeten überprüfen und UPS messen.
