@@ -72,6 +72,13 @@ Lua-Reparaturen hinzugefuegt.
    **Nie** Zugangsdaten an Chat/GitHub schicken.
 5. Script laedt alle ZIPs zuerst in ein staging-Verzeichnis; originale bestehende
    ZIPs duerfen nur bei **korrekt verifizierter SHA1-Pruefsumme** kopiert werden.
+   Neu: Offizielle ZIPs werden auch bei abweichender interner `info.json`-Ordnerstruktur
+   akzeptiert, sofern die **originale Portal-SHA1** passt und `info.json` die exakte
+   Mod-ID und Version enthaelt. Fehler unterscheiden Hash, ZIP und Mod-ID.
+   Erfolgreich verifizierte Original-ZIPs werden unter
+   `/home/amp/.ampdata/instances/Factorio01/factorio/server/.bbq-modportal-cache`
+   aufbewahrt, sodass nach Downloadabbruch bereits gepruefte ZIPs beim naechsten
+   Lauf nicht erneut geladen werden muessen.
    \`mod-settings.dat\` wird erhalten, \`mod-list.json\` von GitHub uebernommen.
    Erst wenn alle Downloads erfolgreich sind, wird das alte AMP-Verzeichnis
    nach \`mods-BBQ-backup-<Datum>\` verschoben, das neue aktiv geschaltet.
