@@ -1,6 +1,6 @@
 # BBQ CHAOS – Modkatalog
 
-**Factorio 2.0.77 · Bob's + Angel's + Space Age · 111 Mods (98 aktiv / 13 deaktiviert)**
+**Factorio 2.0.77 · Bob's + Angel's + Space Age · 111 Mods (97 aktiv / 14 deaktiviert)**
 
 Modnamen sind die exakten IDs. Die Beschreibungen dienen zur Orientierung; die tatsächliche Kompatibilität des gesamten Pakets ist noch nicht durch einen Factorio-Spielstart nachgewiesen. Unklare Forks/Erweiterungen werden nicht als geprüft dargestellt. Über den Namen gelangst du direkt zur Beschreibung im Modportal.
 
@@ -56,7 +56,7 @@ Modnamen sind die exakten IDs. Die Beschreibungen dienen zur Orientierung; die t
 | Aktiv | [`angelssmeltinggraphics`](https://mods.factorio.com/mod/angelssmeltinggraphics) | Angel-Zusatzmod bzw. Grafik-/Funktionsbaustein |
 | Aktiv | [`AngelBob`](https://mods.factorio.com/mod/AngelBob) | Angel-/Bob-Integrationspaket |
 | Deaktiviert | [`angelsaddons-space-age`](https://mods.factorio.com/mod/angelsaddons-space-age) | Fehlerhafte Originalmod: ersetzt Schwefelsäure in Batterierezepten durch nicht existierende Flüssigkeit; siehe [Bug](https://mods.factorio.com/mod/angelsaddons-space-age/discussion/6a75e6058f9c45953f49b836). |
-| Aktiv | [`angelsaddons-space-age-revived`](https://mods.factorio.com/mod/angelsaddons-space-age-revived) **0.0.14** | Korrigierter Fork; beseitigt den `quality`/Batterie-Recycling-Absturz. |
+| Deaktiviert | [`angelsaddons-space-age-revived`](https://mods.factorio.com/mod/angelsaddons-space-age-revived) **0.0.14** | Offiziell unveraenderter Fork loest zwar den Schwefelsaeurefehler, referenziert aber in Kombination mit Bob's Logistics 2.1.1 das nicht mehr existierende Item `bob-turbo-transport-belt`. Keine lokalen Patches erlaubt. |
 
 | Deaktiviert | [`angels-space-age-tungsten-compat`](https://mods.factorio.com/mod/angels-space-age-tungsten-compat) | Benötigt ausdrücklich die **fehlerhafte Originalmod** `angelsaddons-space-age`; daher vorerst deaktiviert. Wolfram-Integration bleibt separat zu testen. |
 
@@ -87,7 +87,7 @@ Modnamen sind die exakten IDs. Die Beschreibungen dienen zur Orientierung; die t
 | Aktiv | [`Cursed-FMD`](https://mods.factorio.com/mod/Cursed-FMD) | Details, Abhängigkeiten und genaue Funktion im Modportal prüfen |
 | Aktiv | [`Death_Counter`](https://mods.factorio.com/mod/Death_Counter) | Todesstatistik |
 | Aktiv | [`dqol-resource-monitor`](https://mods.factorio.com/mod/dqol-resource-monitor) | Ressourcen überwachen |
-| Aktiv | [`early_construction_modified_private`](https://mods.factorio.com/mod/early_construction_modified_private) | Private Frühbau-Mod, Verfügbarkeit prüfen |
+| Aktiv | [`early_construction_modified_private`](https://mods.factorio.com/mod/early_construction_modified_private) | Im offiziellen Modportal als **Early Construction 2.0.1** veroeffentlicht; nur original ZIP, keine privaten/modifizierten Kopien verwenden. |
 | Aktiv | [`electric_pole_free_light`](https://mods.factorio.com/mod/electric_pole_free_light) | Details, Abhängigkeiten und genaue Funktion im Modportal prüfen |
 | Deaktiviert | [`ev-assets`](https://mods.factorio.com/mod/ev-assets) | Grafiken/Bibliothek für EV |
 | Deaktiviert | [`ev-mining-drills`](https://mods.factorio.com/mod/ev-mining-drills) | Alternative Bergbaumaschinen |
@@ -143,7 +143,7 @@ Modnamen sind die exakten IDs. Die Beschreibungen dienen zur Orientierung; die t
 
 ## Reparatur vom 03.10.2026 – Quality / Battery-Recycling
 
-Beim Laden von `quality` entstand `Recipe battery has malformed ingredients: ingredient fluid 'angels-liquid-sulfuric-acid' does not exist`. Ursache: `angelsaddons-space-age` (0.0.13). Umstellung auf den korrigierten Fork `angelsaddons-space-age-revived` **0.0.14**, Original und abhängigen Wolfram-Patch vorerst deaktiviert. Wichtig: Gleicher Effekt auf Windows und AMP nur bei identischem Modstand; kompletten Spielstart sowie Rezepte und den Wolfram-Fortschritt testen. [Changelog des Forks](https://mods.factorio.com/mod/angelsaddons-space-age-revived/changelog).
+Die 0.0.13-Originalmod verursachte den `quality`-Batteriefehler. Der unveraenderte Revived-Fork 0.0.14 beseitigt diesen, nutzt aber obsolete Bob's-Logistics-Itemnamen und bleibt daher ebenfalls **deaktiviert**. Eine umfassende Space-Age-Integration kann ohne getestete offizielle Kompatibilitaetsmod noch unvollstaendig sein. [Fork-Changelog](https://mods.factorio.com/mod/angelsaddons-space-age-revived/changelog).
 
 ## Reparatur vom 03.10.2026 – Cargo Ships / Ressourcengenerierung
 
@@ -151,7 +151,7 @@ Der Server meldete beim Kartenerstellen `Failed to load mod cargo-ships`, `resou
 
 ## Achtung
 
-- `early_construction_modified_private` könnte nur lokal verfügbar sein; der Downloader kann private Mods nicht selbst beschaffen.
+- `early_construction_modified_private` ist trotz seiner ID ein im Factorio-Modportal veroeffentlichter Mod. Wenn der Downloader ihn nicht beziehen kann, Downloadbericht und Berechtigungen pruefen; keinesfalls alternative ZIPs einspielen.
 - Dreizehn deaktivierte Einträge bleiben deaktiviert, darunter Space-Age-Konflikte und vorsorglich pausierte Mods.
 - Die Versions-Pins betreffen genau sechs neu hinzugefügte QoL-Mods. Alle anderen Releases wählt der Downloader anhand der Portal-Abhängigkeiten passend für Factorio 2.0; daraus folgt keine Garantie für 2.0.77-Spielbarkeit.
 - Vor AMP-Einsatz einen neuen Spielstand laden, alle Planeten überprüfen und UPS messen.
