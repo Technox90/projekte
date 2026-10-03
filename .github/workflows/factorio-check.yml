@@ -1,0 +1,59 @@
+name: Factorio - PowerShell und Modliste pruefen
+on:
+  push:
+    paths:
+      - "Factorio/**"
+      - ".github/workflows/factorio-check.yml"
+  pull_request:
+    paths:
+      - "Factorio/**"
+      - ".github/workflows/factorio-check.yml"
+  workflow_dispatch:
+
+jobs:
+  windows-powershell:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse PowerShell and validate mod pack
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = 'Factorio'
+          $files = @((Join-Path $root 'BBQ-GitHub-Launcher.ps1'))
+          foreach ($file in $files) {
+            $tokens = $null
+            $errors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $file).Path, [ref]$tokens, [ref]$errors)
+            if ($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_.Message }; throw "PowerShell syntax error: $file" }
+          }
+          $list = Get-Content (Join-Path $root 'mod-list.json') -Raw | ConvertFrom-Json
+          $pins = Get-Content (Join-Path $root 'version-pins.json') -Raw | ConvertFrom-Json
+          $all = @($list.mods)
+          if ($all.Count -lt 4) { throw 'Invalid mod count' }
+          $ids = @{}
+          foreach ($entry in $all) {
+            if (-not $entry.name -or $entry.enabled -isnot [bool]) { throw 'Invalid mod entry' }
+            if ($ids.ContainsKey($entry.name)) { throw "Duplicate mod: $($entry.name)" }
+            $ids[$entry.name] = $entry.enabled
+          }
+          if (-not $ids['base']) { throw 'base must be enabled' }
+          foreach ($p in $pins.PSObject.Properties) {
+            if (-not $ids[$p.Name]) { throw "Pinned mod not enabled: $($p.Name)" }
+            if ($p.Value -notmatch '^[0-9]+[.][0-9]+[.][0-9]+$') { throw "Invalid pin: $($p.Name)" }
+          }
+          $encoded = [IO.File]::ReadAllText((Join-Path $root 'BBQ-ModDownloader-core.ps1.gz.b64')).Trim()
+          $compressed = [Convert]::FromBase64String($encoded)
+          $ms = New-Object IO.MemoryStream(,$compressed)
+          $gzip = New-Object IO.Compression.GZipStream($ms,[IO.Compression.CompressionMode]::Decompress)
+          $dst = New-Object IO.MemoryStream
+          try { $gzip.CopyTo($dst) } finally { $gzip.Dispose();$ms.Dispose() }
+          $core = Join-Path $env:TEMP 'BBQ-ModDownloader.ps1'
+          [IO.File]::WriteAllBytes($core,$dst.ToArray())
+          $dst.Dispose()
+          if ((Get-FileHash $core -Algorithm SHA256).Hash -ine 'c029f896eb20fb81023e32266ebda0689d2b3c96004eb9cd300b43811e7b0405') { throw 'Core SHA256 mismatch' }
+          $tokens=$null
+          $errors=$null
+          [void][System.Management.Automation.Language.Parser]::ParseFile($core,[ref]$tokens,[ref]$errors)
+          if ($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_.Message }; throw 'Core parse error' }
+          Write-Host "OK: $($all.Count) Mods, $($pins.PSObject.Properties.Count) pins; scripts parsed on Windows PowerShell."
