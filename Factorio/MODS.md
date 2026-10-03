@@ -1,6 +1,6 @@
 # BBQ CHAOS – Modkatalog
 
-**Factorio 2.0.77 · Bob's + Angel's + Space Age · 111 Mods (97 aktiv / 14 deaktiviert)**
+**Factorio 2.0.77 · Bob's + Angel's + Space Age · 96 aktive Eintraege (92 Modportal-ZIPs plus 4 Grundspiel/DLC-Eintraege)**
 
 Modnamen sind die exakten IDs. Die Beschreibungen dienen zur Orientierung; die tatsächliche Kompatibilität des gesamten Pakets ist noch nicht durch einen Factorio-Spielstart nachgewiesen. Unklare Forks/Erweiterungen werden nicht als geprüft dargestellt. Über den Namen gelangst du direkt zur Beschreibung im Modportal.
 
@@ -55,10 +55,7 @@ Modnamen sind die exakten IDs. Die Beschreibungen dienen zur Orientierung; die t
 | Aktiv | [`angelssmelting`](https://mods.factorio.com/mod/angelssmelting) | Metallverhüttung |
 | Aktiv | [`angelssmeltinggraphics`](https://mods.factorio.com/mod/angelssmeltinggraphics) | Angel-Zusatzmod bzw. Grafik-/Funktionsbaustein |
 | Aktiv | [`AngelBob`](https://mods.factorio.com/mod/AngelBob) | Angel-/Bob-Integrationspaket |
-| Deaktiviert | [`angelsaddons-space-age`](https://mods.factorio.com/mod/angelsaddons-space-age) | Fehlerhafte Originalmod: ersetzt Schwefelsäure in Batterierezepten durch nicht existierende Flüssigkeit; siehe [Bug](https://mods.factorio.com/mod/angelsaddons-space-age/discussion/6a75e6058f9c45953f49b836). |
-| Deaktiviert | [`angelsaddons-space-age-revived`](https://mods.factorio.com/mod/angelsaddons-space-age-revived) **0.0.14** | Offiziell unveraenderter Fork loest zwar den Schwefelsaeurefehler, referenziert aber in Kombination mit Bob's Logistics 2.1.1 das nicht mehr existierende Item `bob-turbo-transport-belt`. Keine lokalen Patches erlaubt. |
 
-| Deaktiviert | [`angels-space-age-tungsten-compat`](https://mods.factorio.com/mod/angels-space-age-tungsten-compat) | Benötigt ausdrücklich die **fehlerhafte Originalmod** `angelsaddons-space-age`; daher vorerst deaktiviert. Wolfram-Integration bleibt separat zu testen. |
 
 ## Grafik- und Bibliotheksmods
 
@@ -70,7 +67,6 @@ Modnamen sind die exakten IDs. Die Beschreibungen dienen zur Orientierung; die t
 | Aktiv | [`reskins-angels`](https://mods.factorio.com/mod/reskins-angels) | Angel-Grafiken |
 | Aktiv | [`reskins-bobs`](https://mods.factorio.com/mod/reskins-bobs) | Bob-Grafiken |
 | Aktiv | [`reskins-library`](https://mods.factorio.com/mod/reskins-library) | Grafik-Bibliothek |
-| Deaktiviert | [`saplib`](https://mods.factorio.com/mod/saplib) | Space Age Prototypes Library. Identischer `cargo-ships`-`resource-autoplace.lua`-Absturz wurde durch Deaktivierung behoben; derzeit keine aktive Pflichtabhängigkeit im Modpack ersichtlich (deaktiviertes `TurboBelt` benötigt `saplib`). |
 | Aktiv | [`stdlib2`](https://mods.factorio.com/mod/stdlib2) | Details, Abhängigkeiten und genaue Funktion im Modportal prüfen |
 
 ## Weitere Mods und QoL
@@ -78,7 +74,6 @@ Modnamen sind die exakten IDs. Die Beschreibungen dienen zur Orientierung; die t
 | Status | Mod | Funktion / Hinweis |
 |---|---|---|
 | Aktiv | [`aai-containers`](https://mods.factorio.com/mod/aai-containers) | Details, Abhängigkeiten und genaue Funktion im Modportal prüfen |
-| Aktiv | [`AutoDeconstruct`](https://mods.factorio.com/mod/AutoDeconstruct) | Erschöpfte Minen markieren |
 | Aktiv | [`Automatic_Train_Painter`](https://mods.factorio.com/mod/Automatic_Train_Painter) | Züge einfärben |
 | Aktiv | [`better-victory-screen`](https://mods.factorio.com/mod/better-victory-screen) | Siegbildschirm |
 | Aktiv | [`cargo-ships`](https://mods.factorio.com/mod/cargo-ships) | Schiffstransport |
@@ -89,9 +84,6 @@ Modnamen sind die exakten IDs. Die Beschreibungen dienen zur Orientierung; die t
 | Aktiv | [`dqol-resource-monitor`](https://mods.factorio.com/mod/dqol-resource-monitor) | Ressourcen überwachen |
 | Aktiv | [`early_construction_modified_private`](https://mods.factorio.com/mod/early_construction_modified_private) | Im offiziellen Modportal als **Early Construction 2.0.1** veroeffentlicht; nur original ZIP, keine privaten/modifizierten Kopien verwenden. |
 | Aktiv | [`electric_pole_free_light`](https://mods.factorio.com/mod/electric_pole_free_light) | Details, Abhängigkeiten und genaue Funktion im Modportal prüfen |
-| Deaktiviert | [`ev-assets`](https://mods.factorio.com/mod/ev-assets) | Grafiken/Bibliothek für EV |
-| Deaktiviert | [`ev-mining-drills`](https://mods.factorio.com/mod/ev-mining-drills) | Alternative Bergbaumaschinen |
-| Deaktiviert | [`ev-refining`](https://mods.factorio.com/mod/ev-refining) | Alternative Erzverarbeitung |
 | Aktiv | [`even-distribution`](https://mods.factorio.com/mod/even-distribution) | Inventar gleichmäßig verteilen |
 | Aktiv | [`factorissimo-2-notnotmelon`](https://mods.factorio.com/mod/factorissimo-2-notnotmelon) | Innenfabriken |
 | Aktiv | [`FactorySearch`](https://mods.factorio.com/mod/FactorySearch) | Fabriksuche |
@@ -113,16 +105,11 @@ Modnamen sind die exakten IDs. Die Beschreibungen dienen zur Orientierung; die t
 | Aktiv | [`QueueToFrontLimited`](https://mods.factorio.com/mod/QueueToFrontLimited) | Details, Abhängigkeiten und genaue Funktion im Modportal prüfen |
 | Aktiv | [`RecipeBook`](https://mods.factorio.com/mod/RecipeBook) | Rezeptnachschlagewerk |
 | Aktiv | [`RecursiveResourceCalculator`](https://mods.factorio.com/mod/RecursiveResourceCalculator) | Materialbedarf berechnen |
-| Deaktiviert | [`ScienceCostTweakerM`](https://mods.factorio.com/mod/ScienceCostTweakerM) | Forschungskosten verändern |
 | Aktiv | [`shield-generators`](https://mods.factorio.com/mod/shield-generators) | Details, Abhängigkeiten und genaue Funktion im Modportal prüfen |
-| Deaktiviert | [`shield-projector`](https://mods.factorio.com/mod/shield-projector) | Details, Abhängigkeiten und genaue Funktion im Modportal prüfen |
 | Aktiv | [`shortwave_fix`](https://mods.factorio.com/mod/shortwave_fix) | Details, Abhängigkeiten und genaue Funktion im Modportal prüfen |
 | Aktiv | [`simple-event-logger`](https://mods.factorio.com/mod/simple-event-logger) | Details, Abhängigkeiten und genaue Funktion im Modportal prüfen |
-| Deaktiviert | [`SpaceModFeorasFork`](https://mods.factorio.com/mod/SpaceModFeorasFork) | Alternative Raumfahrt-Erweiterung (Konflikt) |
 | Aktiv | [`squeak-through-2`](https://mods.factorio.com/mod/squeak-through-2) | Zwischen Maschinen laufen |
-| Deaktiviert | [`stack-inserters`](https://mods.factorio.com/mod/stack-inserters) | Stapel-Greifarme für Spiel ohne DLC |
 | Aktiv | [`trainsaver`](https://mods.factorio.com/mod/trainsaver) | Details, Abhängigkeiten und genaue Funktion im Modportal prüfen |
-| Deaktiviert | [`TurboBelt`](https://mods.factorio.com/mod/TurboBelt) | Space-Age-Bänder für Spiel ohne DLC (Konflikt) |
 | Aktiv | [`wood-to-landfill-spaceage`](https://mods.factorio.com/mod/wood-to-landfill-spaceage) | Details, Abhängigkeiten und genaue Funktion im Modportal prüfen |
 | Aktiv | [`BottleneckLite`](https://mods.factorio.com/mod/BottleneckLite) | Maschinenstatus anzeigen |
 | Aktiv | [`RateCalculator`](https://mods.factorio.com/mod/RateCalculator) | Durchsatz berechnen |
@@ -132,8 +119,6 @@ Modnamen sind die exakten IDs. Die Beschreibungen dienen zur Orientierung; die t
 | Aktiv | [`VehicleSnap`](https://mods.factorio.com/mod/VehicleSnap) | Fahrtrichtung einrasten |
 | Aktiv | [`textplates`](https://mods.factorio.com/mod/textplates) | Beschriftungen bauen |
 | Aktiv | [`automatic-station-painter`](https://mods.factorio.com/mod/automatic-station-painter) | Bahnhöfe einfärben |
-| Deaktiviert | [`even-pickier-dollies`](https://mods.factorio.com/mod/even-pickier-dollies) | Maschinen verschieben |
-| Deaktiviert | [`RailSignalPlanner`](https://mods.factorio.com/mod/RailSignalPlanner) | Schienensignale setzen |
 | Aktiv | [`belt-visualizer`](https://mods.factorio.com/mod/belt-visualizer) **2.0.2** | Förderbandwege anzeigen |
 | Aktiv | [`jetpack`](https://mods.factorio.com/mod/jetpack) **0.4.17** | Über Hindernisse fliegen |
 | Aktiv | [`CursorEnhancements`](https://mods.factorio.com/mod/CursorEnhancements) **2.2.2** | Cursor-Komfort |
@@ -141,17 +126,32 @@ Modnamen sind die exakten IDs. Die Beschreibungen dienen zur Orientierung; die t
 | Aktiv | [`WhereIsMyBody`](https://mods.factorio.com/mod/WhereIsMyBody) **2.0.15** | Leiche wiederfinden |
 | Aktiv | [`DiscoScience`](https://mods.factorio.com/mod/DiscoScience) **2.0.1** | Leuchtende Wissenschaftslabore |
 
+## Entfernte Eintraege / Bereinigung 03.10.2026
+
+Alle 14 zuvor deaktivierten Eintraege wurden vollstaendig aus der
+`mod-list.json` entfernt, darunter die beiden in dieser Kombination
+fehlerhaften Angel's/Space-Age-Kompatibilitaetsmods, `saplib` und `TurboBelt`.
+Zusaetzlich ist die freiwillige Komfortmod `AutoDeconstruct` nicht mehr Teil
+des Pakets, nachdem die AMP-Original-ZIP-Pruefung fuer
+`AutoDeconstruct_1.0.14.zip` fehlgeschlagen war. Das **beweist keinen Fehler**
+der veroeffentlichten Mod: Die Modportal-Seite bietet Version 1.0.14 fuer
+Factorio 2.0 weiterhin an. Keine manuelle ZIP-Manipulation verwenden.
+
+Die uebrigen **96 aktiven Eintraege** wurden nicht automatisch auf ein
+abhaengigkeitsminimalistisches Set reduziert: Das wuerde bestehende
+QoL-/Spielerwuensche und Gameplay aendern.
+
 ## Reparatur vom 03.10.2026 – Quality / Battery-Recycling
 
 Die 0.0.13-Originalmod verursachte den `quality`-Batteriefehler. Der unveraenderte Revived-Fork 0.0.14 beseitigt diesen, nutzt aber obsolete Bob's-Logistics-Itemnamen und bleibt daher ebenfalls **deaktiviert**. Eine umfassende Space-Age-Integration kann ohne getestete offizielle Kompatibilitaetsmod noch unvollstaendig sein. [Fork-Changelog](https://mods.factorio.com/mod/angelsaddons-space-age-revived/changelog).
 
 ## Reparatur vom 03.10.2026 – Cargo Ships / Ressourcengenerierung
 
-Der Server meldete beim Kartenerstellen `Failed to load mod cargo-ships`, `resource-autoplace.lua:7`, `resources-new.lua:126`. Im offiziellen [Cargo-Ships-Fehlerbericht](https://mods.factorio.com/mod/cargo-ships/discussion/69e39fdb1e5c761124092ec2) wurde exakt derselbe Stacktrace durch Abschalten von `saplib 0.0.3` behoben. Daher **`saplib` deaktiviert**, `cargo-ships` und `cargo-ships-graphics` bleiben aktiv. **Keine weiteren Mods ersetzt.** `TurboBelt` war bereits deaktiviert und ist die einzige hier bekannte Mod, die `saplib` als Pflichtabhängigkeit fordert. Die erfolgreiche Initialisierung im kompletten Bob/Angel-Modpack muss noch getestet werden.
+Der Server meldete beim Kartenerstellen `Failed to load mod cargo-ships`, `resource-autoplace.lua:7`, `resources-new.lua:126`. Im offiziellen [Cargo-Ships-Fehlerbericht](https://mods.factorio.com/mod/cargo-ships/discussion/69e39fdb1e5c761124092ec2) wurde exakt derselbe Stacktrace durch Abschalten von `saplib 0.0.3` behoben. Daher **`saplib` aus der Liste entfernt**, `cargo-ships` und `cargo-ships-graphics` bleiben aktiv. **Keine weiteren Mods ersetzt.** `TurboBelt` war bereits deaktiviert und ist entfernt und ist die einzige hier bekannte Mod, die `saplib` als Pflichtabhängigkeit fordert. Die gemeinsame Spielbarkeit muss mit der bereinigten Modauswahl noch getestet werden.
 
 ## Achtung
 
 - `early_construction_modified_private` ist trotz seiner ID ein im Factorio-Modportal veroeffentlichter Mod. Wenn der Downloader ihn nicht beziehen kann, Downloadbericht und Berechtigungen pruefen; keinesfalls alternative ZIPs einspielen.
-- Dreizehn deaktivierte Einträge bleiben deaktiviert, darunter Space-Age-Konflikte und vorsorglich pausierte Mods.
+- Es sind **keine deaktivierten Eintraege mehr in der aktuellen Modliste**.
 - Die Versions-Pins betreffen genau sechs neu hinzugefügte QoL-Mods. Alle anderen Releases wählt der Downloader anhand der Portal-Abhängigkeiten passend für Factorio 2.0; daraus folgt keine Garantie für 2.0.77-Spielbarkeit.
 - Vor AMP-Einsatz einen neuen Spielstand laden, alle Planeten überprüfen und UPS messen.
