@@ -48,6 +48,8 @@ Auf AMP wurde in **genau zwei Dateien** der Revived-ZIP folgender Fix gemacht:
 - `data-updates.lua`: bei `replace_ingredient("loader-mini5", ...)`
   `"bob-turbo-transport-belt"` → `"turbo-transport-belt"`
 
+**Windows:** Seit Launcher-Update 2026-10-03 wird der Mod-Downloader als **separater PowerShell-Prozess** gestartet, damit ein internes `exit` die nachfolgende Korrektur nicht mehr ueberspringt. Der Angel-Patch laeuft danach ebenfalls in einem getrennten Prozess; ein Fehlercode wird sichtbar gemeldet. Eine bereits vorhandene `BBQ-UPDATE.cmd` mit Launcher-v2-Marker laedt den aktualisierten Launcher automatisch nach. Unmittelbarer Fix ohne Full-Re-Download: `BBQ-Angels-Client-Patch.ps1` bei **geschlossenem Spiel** einmal ausfuehren.
+
 **Windows:** `BBQ-UPDATE.cmd` laedt weiterhin das **offizielle Mod-Archiv mit Portal-SHA1-Pruefung**,
 danach holt der Launcher v2 das an einen Git-Commit fest gebundene Skript
 [BBQ-Angels-Client-Patch.ps1](BBQ-Angels-Client-Patch.ps1).
