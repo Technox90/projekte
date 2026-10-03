@@ -20,16 +20,6 @@ try {
       throw "GitHub-Datei ungueltig: $name"
     }
   }
-  # Fixed Git commit: only the two Bob/Angel source lines already validated on AMP.
-  $patchUrl='https://raw.githubusercontent.com/Technox90/projekte/f05dc2345dcad068b6a94c5b05ebab3c7c30703b/Factorio/BBQ-Angels-Client-Patch.ps1'
-  $patchFile=Join-Path $work 'BBQ-Angels-Client-Patch.ps1'
-  Remove-Item -LiteralPath $patchFile -Force -ErrorAction SilentlyContinue
-  Invoke-WebRequest -Uri ($patchUrl+'?nocache='+[guid]::NewGuid().ToString('N')) -OutFile $patchFile -UseBasicParsing -TimeoutSec 60 -ErrorAction Stop | Out-Null
-  $patchSource=Get-Content -LiteralPath $patchFile -Raw -Encoding UTF8
-  if(-not $patchSource.StartsWith('# BBQ_ANGELS_PATCH_VERSION=20261003_1')){throw 'Unpassender Angel-Patch von GitHub'}
-  $parseTokens=$null;$parseErrors=$null
-  [void][System.Management.Automation.Language.Parser]::ParseFile($patchFile,[ref]$parseTokens,[ref]$parseErrors)
-  if($parseErrors.Count -gt 0){throw "Angel-Patch hat PowerShell-Syntaxfehler: $($parseErrors[0].Message)"}
   $listFile=Join-Path $work 'mod-list.json'
   $list=Get-Content -LiteralPath $listFile -Raw -Encoding UTF8 | ConvertFrom-Json
   # Variable Anzahl zulassen, damit spaetere Modlisten-Aenderungen ohne
@@ -68,23 +58,15 @@ try {
   if($TestParser){ & $scriptPath -ModList $listFile -TestParser }
   elseif($CheckOnly){ & $scriptPath -ModList $listFile -CheckOnly }
   else{
-    # Execute Core separately: an 'exit' must not bypass the client-side hotfix.
-    Write-Host "BBQ: Starte Mod-Downloader (getrennter PowerShell-Prozess)."
+    # Unmodified official modportal archives ONLY. No ZIP edits or custom patches.
+    # Keep the core in a separate process so its 'exit' cannot bypass error checking.
+    Write-Host "BBQ: Lade unveraenderte Original-Mods aus dem Factorio-Modportal."
     & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ModList $listFile -DownloadAvailable
     $downloadCode=[int]$LASTEXITCODE
-
-    # Apply patch even when a private/non-portal mod is not available.
-    $modsDir=Join-Path $env:APPDATA 'Factorio\mods'
-    Write-Host "BBQ: Pruefe Angel's ZIP-Datei im Ordner $modsDir"
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $patchFile -ModsDir $modsDir
-    $patchCode=[int]$LASTEXITCODE
-    if($patchCode -ne 0){
-      throw "Angel's ZIP-Korrektur fehlgeschlagen (Code $patchCode). Factorio NICHT starten."
-    }
-    Write-Host "BBQ: Angel's ZIP erfolgreich korrigiert / verifiziert." -ForegroundColor Green
     if($downloadCode -ne 0){
-      throw "Mod-Download noch unvollstaendig (Code $downloadCode). Pruefe private Mod und Report."
+      throw "Download unvollstaendig (Code $downloadCode). Pruefe Report; keine Mods veraendern."
     }
+    Write-Host "BBQ: Originalarchive geladen. Kein ZIP-Patching." -ForegroundColor Green
   }
 } catch {
   Write-Host ("FEHLER: GitHub-Downloader nicht gestartet: "+$_.Exception.Message) -ForegroundColor Red
