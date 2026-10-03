@@ -68,14 +68,22 @@ try {
   if($TestParser){ & $scriptPath -ModList $listFile -TestParser }
   elseif($CheckOnly){ & $scriptPath -ModList $listFile -CheckOnly }
   else{
-    # Downloader downloads official ZIPs, verifies SHA1, writes mod-list.json.
-    # Angel's post-processing then brings the ZIP contents in line with AMP.
-    $global:LASTEXITCODE=0
-    & $scriptPath -ModList $listFile -DownloadAvailable
-    $downloadCode=[int]$global:LASTEXITCODE
-    & $patchFile -ModsDir (Join-Path $env:APPDATA 'Factorio\mods')
+    # Execute Core separately: an 'exit' must not bypass the client-side hotfix.
+    Write-Host "BBQ: Starte Mod-Downloader (getrennter PowerShell-Prozess)."
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ModList $listFile -DownloadAvailable
+    $downloadCode=[int]$LASTEXITCODE
+
+    # Apply patch even when a private/non-portal mod is not available.
+    $modsDir=Join-Path $env:APPDATA 'Factorio\mods'
+    Write-Host "BBQ: Pruefe Angel's ZIP-Datei im Ordner $modsDir"
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $patchFile -ModsDir $modsDir
+    $patchCode=[int]$LASTEXITCODE
+    if($patchCode -ne 0){
+      throw "Angel's ZIP-Korrektur fehlgeschlagen (Code $patchCode). Factorio NICHT starten."
+    }
+    Write-Host "BBQ: Angel's ZIP erfolgreich korrigiert / verifiziert." -ForegroundColor Green
     if($downloadCode -ne 0){
-      throw "Download noch unvollstaendig (Core-Code $downloadCode). Pruefe fehlende private Mod und Report."
+      throw "Mod-Download noch unvollstaendig (Code $downloadCode). Pruefe private Mod und Report."
     }
   }
 } catch {
