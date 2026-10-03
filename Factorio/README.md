@@ -4,9 +4,9 @@ Verwaltete Modliste für **Bob's + Angel's + Space Age** mit QoL-Erweiterungen. 
 
 ## Dateien
 
-- [MODS.md](MODS.md) – komplette Liste aller **110 Mods**, mit Status, Zweck und Modportal-Links.
-- [mod-list.json](mod-list.json) – **maßgebliche zentrale Modauswahl**: 100 aktiviert, 10 deaktiviert.
-- [version-pins.json](version-pins.json) – **sechs** festgelegte QoL-Versionen (Factorio 2.0).
+- [MODS.md](MODS.md) – komplette Liste aller **111 Mods**, mit Status, Zweck und Modportal-Links.
+- [mod-list.json](mod-list.json) – **maßgebliche zentrale Modauswahl**: 99 aktiviert, 12 deaktiviert.
+- [version-pins.json](version-pins.json) – **sieben** Versionsvorgaben (sechs QoL-Mods und ein Fehlerfix) (Factorio 2.0).
 - **[BBQ-UPDATE.cmd](BBQ-UPDATE.cmd) – EINZIGE auf Windows benötigte Datei.** Direkt von GitHub herunterladen, doppelklicken; lädt bei jedem Lauf die aktuelle GitHub-Modliste und den geprüften Core.
 - [BBQ-STARTEN.cmd](BBQ-STARTEN.cmd) – älterer Start für vollständig entpackte Ordner (nur aus Kompatibilitätsgründen behalten).
 - [BBQ-NUR-PRUEFEN.cmd](BBQ-NUR-PRUEFEN.cmd) – älterer Prüflauf; bei der Ein-Datei-Lösung stattdessen `BBQ-UPDATE.cmd pruefen` verwenden.
@@ -17,7 +17,7 @@ Verwaltete Modliste für **Bob's + Angel's + Space Age** mit QoL-Erweiterungen. 
 
 1. **Factorio schließen**.
 2. Nur die Datei **[BBQ-UPDATE.cmd](BBQ-UPDATE.cmd)** herunterladen (auf GitHub `Raw` / `Download raw file`) und eine **bereits vorhandene ältere BBQ-UPDATE.cmd einmalig ersetzen**. **Keine weiteren lokalen Skriptdateien erforderlich.**
-3. `BBQ-UPDATE.cmd` doppelklicken: die CMD lädt den Launcher v2 mit Cache-Bypass und Syntaxkontrolle. Aktuelle Modliste, sechs Versionsvorgaben und Downloader-Core kommen bei jedem Lauf von `Technox90/projekte/main/Factorio` über HTTPS.
+3. `BBQ-UPDATE.cmd` doppelklicken: die CMD lädt den Launcher v2 mit Cache-Bypass und Syntaxkontrolle. Aktuelle Modliste, sieben Versionsvorgaben und Downloader-Core kommen bei jedem Lauf von `Technox90/projekte/main/Factorio` über HTTPS.
 4. Der Core ist mit einer fest hinterlegten SHA-256-Prüfsumme geschützt; bei GitHub-/Integritätsfehlern Abbruch **ohne stillen Rückgriff auf einen alten Stand**.
 5. Zum reinen Prüfen: `BBQ-UPDATE.cmd pruefen` über Eingabeaufforderung; Parser-Test: `BBQ-UPDATE.cmd test`.
 6. Factorio.com-Benutzername/Token bleiben lokal; Mods werden vom offiziellen Factorio-Modportal geladen. Bei ungeklärten Abhängigkeiten können gültige ZIPs geladen werden, die Modliste wird aber nicht als vollständiger Satz aktiviert.
@@ -27,6 +27,12 @@ Verwaltete Modliste für **Bob's + Angel's + Space Age** mit QoL-Erweiterungen. 
 
 **Direkte Downloadquelle für die Liste:**
 `https://raw.githubusercontent.com/Technox90/projekte/main/Factorio/mod-list.json`
+
+## Bekannter Ladefehler behoben: Quality / Battery-Recycling
+
+Wenn Factorio beim Start meldet: `Recipe battery has malformed ingredients: ingredient fluid 'angels-liquid-sulfuric-acid' does not exist`, ist die frühere Mod `angelsaddons-space-age` beteiligt. Der [Revived-Fork](https://mods.factorio.com/mod/angelsaddons-space-age-revived) **0.0.14** behebt exakt diese fehlerhafte Flüssigkeitsumbenennung. Die alte Mod und `angels-space-age-tungsten-compat` (welche die alte Mod voraussetzt) sind **deaktiviert**. Der Wolfram-Spielverlauf bleibt separat zu prüfen.
+
+Beim nächsten `BBQ-UPDATE.cmd` wird die neue Version anhand der aktuellen GitHub-Liste geladen; Factorio schließen, den Vorgang beenden lassen, anschließend neu starten. Die vorhandenen alten ZIP-Dateien dürfen verbleiben, müssen aber **deaktiviert** sein. Unabhängig davon ist der Start mit sämtlichen übrigen Mods nicht vollständig geprüft.
 
 ## Änderungen
 
