@@ -16,8 +16,8 @@ Verwaltete Modliste für **Bob's + Angel's + Space Age** mit QoL-Erweiterungen. 
 ## Installation auf Windows – nur eine CMD-Datei
 
 1. **Factorio schließen**.
-2. Nur die Datei **[BBQ-UPDATE.cmd](BBQ-UPDATE.cmd)** herunterladen (auf GitHub `Raw` / `Download raw file`). **Keine weiteren lokalen Skriptdateien erforderlich.**
-3. `BBQ-UPDATE.cmd` doppelklicken: Die aktuelle Modliste, sechs Versionsvorgaben und der Downloader-Core werden bei jedem Lauf von `Technox90/projekte/main/Factorio` über HTTPS bezogen.
+2. Nur die Datei **[BBQ-UPDATE.cmd](BBQ-UPDATE.cmd)** herunterladen (auf GitHub `Raw` / `Download raw file`) und eine **bereits vorhandene ältere BBQ-UPDATE.cmd einmalig ersetzen**. **Keine weiteren lokalen Skriptdateien erforderlich.**
+3. `BBQ-UPDATE.cmd` doppelklicken: die CMD lädt den Launcher v2 mit Cache-Bypass und Syntaxkontrolle. Aktuelle Modliste, sechs Versionsvorgaben und Downloader-Core kommen bei jedem Lauf von `Technox90/projekte/main/Factorio` über HTTPS.
 4. Der Core ist mit einer fest hinterlegten SHA-256-Prüfsumme geschützt; bei GitHub-/Integritätsfehlern Abbruch **ohne stillen Rückgriff auf einen alten Stand**.
 5. Zum reinen Prüfen: `BBQ-UPDATE.cmd pruefen` über Eingabeaufforderung; Parser-Test: `BBQ-UPDATE.cmd test`.
 6. Factorio.com-Benutzername/Token bleiben lokal; Mods werden vom offiziellen Factorio-Modportal geladen. Bei ungeklärten Abhängigkeiten können gültige ZIPs geladen werden, die Modliste wird aber nicht als vollständiger Satz aktiviert.
