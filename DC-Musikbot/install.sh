@@ -33,6 +33,7 @@ fi
 install -d -m 0750 -o "$BOT_USER" -g "$BOT_USER" "$APP_DIR"
 curl --fail --location --silent --show-error "$REPO_BASE/bot.py" -o "$APP_DIR/bot.py"
 curl --fail --location --silent --show-error "$REPO_BASE/nowplaying.py" -o "$APP_DIR/nowplaying.py"
+curl --fail --location --silent --show-error "$REPO_BASE/commands.py" -o "$APP_DIR/commands.py"
 curl --fail --location --silent --show-error "$REPO_BASE/requirements.txt" -o "$APP_DIR/requirements.txt"
 python3 -m venv "$APP_DIR/.venv"
 "$APP_DIR/.venv/bin/python" -m pip install --no-cache-dir --upgrade pip
@@ -46,6 +47,7 @@ cat >"$APP_DIR/radio.env" <<EOF
 DISCORD_BOT_TOKEN="$BOT_TOKEN"
 DISCORD_CHANNEL_ID="$CHANNEL_ID"
 RADIO_STREAM_URL="$STREAM_URL"
+RADIO_VOLUME=0.1
 EOF
 unset BOT_TOKEN
 chmod 0600 "$APP_DIR/radio.env"
@@ -76,7 +78,7 @@ PrivateTmp=true
 WantedBy=multi-user.target
 EOF
 
-"$APP_DIR/.venv/bin/python" -m py_compile "$APP_DIR/bot.py"
+"$APP_DIR/.venv/bin/python" -m py_compile "$APP_DIR/bot.py" "$APP_DIR/nowplaying.py" "$APP_DIR/commands.py"
 systemctl daemon-reload
 systemctl enable --now "$SERVICE"
 echo
