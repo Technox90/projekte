@@ -57,6 +57,25 @@ journalctl -u bbq-chaos-radio -f
 
 Das Skript legt ein Backup an und laesst `radio.env` und AzuraCast unveraendert. Wenn ein Discord-Voice-Handshake noch fehlschlaegt, muss die Audioverbindung separat diagnostiziert werden; die Songanzeige wird unabhaengig davon betrieben.
 
+## Discord Slash-Commands
+
+Berechtigungen: Administratoren oder Mitglieder mit **Nachrichten verwalten** oder **Server verwalten** duerfen /radio steuern. Musikwunschbefehle stehen allen Mitgliedern dieses Servers offen. Moderatorenrollen ohne eines dieser Rechte muessen entsprechend berechtigt werden.
+
+- `/radio lautstaerke prozent:10` – live Lautstaerke einstellen (0–100 %)
+- `/radio lauter` und `/radio leiser` – jeweils 5 Prozentpunkte
+- `/radio pause`, `/radio weiter`, `/radio neustart`
+- `/radio status` – Discord-Status und Lautstaerke
+- `/musik suchen suchbegriff:...` – suchbare Songs und Request-IDs anzeigen
+- `/musik wuenschen song_id:...` – Song an AzuraCast uebermitteln
+
+Der Bot registriert die globalen Befehle beim Start; die Anzeige in Discord kann daher etwas dauern. Der Bot benoetigt den `applications.commands`-Scope. Musikwunschfunktion in den AzuraCast-Sendereinstellungen aktivieren. Auf Wunsch API-Schluessel **nur lokal** in `/opt/bbq-chaos-radiobot/radio.env` hinterlegen (`AZURACAST_API_KEY="..."`). Er wird als Bearer-Token gesendet. Mit einem API-Schluessel koennen andere AzuraCast-Regeln fuer die Anfrage gelten; daher moeglichst eng eingeschraenkte Berechtigungen nutzen.
+
+Der 10-Minuten-Cooldown pro Discord-Mitglied startet nur bei erfolgreicher Musikwunschanfrage und wird in `requests-state.json` ueber Neustarts hinweg gespeichert. Bei Ablehnung durch AzuraCast beginnt kein Cooldown. Die eigentliche Wiedergabe wird weiterhin durch AzuraCast geplant. Die private Antwort zeigt Suchergebnisse mit ihrer Song-ID; `/musik wuenschen` akzeptiert diese ID.
+
+Die Lautstaerke startet fuer neue Installationen bei 10 % (`RADIO_VOLUME=0.1`) und wird anschliessend unabhaengig von der env-Datei in `volume-state.json` persistiert. Bei bestehenden Installationen ohne diese Datei wird zuerst die vorhandene Einstellung aus `radio.env` verwendet. Um auf die Env-Vorgabe zurueckzusetzen, die Datei `volume-state.json` bei gestopptem Bot loeschen. Die Audiosignal-Lautstaerke wird direkt zur Laufzeit angepasst.
+
+Wichtig: Der Discord-Bot veraendert keine AzuraCast-Dienste und ueberspringt keine Lieder. `/radio neustart` startet nur die Discord-Audiowiedergabe neu.
+
 ## Verhalten
 
 - Start beim Serverboot via systemd
@@ -71,7 +90,7 @@ Das Skript legt ein Backup an und laesst `radio.env` und AzuraCast unveraendert.
 ## Dateien
 
 - `install.sh`: Debian/Ubuntu-Installer
-- `bot.py`: 24/7-Radiobot mit Songanzeige
+- `bot.py`: 24/7-Radiobot mit Songanzeige und Slash-Commands\n- `commands.py`: Slash-Commands, Musiksuche und Request-Cooldown
 - `nowplaying.py`: einzelnes persistentes Song-Embed
 - `update.sh`: Update der bereits installierten Hetzner-Version
 - `requirements.txt`: Python-Abhaengigkeiten
