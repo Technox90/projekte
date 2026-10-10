@@ -153,9 +153,9 @@ def setup_commands(bot):
         except Exception:
             track = "Momentan nicht abrufbar"
         await interaction.response.send_message(
-            f"📻 **BBQ-Chaos-Deutschland**\\n"
-            f"Discord: {'▶️ spielt' if playing else '⏸️ pausiert' if bot.paused_by_user else '⏳ nicht spielend'}\\n"
-            f"Lautstaerke: **{round(bot.volume * 100)} %**\\n"
+            f"📻 **BBQ-Chaos-Deutschland**\n"
+            f"Discord: {'▶️ spielt' if playing else '⏸️ pausiert' if bot.paused_by_user else '⏳ nicht spielend'}\n"
+            f"Lautstaerke: **{round(bot.volume * 100)} %**\n"
             f"🎵 **Aktuell:** {discord.utils.escape_markdown(track)[:300]}",
             ephemeral=True)
 
