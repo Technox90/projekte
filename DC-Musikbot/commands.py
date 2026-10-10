@@ -142,11 +142,21 @@ def setup_commands(bot):
             return
         voice = bot.radio_voice()
         playing = bool(voice and voice.is_playing())
+        try:
+            timeout = aiohttp.ClientTimeout(total=8)
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.get(BASE + "/api/nowplaying/" + quote(STATION, safe="")) as response:
+                    response.raise_for_status()
+                    data = await response.json()
+            song = (data.get("now_playing") or {}).get("song") or {}
+            track = f"{song.get('artist') or 'Unbekannt'} – {song.get('title') or 'Unbekannt'}"
+        except Exception:
+            track = "Momentan nicht abrufbar"
         await interaction.response.send_message(
-            f"📻 **BBQ-Chaos-Deutschland**\n"
-            f"Discord: {'▶️ spielt' if playing else '⏸️ pausiert' if bot.paused_by_user else '⏳ nicht spielend'}\n"
-            f"Lautstaerke: **{round(bot.volume * 100)} %**\n"
-            f"Songanzeige: siehe angeheftete NowPlaying-Nachricht.",
+            f"📻 **BBQ-Chaos-Deutschland**\\n"
+            f"Discord: {'▶️ spielt' if playing else '⏸️ pausiert' if bot.paused_by_user else '⏳ nicht spielend'}\\n"
+            f"Lautstaerke: **{round(bot.volume * 100)} %**\\n"
+            f"🎵 **Aktuell:** {discord.utils.escape_markdown(track)[:300]}",
             ephemeral=True)
 
     @musik.command(name="suchen", description="Nach einem wuenschbaren Song suchen")
