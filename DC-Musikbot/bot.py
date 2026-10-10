@@ -5,6 +5,7 @@ import os
 import json
 from pathlib import Path
 import discord
+from discord.ext import commands
 from nowplaying import run_nowplaying
 from commands import setup_commands
 
@@ -19,9 +20,9 @@ if not 0.0 <= VOLUME <= 2.0:
     raise ValueError("RADIO_VOLUME muss zwischen 0.0 und 2.0 liegen")
 
 
-class RadioBot(discord.Client):
+class RadioBot(commands.Bot):
     def __init__(self):
-        super().__init__(intents=discord.Intents.default())
+        super().__init__(command_prefix='!', intents=discord.Intents.default())
         self.watchdog_task = None
         self.nowplaying_task = None
         self.voice_lock = asyncio.Lock()
