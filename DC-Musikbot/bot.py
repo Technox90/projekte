@@ -38,8 +38,11 @@ class RadioBot(commands.Bot):
         setup_commands(self)
 
     async def setup_hook(self):
-        await self.tree.sync()
-        log.info("Slash-Commands bei Discord synchronisiert")
+        guild_id = int(os.getenv("DISCORD_GUILD_ID", "827151610206879755"))
+        guild = discord.Object(id=guild_id)
+        self.tree.copy_global_to(guild=guild)
+        synced = await self.tree.sync(guild=guild)
+        log.info("Slash-Commands fuer Server %s synchronisiert: %s", guild_id, ", ".join(c.name for c in synced))
 
     def radio_voice(self):
         for voice in self.voice_clients:
