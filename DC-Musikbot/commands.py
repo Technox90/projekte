@@ -166,12 +166,18 @@ def setup_commands(bot):
             track = f"{artist} – {title}"
         except Exception:
             track = "Momentan nicht abrufbar"
-        await interaction.response.send_message(
-            f"📻 **BBQ-Chaos-Deutschland**\n"
-            f"Discord: {'▶️ spielt' if playing else '⏸️ pausiert' if bot.paused_by_user else '⏳ nicht spielend'}\n"
-            f"Lautstaerke: **{round(bot.volume * 100)} %**\n"
-            f"🎵 **Aktuell:** {discord.utils.escape_markdown(track)[:300]}",
-            ephemeral=True)
+        status_text = ("▶️ Laeuft" if playing else
+                       "⏸️ Pausiert" if bot.paused_by_user else "⏳ Nicht verbunden")
+        embed = discord.Embed(
+            title="📻 BBQ-Chaos-Deutschland",
+            description="RadioBot · Statusuebersicht",
+            colour=discord.Colour.green() if playing else discord.Colour.orange(),
+        )
+        embed.add_field(name="📡 Wiedergabe", value=status_text, inline=False)
+        embed.add_field(name="🔊 Lautstaerke", value=f"{round(bot.volume * 100)} %", inline=False)
+        embed.add_field(name="🎵 Aktueller Titel", value=discord.utils.escape_markdown(track)[:500], inline=False)
+        embed.set_footer(text="BBQ CHAOS • Gemeinsam zocken, gemeinsam Musik hoeren")
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @musik.command(name="suchen", description="Nach einem wuenschbaren Song suchen")
     @app_commands.describe(suchbegriff="Interpret oder Songtitel")
