@@ -11,6 +11,9 @@ log = logging.getLogger("bbq-radio")
 TOKEN = os.environ["DISCORD_BOT_TOKEN"]
 CHANNEL_ID = int(os.environ["DISCORD_CHANNEL_ID"])
 STREAM_URL = os.environ["RADIO_STREAM_URL"]
+VOLUME = float(os.getenv("RADIO_VOLUME", "0.5"))
+if not 0.0 <= VOLUME <= 2.0:
+    raise ValueError("RADIO_VOLUME muss zwischen 0.0 und 2.0 liegen")
 
 
 class RadioBot(discord.Client):
@@ -63,7 +66,7 @@ class RadioBot(discord.Client):
                         "-reconnect 1 -reconnect_streamed 1 "
                         "-reconnect_delay_max 5 -rw_timeout 15000000"
                     ),
-                    options="-vn -loglevel error",
+                    options=f"-vn -af volume={VOLUME:.3f} -loglevel error",
                 )
                 voice.play(source, after=self.after_audio)
                 log.info("AzuraCast-Stream gestartet")
