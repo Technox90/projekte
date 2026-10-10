@@ -36,7 +36,6 @@ def build_embed(data):
         url=PUBLIC_URL,
         colour=discord.Colour.red() if dj_live and online else (discord.Colour.green() if online else discord.Colour.dark_grey()),
     )
-    embed.add_field(name="📻 Radio", value="BBQ-Chaos-Deutschland", inline=False)
     embed.add_field(name="📡 Status", value=status, inline=False)
     embed.add_field(name="👥 Hörer", value=str(amount), inline=False)
     embed.add_field(name="🌐 Direkt hören", value=f"[Radio öffnen]({PUBLIC_URL})", inline=False)
