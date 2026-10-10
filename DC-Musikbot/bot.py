@@ -2,8 +2,11 @@
 import asyncio
 import logging
 import os
+import json
+from pathlib import Path
 import discord
 from nowplaying import run_nowplaying
+from commands import setup_commands
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("bbq-radio")
@@ -11,7 +14,7 @@ log = logging.getLogger("bbq-radio")
 TOKEN = os.environ["DISCORD_BOT_TOKEN"]
 CHANNEL_ID = int(os.environ["DISCORD_CHANNEL_ID"])
 STREAM_URL = os.environ["RADIO_STREAM_URL"]
-VOLUME = float(os.getenv("RADIO_VOLUME", "0.5"))
+VOLUME = float(os.getenv("RADIO_VOLUME", "0.1"))
 if not 0.0 <= VOLUME <= 2.0:
     raise ValueError("RADIO_VOLUME muss zwischen 0.0 und 2.0 liegen")
 
@@ -22,6 +25,36 @@ class RadioBot(discord.Client):
         self.watchdog_task = None
         self.nowplaying_task = None
         self.voice_lock = asyncio.Lock()
+        self.paused_by_user = False
+        self.volume_file = Path(__file__).with_name('volume-state.json')
+        self.volume = VOLUME
+        if self.volume_file.exists():
+            try:
+                self.volume = float(json.loads(self.volume_file.read_text())['volume'])
+            except (ValueError, KeyError, TypeError, OSError):
+                log.warning('Lautstaerke-Datei ungueltig, verwende radio.env')
+        self.volume = max(0.0, min(1.0, self.volume))
+        setup_commands(self)
+
+    async def setup_hook(self):
+        await self.tree.sync()
+        log.info("Slash-Commands bei Discord synchronisiert")
+
+    def radio_voice(self):
+        for voice in self.voice_clients:
+            if voice.channel and voice.channel.id == CHANNEL_ID:
+                return voice
+        return None
+
+    def set_volume(self, value):
+        self.volume = max(0.0, min(1.0, round(float(value), 3)))
+        voice = self.radio_voice()
+        if voice and isinstance(voice.source, discord.PCMVolumeTransformer):
+            voice.source.volume = self.volume
+        tmp = self.volume_file.with_suffix(".tmp")
+        tmp.write_text(json.dumps({"volume": self.volume}), encoding="utf-8")
+        tmp.replace(self.volume_file)
+        log.info("Radio-Lautstaerke auf %.0f %% geaendert", self.volume * 100)
 
     async def on_ready(self):
         log.info("Angemeldet als %s (%s)", self.user, self.user.id)
@@ -59,6 +92,12 @@ class RadioBot(discord.Client):
                 voice = await channel.connect(timeout=25, reconnect=True, self_deaf=True)
             elif voice.channel.id != CHANNEL_ID:
                 await voice.move_to(channel)
+            if self.paused_by_user:
+                if voice.is_playing():
+                    voice.pause()
+                return
+            if voice.is_paused():
+                voice.resume()
             if not voice.is_playing():
                 source = discord.FFmpegPCMAudio(
                     STREAM_URL,
@@ -66,9 +105,9 @@ class RadioBot(discord.Client):
                         "-reconnect 1 -reconnect_streamed 1 "
                         "-reconnect_delay_max 5 -rw_timeout 15000000"
                     ),
-                    options=f"-vn -af volume={VOLUME:.3f} -loglevel error",
+                    options="-vn -loglevel error",
                 )
-                voice.play(source, after=self.after_audio)
+                voice.play(discord.PCMVolumeTransformer(source, volume=self.volume), after=self.after_audio)
                 log.info("AzuraCast-Stream gestartet")
 
     async def watchdog(self):
