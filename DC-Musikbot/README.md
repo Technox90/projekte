@@ -38,6 +38,25 @@ systemctl stop bbq-chaos-radio
 systemctl start bbq-chaos-radio
 ```
 
+
+## Songanzeige im Sprachkanal-Textchat (NowPlaying)
+
+Der Bot liest standardmaessig `https://stream.bopzocker.de/api/nowplaying/chaos` alle 20 Sekunden aus. Er sendet **ein** Discord-Embed in den Textchat des konfigurierten Sprachkanals und **bearbeitet** die bestehende Nachricht bei Song-/Status-/Hoererwechsel. Die Nachricht-ID steht dauerhaft in `/opt/bbq-chaos-radiobot/nowplaying-message.json` und uebersteht Neustarts.
+
+Erforderliche **zusaetzliche** Kanalberechtigungen: **Nachrichten senden**, **Links einbetten**, **Nachrichtenverlauf lesen**. Kein Webhook und kein neuer Discord-Token noetig.
+
+### Bestehende Hetzner-Installation aktualisieren
+
+```bash
+install -d -m 700 /root/installer
+curl -fsSL https://raw.githubusercontent.com/Technox90/projekte/main/DC-Musikbot/update.sh -o /root/installer/update-bbq-radio.sh
+chmod 700 /root/installer/update-bbq-radio.sh
+bash /root/installer/update-bbq-radio.sh
+journalctl -u bbq-chaos-radio -f
+```
+
+Das Skript legt ein Backup an und laesst `radio.env` und AzuraCast unveraendert. Wenn ein Discord-Voice-Handshake noch fehlschlaegt, muss die Audioverbindung separat diagnostiziert werden; die Songanzeige wird unabhaengig davon betrieben.
+
 ## Verhalten
 
 - Start beim Serverboot via systemd
@@ -52,7 +71,9 @@ systemctl start bbq-chaos-radio
 ## Dateien
 
 - `install.sh`: Debian/Ubuntu-Installer
-- `bot.py`: 24/7-Radiobot
+- `bot.py`: 24/7-Radiobot mit Songanzeige
+- `nowplaying.py`: einzelnes persistentes Song-Embed
+- `update.sh`: Update der bereits installierten Hetzner-Version
 - `requirements.txt`: Python-Abhaengigkeiten
 - `radio.env.example`: Musterkonfiguration ohne echte Zugangsdaten
 - `.gitignore`: verhindert versehentliches Committen lokaler Geheimnisse
