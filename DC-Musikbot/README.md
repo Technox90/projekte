@@ -18,9 +18,10 @@ Discord-Radiobot fuer den bestehenden **AzuraCast-Stream** auf dem **Hetzner-Ser
 Auf dem **Hetzner-Host** als root:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Technox90/projekte/main/DC-Musikbot/install.sh -o /root/install-bbq-radio.sh
-chmod 700 /root/install-bbq-radio.sh
-bash /root/install-bbq-radio.sh
+install -d -m 700 /root/installer
+curl -fsSL https://raw.githubusercontent.com/Technox90/projekte/main/DC-Musikbot/install.sh -o /root/installer/install-bbq-radio.sh
+chmod 700 /root/installer/install-bbq-radio.sh
+bash /root/installer/install-bbq-radio.sh
 ```
 
 Installer fragt nach Kanal-ID, optionaler Stream-URL und Token (verdeckte Eingabe). Laedt `bot.py` und `requirements.txt` aus diesem Ordner nach `/opt/bbq-chaos-radiobot`, legt einen eigenen Systembenutzer an und aktiviert `bbq-chaos-radio.service`.
