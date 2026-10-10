@@ -22,16 +22,23 @@ def build_embed(data):
     artist = str(song.get("artist") or "Unbekannter Interpret")[:256]
     listeners = data.get("listeners") or {}
     amount = listeners.get("total", 0)
-    live = bool(data.get("is_online"))
+    online = bool(data.get("is_online"))
+    dj_live = bool((data.get("live") or {}).get("is_live"))
+    if not online:
+        status = "⚫ Offline"
+    elif dj_live:
+        status = "🔴 Live"
+    else:
+        status = "🟢 Online"
     embed = discord.Embed(
         title="🎵 BBQ CHAOS | LIVE RADIO",
         description=f"**{title}**\n🎤 {artist}",
         url=PUBLIC_URL,
-        colour=discord.Colour.green() if live else discord.Colour.orange(),
+        colour=discord.Colour.red() if dj_live and online else (discord.Colour.green() if online else discord.Colour.dark_grey()),
     )
-    embed.add_field(name="📻 Radio", value="BBQ-Chaos-Deutschland", inline=True)
-    embed.add_field(name="👥 Hörer", value=str(amount), inline=True)
-    embed.add_field(name="🔴 Stream", value="Online" if live else "Offline", inline=True)
+    embed.add_field(name="📻 Radio", value="BBQ-Chaos-Deutschland", inline=False)
+    embed.add_field(name="📡 Status", value=status, inline=False)
+    embed.add_field(name="👥 Hörer", value=str(amount), inline=False)
     embed.add_field(name="🌐 Direkt hören", value=f"[Radio öffnen]({PUBLIC_URL})", inline=False)
     art = song.get("art")
     if isinstance(art, str) and art.startswith("https://"):
@@ -69,6 +76,7 @@ async def run_nowplaying(bot, channel_resolver):
                     str(song.get("artist") or ""),
                     str(listeners.get("total", 0)),
                     bool(data.get("is_online")),
+                    bool((data.get("live") or {}).get("is_live")),
                 )
                 if signature != last_signature:
                     channel = await channel_resolver()
