@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+APP=/opt/bbq-chaos-radiobot
+BASE=https://raw.githubusercontent.com/Technox90/projekte/main/DC-Musikbot
+[[ $EUID -eq 0 ]] || { echo "Als root ausfuehren" >&2; exit 1; }
+[[ -f "$APP/bot.py" && -f "$APP/radio.env" && -x "$APP/.venv/bin/python" ]] || {
+  echo "Vorhandene Installation unvollstaendig; kein Update ausgefuehrt" >&2; exit 1;
+}
+TMP=$(mktemp -d)
+trap 'rm -rf "$TMP"' EXIT
+for file in bot.py nowplaying.py; do
+  curl -fsSL "$BASE/$file" -o "$TMP/$file"
+done
+"$APP/.venv/bin/python" -m py_compile "$TMP/bot.py" "$TMP/nowplaying.py"
+BACKUP="$APP/backup-$(date +%Y%m%d-%H%M%S)"
+mkdir -m 0700 "$BACKUP"
+cp -a "$APP/bot.py" "$BACKUP/bot.py"
+[[ ! -f "$APP/nowplaying.py" ]] || cp -a "$APP/nowplaying.py" "$BACKUP/nowplaying.py"
+install -o bbqradio -g bbqradio -m 0640 "$TMP/bot.py" "$APP/bot.py"
+install -o bbqradio -g bbqradio -m 0640 "$TMP/nowplaying.py" "$APP/nowplaying.py"
+systemctl restart bbq-chaos-radio
+echo "Update abgeschlossen. Backup: $BACKUP"
+echo "Logs: journalctl -u bbq-chaos-radio -f"
+echo "Discord-Berechtigungen: Nachrichten senden, Links einbetten, Nachrichtenverlauf lesen."
