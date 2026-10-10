@@ -174,7 +174,7 @@ def setup_commands(bot):
                 artist, title, identity = describe(item)
                 if not identity or (suchbegriff.casefold() not in (artist + " " + title).casefold()):
                     continue
-                results.append(f"🎵 **{discord.utils.escape_markdown(artist)} – {discord.utils.escape_markdown(title)}**\nID: \`{identity}\`")
+                results.append(f"🎵 **{discord.utils.escape_markdown(artist)} – {discord.utils.escape_markdown(title)}**\nID: `{identity}`")
                 if len(results) == 8:
                     break
             message = "\n\n".join(results) if results else "Keine passenden wuenschbaren Titel gefunden."
