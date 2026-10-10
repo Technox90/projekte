@@ -3,6 +3,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 from pathlib import Path
 
 import aiohttp
@@ -15,10 +16,17 @@ MESSAGE_FILE = Path(__file__).with_name("nowplaying-message.json")
 POLL_SECONDS = 20
 
 
+def clean_title(value):
+    return re.sub(
+        r"\s*[|｜]\s*(?:(?:HQ|HD|4K|8K|UHD|FHD|1080p|720p|60fps)\s*)*(?:official\s+)?(?:music\s+)?video(?:clip)?\b.*$",
+        "", str(value or ""), flags=re.IGNORECASE
+    ).strip()
+
+
 def build_embed(data):
     now = data.get("now_playing") or {}
     song = now.get("song") or {}
-    title = str(song.get("title") or "Unbekannter Titel")[:256]
+    title = clean_title(song.get("title") or "Unbekannter Titel")[:256]
     artist = str(song.get("artist") or "Unbekannter Interpret")[:256]
     listeners = data.get("listeners") or {}
     amount = listeners.get("total", 0)
