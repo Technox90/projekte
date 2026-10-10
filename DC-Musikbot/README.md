@@ -43,7 +43,7 @@ systemctl start bbq-chaos-radio
 
 Der Bot liest standardmaessig `https://stream.bopzocker.de/api/nowplaying/chaos` alle 20 Sekunden aus. Er sendet **ein** Discord-Embed in den Textchat des konfigurierten Sprachkanals und **bearbeitet** die bestehende Nachricht bei Song-/Status-/Hoererwechsel. Die Nachricht-ID steht dauerhaft in `/opt/bbq-chaos-radiobot/nowplaying-message.json` und uebersteht Neustarts.
 
-Erforderliche **zusaetzliche** Kanalberechtigungen: **Nachrichten senden**, **Links einbetten**, **Nachrichtenverlauf lesen**. Kein Webhook und kein neuer Discord-Token noetig.
+Statusanzeige untereinander: **🟢 Online** (AutoDJ), **🔴 Live** (Live-DJ), **⚫ Offline** (AzuraCast meldet nicht online). Auch beim Wechsel zwischen AutoDJ und Live wird dieselbe Nachricht bearbeitet. Falls die API nicht erreichbar ist, bleibt die letzte Anzeige bestehen und im Journal erscheint ein Fehler.\n\nErforderliche **zusaetzliche** Kanalberechtigungen: **Nachrichten senden**, **Links einbetten**, **Nachrichtenverlauf lesen**. Kein Webhook und kein neuer Discord-Token noetig.
 
 ### Bestehende Hetzner-Installation aktualisieren
 
