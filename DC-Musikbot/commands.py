@@ -3,6 +3,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 import time
 from pathlib import Path
 from urllib.parse import quote
@@ -12,6 +13,18 @@ import discord
 from discord import app_commands
 
 log = logging.getLogger("bbq-radio.commands")
+
+
+def clean_song(artist, title):
+    """Hide common video tags embedded in stream metadata."""
+    title = re.sub(
+        r"\s*[|｜]\s*(?:(?:HQ|HD|4K|8K|UHD|FHD|1080p|720p|60fps)\s*)*(?:official\s+)?(?:music\s+)?video(?:clip)?\b.*$",
+        "", str(title or ""), flags=re.IGNORECASE
+    ).strip()
+    artist = str(artist or "").strip()
+    if (not artist or artist.casefold() in {"unknown", "unbekannt"}) and " - " in title:
+        artist, title = (part.strip() for part in title.split(" - ", 1))
+    return artist or "Unbekannt", title or "Unbekannt"
 BASE = os.getenv("AZURACAST_API_BASE", "https://stream.bopzocker.de").rstrip("/")
 STATION = os.getenv("AZURACAST_STATION", "chaos")
 COOLDOWN = 600
@@ -149,7 +162,8 @@ def setup_commands(bot):
                     response.raise_for_status()
                     data = await response.json()
             song = (data.get("now_playing") or {}).get("song") or {}
-            track = f"{song.get('artist') or 'Unbekannt'} – {song.get('title') or 'Unbekannt'}"
+            artist, title = clean_song(song.get("artist"), song.get("title"))
+            track = f"{artist} – {title}"
         except Exception:
             track = "Momentan nicht abrufbar"
         await interaction.response.send_message(
