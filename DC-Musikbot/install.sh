@@ -32,6 +32,7 @@ if ! id "$BOT_USER" >/dev/null 2>&1; then
 fi
 install -d -m 0750 -o "$BOT_USER" -g "$BOT_USER" "$APP_DIR"
 curl --fail --location --silent --show-error "$REPO_BASE/bot.py" -o "$APP_DIR/bot.py"
+curl --fail --location --silent --show-error "$REPO_BASE/nowplaying.py" -o "$APP_DIR/nowplaying.py"
 curl --fail --location --silent --show-error "$REPO_BASE/requirements.txt" -o "$APP_DIR/requirements.txt"
 python3 -m venv "$APP_DIR/.venv"
 "$APP_DIR/.venv/bin/python" -m pip install --no-cache-dir --upgrade pip
