@@ -3,6 +3,7 @@ import asyncio
 import logging
 import os
 import discord
+from nowplaying import run_nowplaying
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("bbq-radio")
@@ -14,14 +15,17 @@ STREAM_URL = os.environ["RADIO_STREAM_URL"]
 
 class RadioBot(discord.Client):
     def __init__(self):
-        super().__init__(intents=discord.Intents.none())
+        super().__init__(intents=discord.Intents.default())
         self.watchdog_task = None
+        self.nowplaying_task = None
         self.voice_lock = asyncio.Lock()
 
     async def on_ready(self):
         log.info("Angemeldet als %s (%s)", self.user, self.user.id)
         if self.watchdog_task is None or self.watchdog_task.done():
             self.watchdog_task = asyncio.create_task(self.watchdog())
+        if self.nowplaying_task is None or self.nowplaying_task.done():
+            self.nowplaying_task = asyncio.create_task(run_nowplaying(self, self.resolve_channel))
 
     async def resolve_channel(self):
         channel = self.get_channel(CHANNEL_ID)
