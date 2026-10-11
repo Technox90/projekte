@@ -1,0 +1,11 @@
+# Private Nightscout credentials and personal medical data
+config/
+data/
+read-token
+*.json.gz
+*.zip
+*.log
+__pycache__/
+*.pyc
+.env
+.env.*
