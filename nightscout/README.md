@@ -35,3 +35,18 @@ Bei kuenftigen GitHub-Aenderungen das Skript erst pruefen und den neuen Commit u
 * Vor tatsaechlichen Updates wird eine lokale Sicherung angelegt. Sie enthaelt auch sensible Konfigurationsdaten und wird **nicht** auf GitHub gespeichert.
 * Das Image-Rollback ersetzt keinen getesteten Restore der Datenbank, und ein HTTP-200-Test prueft nicht alle AAPS-Synchronisierungsvorgaenge.
 * Ein produktiver Nightscout-Ausfall kann die Cloud-Synchronisierung und verknuepfte Alarme unterbrechen; CGM-/Pumpenueberwachung muss davon unabhaengig funktionieren.
+
+---
+
+## Nightscout-Datenexport (Nur-Lese-Dienst)
+
+Zusätzlich zum wöchentlichen Updater gibt es jetzt einen eigenständigen Exporter.
+Er ruft Glukosewerte, Behandlungen, Gerätestatus und Profile über die lokale
+Nightscout-API ausschließlich lesend ab, legt JSON.gz-Dateien unter
+`/opt/nightscout-export/data` ab und aktualisiert sie stündlich.
+
+- Installer: [nightscout-export-install.sh](nightscout-export-install.sh)
+- Anleitung: [README-export.md](README-export.md)
+
+**Bei bereits installiertem Exportdienst ist keine Neuinstallation nötig.**
+Tokens und Gesundheitsdaten niemals in dieses öffentliche GitHub-Repository hochladen.
