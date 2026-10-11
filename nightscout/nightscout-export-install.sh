@@ -161,13 +161,13 @@ def main():
     for offset in range(args.days-1,-1,-1):
         day=today-dt.timedelta(days=offset)
         start=int((dt.datetime.combine(day,dt.time.min,UTC)-EPOCH).total_seconds()*1000)
+        counts={}
         for name in RESOURCES:
             rows=unique(client.range(name,start,start+86400000))
             save(ROOT/'data'/name/(day.isoformat()+'.json.gz'),rows)
+            counts[name]=len(rows)
             totals[name]+=len(rows)
-        print('[OK] '+day.isoformat()+' UTC: '+', '.join(f'{x}={totals_day}' for x,totals_day in
-            [(name,len([])) for name in ()]),end='')
-        print(' '+', '.join(f'{n}={len(unique(client.range(n,start,start+86400000)))}' for n in ()),flush=True)
+        print('[OK] '+day.isoformat()+' UTC: '+', '.join(f'{n}={v}' for n,v in counts.items()),flush=True)
     profiles=client.get('/api/v1/profile.json',[('count','1000')])
     if not isinstance(profiles,list) or len(profiles)>=1000:
         raise RuntimeError('Profile unvollstaendig oder API-Limit erreicht')
