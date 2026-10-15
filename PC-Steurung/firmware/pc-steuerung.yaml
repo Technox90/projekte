@@ -60,6 +60,11 @@ globals:
     type: int
     restore_value: no
     initial_value: '0'
+  # Sechs Sekunden gefahrloser LED-Test, kein Relaisimpuls.
+  - id: notaus_led_test_ticks
+    type: int
+    restore_value: no
+    initial_value: '0'
 
 # Relais muss 3,3-V-HIGH-Steuerung verifiziert unterstuetzen.
 switch:
@@ -132,13 +137,23 @@ script:
             - lambda: |-
                 id(notaus_aktiv) = true;
                 id(notaus_ticks) = 0;
+                id(notaus_led_test_ticks) = 0;
                 id(power_puls_ticks) = 0;
+                // Zeigt sofort an, dass die Freigabe erfolgreich war.
+                id(pc_status_led).set_level(1.0f);
+                id(pc_notaus_status).publish_state(true);
+            - text_sensor.template.publish:
+                id: pc_notaus_rueckmeldung
+                state: "Gestartet: 6 Sekunden Power-Kontakt"
             - logger.log:
                 level: WARN
                 format: "Erzwungenes Ausschalten gestartet"
             - switch.turn_on: pc_relais
             - delay: 6s
             - switch.turn_off: pc_relais
+            - text_sensor.template.publish:
+                id: pc_notaus_rueckmeldung
+                state: "6 Sekunden beendet: pruefe 12V-Status"
             - if:
                 condition:
                   binary_sensor.is_off: pc_12v_status
@@ -147,10 +162,17 @@ script:
                       id(notaus_aktiv) = false;
                       id(notaus_ticks) = 0;
                       id(led_ticks) = 0;
+                      id(pc_notaus_status).publish_state(false);
+                  - text_sensor.template.publish:
+                      id: pc_notaus_rueckmeldung
+                      state: "Abgeschlossen: 12V AUS"
           else:
             - logger.log:
                 level: WARN
                 format: "6-s-Ausschalten abgelehnt: PC-Status AUS/UNBEKANNT"
+            - text_sensor.template.publish:
+                id: pc_notaus_rueckmeldung
+                state: "Abgelehnt: 12V AUS oder Status unbekannt"
 
 button:
   - platform: template
@@ -165,6 +187,25 @@ button:
     icon: mdi:alert-octagon
     on_press:
       - script.execute: pc_notaus_impuls
+  # Testet das Warnblinken sechs Sekunden lang OHNE Relais.
+  # Damit laesst sich GPIO2 unabhaengig vom 12-V-Sensor pruefen.
+  - platform: template
+    name: "Not-Aus LED Test (ohne Relais)"
+    id: pc_notaus_led_test_button
+    icon: mdi:led-on
+    on_press:
+      - if:
+          condition:
+            lambda: 'return !id(notaus_aktiv);'
+          then:
+            - lambda: |-
+                id(notaus_led_test_ticks) = 60;
+                id(notaus_ticks) = 0;
+                id(pc_status_led).set_level(1.0f);
+            - text_sensor.template.publish:
+                id: pc_notaus_rueckmeldung
+                state: "LED-Test gestartet (ohne Relaisaktion)"
+
   - platform: restart
     name: "ESP32 Neustart"
     entity_category: diagnostic
@@ -224,6 +265,10 @@ binary_sensor:
                   id(notaus_aktiv) = false;
                   id(notaus_ticks) = 0;
                   id(led_ticks) = 0;
+                  id(pc_notaus_status).publish_state(false);
+              - text_sensor.template.publish:
+                  id: pc_notaus_rueckmeldung
+                  state: "Abgeschlossen: 12V AUS"
 
   # Kanal 2: LED-Eingang am Mainboard NICHT direkt anschliessen,
   # bevor Mindest-Eingangsspannung des PC817-Moduls geprueft ist!
@@ -251,11 +296,20 @@ interval:
           const int puls_rest = id(power_puls_ticks);
           if (id(power_puls_ticks) > 0) id(power_puls_ticks)--;
 
-          if (id(notaus_aktiv)) {
-            // 500 ms EIN, 500 ms AUS
+          if (id(notaus_aktiv) || id(notaus_led_test_ticks) > 0) {
+            // Not-Aus und separater LED-Test: 0,5 s EIN / 0,5 s AUS.
+            // Beide uebersteuern WLAN und alle normalen LED-Modi.
             const int t = id(notaus_ticks);
             helligkeit = (t < 5) ? 1.0f : 0.0f;
             id(notaus_ticks) = (t + 1) % 10;
+            if (id(notaus_led_test_ticks) > 0) {
+              id(notaus_led_test_ticks)--;
+              if (id(notaus_led_test_ticks) == 0 &&
+                  !id(notaus_aktiv)) {
+                id(pc_notaus_rueckmeldung).publish_state(
+                    "LED-Test beendet");
+              }
+            }
             id(wlan_ticks) = 0;
             id(led_ticks) = 0;
 
@@ -306,6 +360,15 @@ interval:
           }
 
           id(pc_status_led).set_level(helligkeit);
+
+# Klare Rueckmeldung, ob das erzwungene Ausschalten angenommen wurde.
+text_sensor:
+  - platform: template
+    name: "Ausschalten Rueckmeldung"
+    id: pc_notaus_rueckmeldung
+    icon: mdi:information-outline
+    entity_category: diagnostic
+    update_interval: never
 
 sensor:
   - platform: wifi_signal

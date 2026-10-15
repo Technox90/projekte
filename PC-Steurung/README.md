@@ -62,3 +62,9 @@ Generisches Projekt zur Steuerung des PC-Power-Tasters und zur getrennten Erfass
 - [ESPHome Scripts](https://esphome.io/components/script/)
 
 **Status:** Dokumentierte Vorlage – reale GPIO2-LED, Optokoppler-Ausgangslogik und Mainboard-LED-Eingang müssen noch je Board-Revision geprüft werden.
+
+## Diagnose der Ausschalt-Warn-LED (ab Revision 2)
+
+Die Firmware besitzt zusaetzlich den Button **Not-Aus LED Test (ohne Relais)**. Er laesst die zweite, per GPIO2 steuerbare LED fuer sechs Sekunden mit **500 ms EIN / 500 ms AUS** blinken, **ohne** den Power-Taster oder das Relais zu betaetigen.
+
+Der neue Textsensor **Ausschalten Rueckmeldung** meldet sofort, ob das echte sechssekündige Ausschalten begonnen hat oder wegen eines **AUS/UNBEKANNT** meldenden 12-V-Sensors abgelehnt wurde. Bei Ablehnung erfolgt bewusst kein sechsekündiger Power-Taster-Druck. Der Test-Button ist deshalb der sichere Weg, den LED-Ausgang unabhaengig von der 12-V-Verdrahtung zu pruefen.

@@ -35,3 +35,11 @@ Die PWR-LED wird fast immer fest von der Boardversorgung gespeist. D2 kann die *
 ## Erzwungenes Ausschalten aktiv bleibt stehen
 
 Die Anzeige endet erst, wenn der separat gemessene 12-V-Sensor PC AUS meldet. Das Relais wird **trotzdem nach sechs Sekunden freigegeben**. Bleibt die Anzeige nach tatsächlichem PC-Aus bestehen, zuerst den 12-V-Sensor untersuchen.
+
+## Ausschalten erzwingen: LED blinkt nicht (Diagnose)
+
+1. **Not-Aus LED Test (ohne Relais)** in Home Assistant betaetigen. Er blinkt sechs Sekunden (0,5 s EIN / 0,5 s AUS), ohne das Relais zu schalten.
+2. Falls der Test **nicht** sichtbar blinkt: Auf dieser Boardrevision ist D2 eventuell nicht an GPIO2 angeschlossen, GPIO2 ist ungeeignet oder die LED-Polaritaet ist invertiert. Vor weiteren Aenderungen elektrische Anbindung pruefen.
+3. Falls der Test blinkt, aber der echte Not-Aus nicht: Den Textsensor **Ausschalten Rueckmeldung** anschauen. "Abgelehnt: 12V AUS oder Status unbekannt" zeigt an, dass die Sicherheitsfreigabe blockiert hat.
+4. In Home Assistant pruefen, ob **PC 12V Versorgung** bei eingeschaltetem PC wirklich EIN meldet. Nicht durch Umgehen dieser Bedingung korrigieren; Optokopplerlogik und Signale messen.
+5. Bei akzeptiertem Not-Aus setzt die Firmware den LED-Ausgang sofort auf EIN, danach wechselt sie 500 ms EIN / 500 ms AUS. Das Relais darf maximal sechs Sekunden angezogen bleiben.

@@ -58,3 +58,11 @@ Abtastintervall: 100 ms.
 - WLAN-Verlust-Anzeige: Prüft, ob der ESP32 mit einer WLAN-Station verbunden ist. **Kein** Internet- oder Home-Assistant-Verfügbarkeitstest.
 
 Die WLAN- und API-Reboot-Timeouts sind auf null gesetzt, damit die LED bei langen Verbindungsausfällen weiterläuft. Automatischer Neustart aufgrund dieser Timeouts entfällt dadurch.
+
+## LED-Test und Rueckmeldung
+
+- **Not-Aus LED Test (ohne Relais):** sechs Sekunden 500 ms EIN / 500 ms AUS; kein Relaisimpuls, kein PC-Ausschalten.
+- **Ausschalten Rueckmeldung:** Statusmeldung "Gestartet", "Abgelehnt", "Abgeschlossen" oder "LED-Test beendet".
+- Die Not-Aus-Blinkanzeige startet bei akzeptiertem sechsekündigem Ausschalten **sofort**; der eigentliche Impuls bleibt weiterhin von einem validierten **PC EIN** an GPIO22 abhaengig.
+- Falls der PC817 **AUS** oder **UNBEKANNT** meldet, darf das Relais nicht sechs Sekunden anziehen; der Textsensor macht das sichtbar.
+- Blinkt die zweite LED bereits beim reinen Test nicht, ist zuerst deren Verbindung mit GPIO2, Polaritaet bzw. PWM-Eignung zu pruefen.
