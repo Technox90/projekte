@@ -1,0 +1,13 @@
+# Keine echten Zugangsdaten im Repository
+secrets.yaml
+**/secrets.yaml
+.env
+*.key
+*.pem
+.esphome/
+**/.esphome/
+.pioenvs/
+.piolibdeps/
+*.bin
+*.elf
+*.map
