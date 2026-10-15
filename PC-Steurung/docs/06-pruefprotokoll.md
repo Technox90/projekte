@@ -49,3 +49,13 @@ Dies ist eine **leere Prüfliste**, keine Behauptung über bestandene Messungen.
 - [ ] Stromkreise mechanisch/elektrisch sauber isoliert und gesichert
 
 **Keine** Freigabe aufgrund einer erfolgreichen YAML-Kompilierung allein.
+
+## OR-Erkennung bei mehreren PC-Signalen
+
+- [ ] PC EIN: GPIO22/12 V korrekt EIN
+- [ ] PC EIN: GPIO21/Power-LED korrekt EIN und mindestens 2 s stabil
+- [ ] Falls nur eine Quelle angeschlossen ist: Ausschalten-erzwingen-Freigabe nachweislich korrekt
+- [ ] PC AUS: Keine der beiden Quellen meldet EIN; PC Betrieb erkannt wird nach 3 s AUS
+- [ ] Standby/S3: PLED-Blinkrhythmus gemessen und bestaetigt, dass die 2-s-Stabilitaetspruefung keinen unbeabsichtigten langen Power-Tastendruck freigibt
+- [ ] Signalunterbrechung der PLED fuehrt nicht zum vorzeitigen Ende der erzwungenen Ausschaltanzeige
+- [ ] Keine ungewollte Aktivierung durch nachlaufenden Kombinationszustand (Relaisfreigabe benutzt aktuelle Ursprungswerte)

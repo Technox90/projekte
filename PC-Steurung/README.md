@@ -10,7 +10,7 @@ Generisches Projekt zur Steuerung des PC-Power-Tasters und zur getrennten Erfass
 |---|---|
 | Home Assistant: PC Power | Relais schließt POWER-SW für 300 ms |
 | Lokaler Taster | GPIO18 gegen GND, gleicher 300-ms-Impuls |
-| Ausschalten erzwingen | 6 s Relaiskontakt, nur wenn geprüfter 12-V-Sensor PC EIN meldet |
+| Ausschalten erzwingen | 6 s Relaiskontakt, nur wenn geprüfte 12 V **oder** eine mindestens 2 s dauerhaft aktive Mainboard-Power-LED PC EIN melden |
 | PC 12-V-Status | Separater binärer Sensor an GPIO22 über PC817 Kanal 1 |
 | Mainboard-Power-LED | Separater binärer Sensor an GPIO21 über PC817 Kanal 2 (passende Eingangsstufe erforderlich) |
 | LED-Betriebsarten | 7 wählbare, gespeicherte Modi |
@@ -68,3 +68,7 @@ Generisches Projekt zur Steuerung des PC-Power-Tasters und zur getrennten Erfass
 Die Firmware besitzt zusaetzlich den Button **Not-Aus LED Test (ohne Relais)**. Er laesst die zweite, per GPIO2 steuerbare LED fuer sechs Sekunden mit **500 ms EIN / 500 ms AUS** blinken, **ohne** den Power-Taster oder das Relais zu betaetigen.
 
 Der neue Textsensor **Ausschalten Rueckmeldung** meldet sofort, ob das echte sechssekündige Ausschalten begonnen hat oder wegen eines **AUS/UNBEKANNT** meldenden 12-V-Sensors abgelehnt wurde. Bei Ablehnung erfolgt bewusst kein sechsekündiger Power-Taster-Druck. Der Test-Button ist deshalb der sichere Weg, den LED-Ausgang unabhaengig von der 12-V-Verdrahtung zu pruefen.
+
+## PC-EIN-Erkennung aus zwei Quellen
+
+**GPIO22 (12 V) ODER GPIO21 (Power-LED)** werden gemeinsam fuer die sechssekündige Ausschaltsperre und die normalen LED-Modi ausgewertet. Die Power-LED wird nur als PC-EIN-Kriterium gewertet, wenn sie **mindestens zwei Sekunden ohne Unterbrechung leuchtet**, damit ein kurzer Standby-Blinkimpuls nicht sofort den langen Power-Tastendruck freigibt. Neue HA-Entitaeten: **PC Power LED stabil** und **PC Betrieb erkannt**. Die Abschalt-Warnanzeige endet erst, wenn beide Quellen AUS sind (drei Sekunden stabiler Nachlauf). Dies ist keine sichere Erkennung aller Standby-Varianten: **EIN, AUS und Standby am realen Rechner messen**, bevor das erzwungene Ausschalten verwendet wird. Mehr dazu unter [Betriebslogik](docs/04-betriebslogik.md).

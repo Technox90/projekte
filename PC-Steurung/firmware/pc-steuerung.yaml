@@ -129,9 +129,17 @@ script:
       - if:
           condition:
             lambda: |-
-              return id(pc_12v_status).has_state() &&
-                     id(pc_12v_status).state &&
-                     !id(notaus_aktiv);
+              // OR-Freigabe: Haupt-12V ODER mindestens 2s
+              // durchgehend leuchtende Mainboard-Power-LED.
+              // PLED-Blinken im Standby soll NICHT sofort freigeben.
+              const bool strom_ein =
+                  id(pc_12v_status).has_state() &&
+                  id(pc_12v_status).state;
+              const bool power_led_stabil =
+                  id(pc_power_led_stabil).has_state() &&
+                  id(pc_power_led_stabil).state;
+              return !id(notaus_aktiv) &&
+                     (strom_ein || power_led_stabil);
           then:
             - script.stop: pc_power_impuls
             - lambda: |-
@@ -153,10 +161,14 @@ script:
             - switch.turn_off: pc_relais
             - text_sensor.template.publish:
                 id: pc_notaus_rueckmeldung
-                state: "6 Sekunden beendet: pruefe 12V-Status"
+                state: "6 Sekunden beendet: pruefe 12V und Power-LED"
             - if:
                 condition:
-                  binary_sensor.is_off: pc_12v_status
+                  lambda: |-
+                    // Nur beenden, wenn BEIDE Quellen
+                    // mindestens 3s lang AUS melden.
+                    return id(pc_betrieb_erkannt).has_state() &&
+                           !id(pc_betrieb_erkannt).state;
                 then:
                   - lambda: |-
                       id(notaus_aktiv) = false;
@@ -165,14 +177,14 @@ script:
                       id(pc_notaus_status).publish_state(false);
                   - text_sensor.template.publish:
                       id: pc_notaus_rueckmeldung
-                      state: "Abgeschlossen: 12V AUS"
+                      state: "Abgeschlossen: beide PC-Signale AUS"
           else:
             - logger.log:
                 level: WARN
-                format: "6-s-Ausschalten abgelehnt: PC-Status AUS/UNBEKANNT"
+                format: "6-s-Ausschalten abgelehnt: weder 12V noch stabile PLED EIN"
             - text_sensor.template.publish:
                 id: pc_notaus_rueckmeldung
-                state: "Abgelehnt: 12V AUS oder Status unbekannt"
+                state: "Abgelehnt: 12V AUS und Power-LED nicht stabil EIN"
 
 button:
   - platform: template
@@ -253,22 +265,6 @@ binary_sensor:
     filters:
       - delayed_on: 500ms
       - delayed_off: 2s
-    on_release:
-      then:
-        - if:
-            condition:
-              lambda: |-
-                return id(notaus_aktiv) &&
-                       !id(pc_notaus_impuls).is_running();
-            then:
-              - lambda: |-
-                  id(notaus_aktiv) = false;
-                  id(notaus_ticks) = 0;
-                  id(led_ticks) = 0;
-                  id(pc_notaus_status).publish_state(false);
-              - text_sensor.template.publish:
-                  id: pc_notaus_rueckmeldung
-                  state: "Abgeschlossen: 12V AUS"
 
   # Kanal 2: LED-Eingang am Mainboard NICHT direkt anschliessen,
   # bevor Mindest-Eingangsspannung des PC817-Moduls geprueft ist!
@@ -285,6 +281,52 @@ binary_sensor:
     filters:
       - delayed_on: 50ms
       - delayed_off: 50ms
+
+  # Blinkende PLED im Standby ist KEINE sichere PC-EIN-Meldung.
+  # Fuer Not-Aus darf die PLED erst nach 2s Dauerlicht zaehlen.
+  - platform: template
+    name: "PC Power LED stabil"
+    id: pc_power_led_stabil
+    entity_category: diagnostic
+    lambda: |-
+      if (!id(pc_power_led).has_state()) return {};
+      return id(pc_power_led).state;
+    filters:
+      - delayed_on: 2s
+      - delayed_off: 250ms
+
+  # Zusammengefuehrter Betriebsstatus fuer LED-Modi und Abschaltkontrolle.
+  # 3s Nachlauf verhindert ein sofortiges Ende bei kurzen LED-Pausen.
+  - platform: template
+    name: "PC Betrieb erkannt"
+    id: pc_betrieb_erkannt
+    icon: mdi:desktop-tower-monitor
+    lambda: |-
+      const bool strom_ein =
+          id(pc_12v_status).has_state() &&
+          id(pc_12v_status).state;
+      const bool led_stabil =
+          id(pc_power_led_stabil).has_state() &&
+          id(pc_power_led_stabil).state;
+      return strom_ein || led_stabil;
+    filters:
+      - delayed_off: 3s
+    on_release:
+      then:
+        - if:
+            condition:
+              lambda: |-
+                return id(notaus_aktiv) &&
+                       !id(pc_notaus_impuls).is_running();
+            then:
+              - lambda: |-
+                  id(notaus_aktiv) = false;
+                  id(notaus_ticks) = 0;
+                  id(led_ticks) = 0;
+                  id(pc_notaus_status).publish_state(false);
+              - text_sensor.template.publish:
+                  id: pc_notaus_rueckmeldung
+                  state: "Abgeschlossen: beide PC-Signale AUS"
 
 # Alle Muster ueber 100-ms-Takt, nur GPIO2, niemals PWR-LED.
 # Prioritaet: 6s-Ausschalten > WLAN-Ausfall > Power-Puls > LED-Modus
@@ -335,8 +377,8 @@ interval:
             id(wlan_ticks) = 0;
             id(notaus_ticks) = 0;
             if (id(led_modus).has_state() &&
-                id(pc_12v_status).has_state()) {
-              const bool pc_ein = id(pc_12v_status).state;
+                id(pc_betrieb_erkannt).has_state()) {
+              const bool pc_ein = id(pc_betrieb_erkannt).state;
               const auto modus = id(led_modus).current_option();
               const int t = id(led_ticks);
 

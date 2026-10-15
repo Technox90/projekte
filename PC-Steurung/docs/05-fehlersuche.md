@@ -43,3 +43,11 @@ Die Anzeige endet erst, wenn der separat gemessene 12-V-Sensor PC AUS meldet. Da
 3. Falls der Test blinkt, aber der echte Not-Aus nicht: Den Textsensor **Ausschalten Rueckmeldung** anschauen. "Abgelehnt: 12V AUS oder Status unbekannt" zeigt an, dass die Sicherheitsfreigabe blockiert hat.
 4. In Home Assistant pruefen, ob **PC 12V Versorgung** bei eingeschaltetem PC wirklich EIN meldet. Nicht durch Umgehen dieser Bedingung korrigieren; Optokopplerlogik und Signale messen.
 5. Bei akzeptiertem Not-Aus setzt die Firmware den LED-Ausgang sofort auf EIN, danach wechselt sie 500 ms EIN / 500 ms AUS. Das Relais darf maximal sechs Sekunden angezogen bleiben.
+
+## Kombinierte Erkennung: nur einer der beiden Sensoren meldet EIN
+
+1. **PC 12V Versorgung** und **PC Power LED** einzeln im HA-Geraet pruefen.
+2. **PC Power LED stabil** wird nur EIN, wenn die LED **2 Sekunden ununterbrochen EIN** meldet. Bei langsamer blinkender PLED wird absichtlich keine Freigabe erteilt.
+3. **PC Betrieb erkannt** kombiniert beide Quellen per ODER. Erst wenn beide Quellen mindestens 3 Sekunden keine Aktivitaet mehr melden, gilt der PC als AUS.
+4. Vor dem echten sechssekündigen Ausschalten am PC die Anzeige **PC Betrieb erkannt** und die beiden Ursprungsquellen vergleichen. Bei abweichendem Zustand zuerst Sensorpolung und Optokopplerverdrahtung durchmessen.
+5. Wenn PLED im Standby auch mehr als zwei Sekunden kontinuierlich leuchtet, kann sie als EIN fehlinterpretiert werden. In diesem Fall erzwungenes Ausschalten nur mit verifizierter 12-V-Erkennung verwenden bzw. PLED-Logik fuer dieses Board anpassen.
