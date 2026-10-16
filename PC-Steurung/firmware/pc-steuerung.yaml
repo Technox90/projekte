@@ -78,6 +78,21 @@ globals:
     type: int
     restore_value: no
     initial_value: '0'
+  # Relaisschutz: niemals zwei gleichzeitig laufende Kontaktbefehle.
+  - id: pc_relais_belegt
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  # Boot und jeder Kontaktabfall starten eine neue Schaltsperre.
+  - id: pc_relais_zuletzt_off_ms
+    type: uint32_t
+    restore_value: no
+    initial_value: '0'
+  # Dauer der Sperre wird beim Loslassen des Relais festgelegt.
+  - id: pc_relais_sperre_ms
+    type: uint32_t
+    restore_value: no
+    initial_value: '2000'
 
 # Relais muss 3,3-V-HIGH-Steuerung verifiziert unterstuetzen.
 switch:
@@ -147,6 +162,19 @@ number:
     max_value: 12
     step: 0.5
 
+  - platform: template
+    name: "PC Relais Schaltsperre"
+    id: pc_relais_sperrzeit
+    icon: mdi:shield-lock-outline
+    unit_of_measurement: "s"
+    mode: slider
+    optimistic: true
+    restore_value: true
+    initial_value: 2
+    min_value: 0.5
+    max_value: 10
+    step: 0.5
+
 # Relaisdauer: normal 0,2-1,5s / Not-Aus 4-12s.
 # Die Zeit wird beim Start des jeweiligen Befehls einmalig gelesen.
 # Der reine LED-Test dauert weiterhin 6 Sekunden.
@@ -158,9 +186,13 @@ script:
           condition:
             lambda: |-
               return !id(notaus_aktiv) &&
-                     !id(pc_notaus_impuls).is_running();
+                     !id(pc_notaus_impuls).is_running() &&
+                     !id(pc_relais_belegt) &&
+                     (uint32_t)(millis() - id(pc_relais_zuletzt_off_ms)) >=
+                         id(pc_relais_sperre_ms);
           then:
             - lambda: |-
+                id(pc_relais_belegt) = true;
                 id(power_puls_ticks) = 100;
                 id(led_ticks) = 0;
             - switch.turn_on: pc_relais
@@ -172,6 +204,18 @@ script:
                 }
                 return (uint32_t) (sekunden * 1000.0f + 0.5f);
             - switch.turn_off: pc_relais
+            - lambda: |-
+                id(pc_relais_zuletzt_off_ms) = millis();
+                const float sekunden = id(pc_relais_sperrzeit).state;
+                id(pc_relais_sperre_ms) =
+                    (sekunden >= 0.5f && sekunden <= 10.0f)
+                    ? (uint32_t)(sekunden * 1000.0f + 0.5f)
+                    : (uint32_t)2000;
+                id(pc_relais_belegt) = false;
+          else:
+            - logger.log:
+                level: WARN
+                format: "Power abgelehnt: Relais belegt oder Schaltsperre aktiv"
 
   - id: pc_notaus_impuls
     mode: single
@@ -189,10 +233,14 @@ script:
                   id(pc_power_led_stabil).has_state() &&
                   id(pc_power_led_stabil).state;
               return !id(notaus_aktiv) &&
+                     !id(pc_power_impuls).is_running() &&
+                     !id(pc_relais_belegt) &&
+                     (uint32_t)(millis() - id(pc_relais_zuletzt_off_ms)) >=
+                         id(pc_relais_sperre_ms) &&
                      (strom_ein || power_led_stabil);
           then:
-            - script.stop: pc_power_impuls
             - lambda: |-
+                id(pc_relais_belegt) = true;
                 id(notaus_aktiv) = true;
                 id(notaus_ticks) = 0;
                 id(notaus_led_test_ticks) = 0;
@@ -216,6 +264,14 @@ script:
                 return (uint32_t) (sekunden * 1000.0f + 0.5f);
             # Danach den potentialfreien Kontakt immer oeffnen.
             - switch.turn_off: pc_relais
+            - lambda: |-
+                id(pc_relais_zuletzt_off_ms) = millis();
+                const float sekunden = id(pc_relais_sperrzeit).state;
+                id(pc_relais_sperre_ms) =
+                    (sekunden >= 0.5f && sekunden <= 10.0f)
+                    ? (uint32_t)(sekunden * 1000.0f + 0.5f)
+                    : (uint32_t)2000;
+                id(pc_relais_belegt) = false;
             - text_sensor.template.publish:
                 id: pc_notaus_rueckmeldung
                 state: "Impuls beendet: pruefe 12V und Power-LED"
@@ -236,12 +292,28 @@ script:
                       id: pc_notaus_rueckmeldung
                       state: "Abgeschlossen: beide PC-Signale AUS"
           else:
-            - logger.log:
-                level: WARN
-                format: "Not-Aus abgelehnt: weder 12V noch stabile PLED EIN"
-            - text_sensor.template.publish:
-                id: pc_notaus_rueckmeldung
-                state: "Abgelehnt: 12V AUS und Power-LED nicht stabil EIN"
+            - if:
+                condition:
+                  lambda: |-
+                    return id(pc_relais_belegt) ||
+                           id(pc_power_impuls).is_running() ||
+                           id(notaus_aktiv) ||
+                           (uint32_t)(millis() - id(pc_relais_zuletzt_off_ms)) <
+                               id(pc_relais_sperre_ms);
+                then:
+                  - logger.log:
+                      level: WARN
+                      format: "Not-Aus abgelehnt: Relais belegt oder Schaltsperre"
+                  - text_sensor.template.publish:
+                      id: pc_notaus_rueckmeldung
+                      state: "Abgelehnt: Relais belegt oder Schaltsperre aktiv"
+                else:
+                  - logger.log:
+                      level: WARN
+                      format: "Not-Aus abgelehnt: weder 12V noch stabile PLED EIN"
+                  - text_sensor.template.publish:
+                      id: pc_notaus_rueckmeldung
+                      state: "Abgelehnt: 12V AUS und Power-LED nicht stabil EIN"
 
 button:
   - platform: template
