@@ -76,3 +76,17 @@ Dies ist eine **leere Prüfliste**, keine Behauptung über bestandene Messungen.
 - [ ] Relais fällt nach jedem Impuls automatisch ab und bleibt beim Neustart AUS
 - [ ] Veränderte Reglerwerte bleiben nach Neustart gespeichert
 - [ ] Not-Aus LED Test (ohne Relais) dauert weiterhin 6 Sekunden und betätigt den Relaiskontakt nicht
+
+## Relaisverriegelung und Nachlauf-Sperrzeit
+
+- [ ] Normal- und Not-Aus-Button bei laufendem Relaisimpuls gleichzeitig getestet: kein zweiter oder überlappender Kontaktimpuls
+- [ ] Langer Power-Befehl unterbricht einen laufenden Normalimpuls **nicht**
+- [ ] Schaltsperre von 0,5–10 s anpassbar, Standard 2 s, nach Relaisabfall gemessen
+- [ ] Während der Sperre werden weitere Power-Befehle abgelehnt
+- [ ] Nach dem Neustart ist das Relais AUS und die Boot-Schaltsperre wirkt
+- [ ] Ungültige Zeitwerte überschreiten niemals die maximalen 1,5 s / 12 s
+- [ ] Falsche PC-EIN-Erkennung führt **nicht** zur Freigabe des langen Tastendrucks
+- [ ] Nach Neustart bleibt die eingestellte Sperrzeit auf dem ESP32 gespeichert
+- [ ] Sämtliche Kontaktprüfungen zuerst **ohne Mainboard-Anschluss** durchgeführt
+
+**Web-Sicherheit:** Die native ESPHome-Webseite bleibt bis zum gesonderten Aufbau einer öffentlichen Statusseite **vollständig** Digest-passwortgeschützt. Kein direktes Freischalten des ESP32-Webports für Besucher.
