@@ -2,7 +2,7 @@
 # Neutraler Hostname; keine persoenlichen Namen oder Zugangsdaten.
 # ACHTUNG: Hardware, Signalpegel und GPIO2-LED vor Betrieb pruefen.
 # Statussignale setzen gepruefte, 3,3-V-kompatible PC817-Ausgaenge voraus.
-# Der 10-s-Befehl ist KEIN sicherheitstechnischer Not-Aus.
+# Der lange Power-Befehl ist KEIN sicherheitstechnischer Not-Aus.
 
 esphome:
   name: pc-steuerung
@@ -38,6 +38,19 @@ wifi:
     password: !secret pc_fallback_password
 
 captive_portal:
+
+# Passwortgeschuetzte lokale ESPHome-Weboberflaeche.
+# Nur im vertrauenswuerdigen LAN, keine Router-Portfreigabe.
+web_server:
+  port: 80
+  version: 3
+  local: true
+  include_internal: false
+  ota: false
+  auth:
+    type: digest
+    username: !secret pc_web_username
+    password: !secret pc_web_password
 
 globals:
   - id: led_ticks
@@ -106,8 +119,37 @@ select:
         - lambda: |-
             id(led_ticks) = 0;
 
-# Relaisschaltzeiten: normal 500ms, Ausschalten erzwingen 10s.
-# Der unabhaengige LED-Test dauert weiterhin 6s (60 x 100ms).
+# In Home Assistant UND Weboberflaeche aenderbar; Neustartfest.
+number:
+  - platform: template
+    name: "PC Ein/Aus Impulsdauer"
+    id: pc_power_dauer
+    icon: mdi:timer-outline
+    unit_of_measurement: "s"
+    mode: slider
+    optimistic: true
+    restore_value: true
+    initial_value: 0.5
+    min_value: 0.2
+    max_value: 1.5
+    step: 0.1
+
+  - platform: template
+    name: "PC Not-Aus Impulsdauer"
+    id: pc_notaus_dauer
+    icon: mdi:timer-alert-outline
+    unit_of_measurement: "s"
+    mode: slider
+    optimistic: true
+    restore_value: true
+    initial_value: 10
+    min_value: 4
+    max_value: 12
+    step: 0.5
+
+# Relaisdauer: normal 0,2-1,5s / Not-Aus 4-12s.
+# Die Zeit wird beim Start des jeweiligen Befehls einmalig gelesen.
+# Der reine LED-Test dauert weiterhin 6 Sekunden.
 script:
   - id: pc_power_impuls
     mode: single
@@ -122,7 +164,13 @@ script:
                 id(power_puls_ticks) = 100;
                 id(led_ticks) = 0;
             - switch.turn_on: pc_relais
-            - delay: 500ms
+            # Lambda liefert Millisekunden, Fallback 500ms.
+            - delay: !lambda |-
+                const float sekunden = id(pc_power_dauer).state;
+                if (!(sekunden >= 0.2f && sekunden <= 1.5f)) {
+                  return (uint32_t) 500;
+                }
+                return (uint32_t) (sekunden * 1000.0f + 0.5f);
             - switch.turn_off: pc_relais
 
   - id: pc_notaus_impuls
@@ -154,16 +202,23 @@ script:
                 id(pc_notaus_status).publish_state(true);
             - text_sensor.template.publish:
                 id: pc_notaus_rueckmeldung
-                state: "Gestartet: 10 Sekunden Power-Kontakt"
+                state: "Gestartet: Power-Kontakt gehalten (4-12s)"
             - logger.log:
                 level: WARN
                 format: "Erzwungenes Ausschalten gestartet"
             - switch.turn_on: pc_relais
-            - delay: 10s
+            # Lambda liefert Millisekunden, Fallback 10s.
+            - delay: !lambda |-
+                const float sekunden = id(pc_notaus_dauer).state;
+                if (!(sekunden >= 4.0f && sekunden <= 12.0f)) {
+                  return (uint32_t) 10000;
+                }
+                return (uint32_t) (sekunden * 1000.0f + 0.5f);
+            # Danach den potentialfreien Kontakt immer oeffnen.
             - switch.turn_off: pc_relais
             - text_sensor.template.publish:
                 id: pc_notaus_rueckmeldung
-                state: "10 Sekunden beendet: pruefe 12V und Power-LED"
+                state: "Impuls beendet: pruefe 12V und Power-LED"
             - if:
                 condition:
                   lambda: |-
@@ -183,20 +238,20 @@ script:
           else:
             - logger.log:
                 level: WARN
-                format: "10-s-Ausschalten abgelehnt: weder 12V noch stabile PLED EIN"
+                format: "Not-Aus abgelehnt: weder 12V noch stabile PLED EIN"
             - text_sensor.template.publish:
                 id: pc_notaus_rueckmeldung
                 state: "Abgelehnt: 12V AUS und Power-LED nicht stabil EIN"
 
 button:
   - platform: template
-    name: "PC Power"
+    name: "PC Ein/Aus"
     id: pc_power_button
     icon: mdi:power
     on_press:
       - script.execute: pc_power_impuls
   - platform: template
-    name: "PC Ausschalten erzwingen (10s)"
+    name: "PC Not-Aus (Ausschalten erzwingen)"
     id: pc_notaus_button
     icon: mdi:alert-octagon
     on_press:
@@ -207,6 +262,7 @@ button:
     name: "Not-Aus LED Test (ohne Relais)"
     id: pc_notaus_led_test_button
     icon: mdi:led-on
+    entity_category: diagnostic
     on_press:
       - if:
           condition:
@@ -331,7 +387,7 @@ binary_sensor:
                   state: "Abgeschlossen: beide PC-Signale AUS"
 
 # Alle Muster ueber 100-ms-Takt, nur GPIO2, niemals PWR-LED.
-# Prioritaet: 10s-Ausschalten > WLAN-Ausfall > Power-Puls > LED-Modus
+# Prioritaet: Not-Aus > WLAN-Ausfall > Power-Puls > LED-Modus
 interval:
   - interval: 100ms
     then:
