@@ -76,3 +76,9 @@ Nach erfolgreichem Flash und API-Verbindung per WLAN installieren. Wenn API-/OTA
 ## Passwortgeschützte ESP32-Weboberfläche
 
 Die Firmware verwendet die zusätzlichen Secrets `pc_web_username` und `pc_web_password`. Diese **vor der Installation lokal anlegen**. Nach erfolgreichem Flash im lokalen Netzwerk `http://pc-steuerung.local/` oder `http://<ESP32-IP>/` öffnen und mit den individuellen Zugangsdaten anmelden. Die Oberfläche enthält die beiden Hauptbuttons und die gespeicherten Impulszeiten. Es handelt sich um **HTTP mit Digest**, **nicht HTTPS** – keine öffentliche Portfreigabe einrichten. Alle Schritte: [Lokale Weboberfläche](07-weboberflaeche.md).
+
+## Relais-Schaltschutz (ab aktueller Firmware)
+
+Die Number-Entität **PC Relais Schaltsperre** bietet 0,5–10 Sekunden, Standard 2 Sekunden, auch über HA und die lokale (weiterhin geschützte) ESP32-Weboberfläche. Nach jedem Relaisabfall verhindert sie sofortige Folgebefehle; auch während eines laufenden Normalimpulses wird erzwungenes Ausschalten blockiert. Vor Anschluss an das Mainboard Relaiskontakte COM/NO getrennt testen: Normal-/Not-Aus-Impuls, Sperre, Doppelbetätigung und Neustart. `ALWAYS_OFF` ist keine Garantie gegen einen kurzen Pegelwechsel beim physischen Booten.
+
+**Die Weboberfläche bleibt vorerst global passwortgeschützt:** ESPHome kann seine REST-Schaltaktionen nicht individuell mit einem Klick-Passwort sichern, während alle anderen Web-Endpunkte öffentlich sind. Für eine sichtbare öffentliche Statusseite mit geschützter Steuerung ist eine getrennte Status-/Authentifizierungs-Webarchitektur erforderlich, **keine direkte öffentliche Weiterleitung auf den ESP32**.
