@@ -27,6 +27,8 @@ Die [Beispieldatei](../firmware/secrets.example.yaml) enthält nur Platzhalter. 
 | pc_fallback_password | Starkes Fallback-WLAN-Kennwort, mindestens acht Zeichen |
 | api_encryption_key | Zufälliger, Base64-kodierter 32-Byte-Schlüssel |
 | ota_password | Starkes, gerätespezifisches OTA-Passwort |
+| pc_web_username | Individueller Benutzername für die lokale ESP32-Weboberfläche |
+| pc_web_password | Langes, zufälliges Passwort für die lokale ESP32-Weboberfläche |
 
 Den API-Schlüssel mit ESPHome generieren lassen oder einen sicheren Zufallszahlengenerator verwenden. Echte Passwörter nicht als Screenshots/Logs veröffentlichen.
 
@@ -45,7 +47,7 @@ Diese Veröffentlichung wurde nicht lokal mit einer installierten ESPHome-Build-
 
 ## 4. Test des Relais ohne Mainboard
 
-Beim Booten und Neustart darf das Relais nicht selbstständig anziehen. Die Firmware setzt ALWAYS_OFF, dies garantiert bei jeder Modulvariante jedoch noch keinen glitchfreien Boot-Vorgang. Mit geeignetem Messgerät COM–NO beobachten. Home-Assistant-Button **PC Power** drücken: Kontakt muss **nur etwa 500 ms** schließen. Auch den GPIO18-Taster separat testen.
+Beim Booten und Neustart darf das Relais nicht selbstständig anziehen. Die Firmware setzt ALWAYS_OFF, dies garantiert bei jeder Modulvariante jedoch noch keinen glitchfreien Boot-Vorgang. Mit geeignetem Messgerät COM–NO beobachten. Home-Assistant-Button **PC Ein/Aus** drücken: Kontakt muss die **eingestellte normale Impulsdauer** (Standard 0,5 s) schließen. Auch den GPIO18-Taster separat testen.
 
 **Erst danach** PWR_SW am Mainboard verbinden.
 
@@ -57,8 +59,8 @@ Der Mainboard-PLED-Eingang darf **nicht ungeprüft direkt** an ein 3,6–30-V-Mo
 
 ## 6. Home-Assistant-Entitäten
 
-- PC Power: 500-ms-Power-Taster.
-- PC Ausschalten erzwingen (10s): erzwungenes Herunterfahren bei geprüftem PC-EIN-Status.
+- PC Ein/Aus: einstellbarer 0,2–1,5-s-Power-Taster (Standard 0,5 s).
+- PC Not-Aus (Ausschalten erzwingen): einstellbarer 4–12-s-Power-Taster (Standard 10 s), nur bei geprüfter PC-EIN-Erkennung.
 - PC 12V Versorgung: geschaltete Haupt-12 V erkannt.
 - PC Power LED: separat erfasste Mainboard-LED.
 - Onboard LED Modus: Auswahl eines der sieben Modi.
@@ -69,4 +71,8 @@ Der Mainboard-PLED-Eingang darf **nicht ungeprüft direkt** an ein 3,6–30-V-Mo
 
 Nach erfolgreichem Flash und API-Verbindung per WLAN installieren. Wenn API-/OTA-Zugangsdaten wechseln, gegebenenfalls erneut per USB flashen. **Keine** Zugangsdaten aus der Beispiel-Secrets-Datei unverändert produktiv nutzen.
 
-**Prüfhinweis:** Vor einem realen zehnsekündigen Tastendruck COM/NO ohne Mainboardanschluss auf exakt einen Impuls von ca. 10 Sekunden prüfen. Der LED-Test ohne Relais dauert unverändert 6 Sekunden.
+**Prüfhinweis:** Vor einem langen Tastendruck COM/NO ohne Mainboardanschluss auf die eingestellte Dauer (4–12 s) prüfen. Der LED-Test ohne Relais dauert unverändert 6 Sekunden.
+
+## Passwortgeschützte ESP32-Weboberfläche
+
+Die Firmware verwendet die zusätzlichen Secrets `pc_web_username` und `pc_web_password`. Diese **vor der Installation lokal anlegen**. Nach erfolgreichem Flash im lokalen Netzwerk `http://pc-steuerung.local/` oder `http://<ESP32-IP>/` öffnen und mit den individuellen Zugangsdaten anmelden. Die Oberfläche enthält die beiden Hauptbuttons und die gespeicherten Impulszeiten. Es handelt sich um **HTTP mit Digest**, **nicht HTTPS** – keine öffentliche Portfreigabe einrichten. Alle Schritte: [Lokale Weboberfläche](07-weboberflaeche.md).
