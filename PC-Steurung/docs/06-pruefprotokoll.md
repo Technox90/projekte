@@ -90,3 +90,16 @@ Dies ist eine **leere Prüfliste**, keine Behauptung über bestandene Messungen.
 - [ ] Sämtliche Kontaktprüfungen zuerst **ohne Mainboard-Anschluss** durchgeführt
 
 **Web-Sicherheit:** Die native ESPHome-Webseite bleibt bis zum gesonderten Aufbau einer öffentlichen Statusseite **vollständig** Digest-passwortgeschützt. Kein direktes Freischalten des ESP32-Webports für Besucher.
+
+## Portal-Firmware 2026-10: zusätzliche Status-Entitäten prüfen
+
+- [ ] Neue Firmware in ESPHome **Konfiguration überprüfen** und ohne Fehler kompilieren.
+- [ ] Home Assistant zeigt `PC Zustand` als EIN/AUS/UNBEKANNT, bei noch nicht initialisierten Quellen UNBEKANNT.
+- [ ] `PC Steuerung Status` wechselt zwischen Bereit, Relais aktiv, Schaltsperre aktiv und gegebenenfalls Ausschaltkontrolle aktiv.
+- [ ] `PC Relais aktiv` bleibt nur während eines echten Impulses EIN (Softwarezustand; reale Kontaktzeit mit Messgerät prüfen).
+- [ ] `PC Schaltsperre aktiv` und `PC Schaltsperre Restzeit` zeigen bei Neustart und nach dem Impuls die Sperre an; anschließend Restzeit 0.
+- [ ] Elektrische PC817-Signale im PC AUS, EIN und Standby kontrollieren; kein unüberprüftes „PC AUS“ veröffentlichen.
+- [ ] Interne ESPHome-Weboberfläche bleibt weiterhin vollständig mit Digest-Anmeldung geschützt.
+- [ ] Der lokale Caddy-Viewer bekommt nur freigegebene read-only HA-Signale, nicht ESPHome-/HA-Zugangsdaten.
+- [ ] `/login`, `/steuerung` und `/einstellungen` sind erst dann erreichbar, wenn das separate Portal-Backend installiert wurde.
+- [ ] Tatsächliche HA-Entity-IDs nach dem Flashen ermitteln und nur explizit freigegebene IDs im Portal hinterlegen.
