@@ -31,6 +31,7 @@ Generisches Projekt zur Steuerung des PC-Power-Tasters und zur getrennten Erfass
 - [Anschluss- und Prinzipschaltpläne](docs/02-anschlussplaene.md)
 - [ESPHome- und Home-Assistant-Installation](docs/03-installation.md)
 - [Lokale Weboberfläche und Zeitregler](docs/07-weboberflaeche.md)
+- [Konzept: öffentliches Statusportal mit Caddy und geschützter Steuerung](docs/08-oeffentliches-portal-caddy.md)
 - [LED-Modi und Schaltlogik](docs/04-betriebslogik.md)
 - [Fehlerbehebung](docs/05-fehlersuche.md)
 - [Elektrisches Prüfprotokoll](docs/06-pruefprotokoll.md)
