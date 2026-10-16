@@ -1,6 +1,6 @@
 # Lokales PC-Steuerungsportal unter einer HTTPS-Adresse (Caddy)
 
-**Status: Aktualisierter Architekturplan, noch nicht installiert.** Dieser Plan ersetzt die frühere, weltweit öffentlich erreichbare Drei-Subdomain-Variante in [08-oeffentliches-portal-caddy.md](08-oeffentliches-portal-caddy.md). Die bestehende ESPHome-Firmware und ihre global passwortgeschützte ESP32-Weboberfläche bleiben unverändert. Es gibt **keine öffentliche Portweiterleitung** zum ESP32 oder zum Home-Assistant-System.
+**Status: Architekturplan; die vorbereitenden Portal-Statussignale sind bereits in der GitHub-ESPHome-Firmware umgesetzt, das Caddy-Portal selbst ist noch nicht installiert.** Dieser Plan ersetzt die frühere, weltweit öffentlich erreichbare Drei-Subdomain-Variante in [08-oeffentliches-portal-caddy.md](08-oeffentliches-portal-caddy.md). Die originale ESPHome-Steuerung und ihre global passwortgeschützte Wartungsoberfläche bleiben erhalten. Die Firmware stellt zusätzlich ausschließlich lesende Statussignale für Home Assistant bereit. Es gibt **keine öffentliche Portweiterleitung** zum ESP32 oder zum Home-Assistant-System.
 
 ## Ziel
 
@@ -125,3 +125,21 @@ Aus dem vom Nutzer vorgelegten Log:
 - Authelia Cookie-Domains (Einschränkungen): https://www.authelia.com/configuration/session/introduction/
 - Caddy Reverse Proxy: https://caddyserver.com/docs/caddyfile/directives/reverse_proxy
 - ESPHome Webserver: https://esphome.io/components/web_server/
+
+## 7. Ergänzte ESPHome-Signale für den Statusadapter
+
+Die aktuelle [ESPHome-Firmware](../firmware/pc-steuerung.yaml) enthält jetzt fünf vorbereitende Signale. Sie werden über die verschlüsselte native API an Home Assistant übertragen; für den lokalen Viewer erfolgt **nur eine ausdrücklich erlaubte, lesende Ausgabe** aus einem getrennten Backend. Die Statussignale selbst sind **keine HTTP-API mit anonymen Schreibrechten**.
+
+| ESPHome/HA-Anzeigename | Erlaubte Verwendung im Portal | Quellbedingung |
+|---|---|---|
+| `PC Zustand` | Öffentlicher PC-Status EIN/AUS/UNBEKANNT | Bestehender kombinierter Hardwarestatus `PC Betrieb erkannt`; beim Start zunächst UNBEKANNT |
+| `PC Steuerung Status` | Anzeige „Bereit“, „Relais aktiv“, „Schaltsperre aktiv“ oder „Ausschaltkontrolle aktiv“ | ESP32-Skriptausführung / Relaisverriegelung |
+| `PC Relais aktiv` | Optionaler Laufindikator | Softwarevariable für einen laufenden Impuls |
+| `PC Schaltsperre aktiv` | Hinweis, warum gerade nicht geschaltet werden kann | Nachlauf-/Boot-Sperrzeit |
+| `PC Schaltsperre Restzeit` | Countdown in Sekunden | Lokaler ESP32-`millis()`-Zähler |
+
+Hinzu kommen die bisherigen Diagnosewerte `ESP32 Online` und `WLAN Signal` (nur falls für anonyme Besucher gewünscht). Die im Home Assistant **tatsächlich vergebenen Entity-IDs** sind erst nach Firmware-Update im HA-Geräteregister zu prüfen und dann als **feste Whitelist** im Portal-Backend einzutragen. Keine Entity-IDs aus diesen Anzeigenamen blind annehmen.
+
+**Wichtig für die Authentisierung:** Drei bestehende Number-Entitäten (`PC Ein/Aus Impulsdauer`, `PC Not-Aus Impulsdauer`, `PC Relais Schaltsperre`) und zwei Power-Buttons sind **Schreibfunktionen**. Sie dürfen nur durch die angemeldete Steuerungs-API unter `/steuerung` oder `/einstellungen` angesprochen werden. Ein eigenes `/login` entsteht **nicht** durch ESPHome-`web_server` und muss unabhängig im Backend realisiert und getestet werden.
+
+**Statusgrenzen:** Wenn beide PC817-Eingänge zwar elektrische Pegel liefern, aber falsch oder überhaupt nicht angeschlossen sind, kann der ESP32 ein falsches `AUS` ausgeben. Deswegen müssen die Signale mit dem realen PC im Zustand EIN, AUS und Standby vor Veröffentlichung freigegeben werden.
