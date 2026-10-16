@@ -99,3 +99,13 @@ Die **10 Sekunden weiche LED-Pulsanimation** nach einem normalen Power-Befehl un
 - https://esphome.io/automations/actions/
 
 **Hinweis:** Die Firmwaredatei wurde erstellt, aber ein vollständiger ESPHome-Build und elektrische Hardwaretests sind vor produktiver Nutzung weiterhin erforderlich.
+
+## 8. Relais-Schaltsperre
+
+Der zusätzlich gespeicherte Regler **PC Relais Schaltsperre** lässt sich ebenfalls in HA und auf der derzeit **global passwortgeschützten** ESPHome-Weboberfläche einstellen: **0,5–10 s**, Schritt **0,5 s**, Standard **2 s**. Nach dem Ende jedes Relaisimpulses beginnt die Sperre erneut. Ein kurzer Power-Impuls wird nicht durch einen langen übersteuert; parallele oder zu schnell wiederholte Befehle werden abgewiesen. Der ESP32-Boot beginnt ebenfalls mit einer kurzen Sperre. Die gewählten Werte werden gespeichert.
+
+### Sichtbare Statusseite ohne Login, Schaltaktionen nur mit Passwort
+
+Die **native ESPHome-Weboberfläche** unterstützt derzeit **nur eine gemeinsame Zugangskontrolle** für Anzeige und sämtliche REST-Endpunkte, nicht die Trennung „Status ohne Login, Buttons mit Passwort“. Es reicht **nicht**, die Knöpfe nur optisch zu verstecken: Ein ungeschützter REST-Aufruf könnte weiterhin `/button/.../press` ausführen. Deshalb bleibt `web_server.auth` vorerst **aktiv**.
+
+Für einen weltweit erreichbaren, aber sicheren Statusauftritt würde eine **separate Webanwendung**, z. B. hinter Caddy, read-only Statusdaten aus Home Assistant beziehen. Die Steuerbefehle müssen über einen **serverseitig authentifizierten und autorisierten Backend-Endpunkt** laufen; ESPHome-Webport und Home-Assistant-API dürfen nie direkt öffentlich erreichbar sein. Für ausschließlich lokale Besucher gilt das gleiche Trennungsprinzip, auch wenn das Netzwerk vertrauenswürdiger ist. Die konkrete Implementierung hängt davon ab, ob „öffentlich“ **ohne Login im LAN** oder **aus dem Internet** bedeutet.
