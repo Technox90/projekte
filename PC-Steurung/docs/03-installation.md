@@ -45,7 +45,7 @@ Diese Veröffentlichung wurde nicht lokal mit einer installierten ESPHome-Build-
 
 ## 4. Test des Relais ohne Mainboard
 
-Beim Booten und Neustart darf das Relais nicht selbstständig anziehen. Die Firmware setzt ALWAYS_OFF, dies garantiert bei jeder Modulvariante jedoch noch keinen glitchfreien Boot-Vorgang. Mit geeignetem Messgerät COM–NO beobachten. Home-Assistant-Button **PC Power** drücken: Kontakt muss **nur etwa 300 ms** schließen. Auch den GPIO18-Taster separat testen.
+Beim Booten und Neustart darf das Relais nicht selbstständig anziehen. Die Firmware setzt ALWAYS_OFF, dies garantiert bei jeder Modulvariante jedoch noch keinen glitchfreien Boot-Vorgang. Mit geeignetem Messgerät COM–NO beobachten. Home-Assistant-Button **PC Power** drücken: Kontakt muss **nur etwa 500 ms** schließen. Auch den GPIO18-Taster separat testen.
 
 **Erst danach** PWR_SW am Mainboard verbinden.
 
@@ -57,8 +57,8 @@ Der Mainboard-PLED-Eingang darf **nicht ungeprüft direkt** an ein 3,6–30-V-Mo
 
 ## 6. Home-Assistant-Entitäten
 
-- PC Power: 300-ms-Power-Taster.
-- PC Ausschalten erzwingen (6s): erzwungenes Herunterfahren bei geprüftem PC-EIN-Status.
+- PC Power: 500-ms-Power-Taster.
+- PC Ausschalten erzwingen (10s): erzwungenes Herunterfahren bei geprüftem PC-EIN-Status.
 - PC 12V Versorgung: geschaltete Haupt-12 V erkannt.
 - PC Power LED: separat erfasste Mainboard-LED.
 - Onboard LED Modus: Auswahl eines der sieben Modi.
@@ -68,3 +68,5 @@ Der Mainboard-PLED-Eingang darf **nicht ungeprüft direkt** an ein 3,6–30-V-Mo
 ## 7. OTA-Updates
 
 Nach erfolgreichem Flash und API-Verbindung per WLAN installieren. Wenn API-/OTA-Zugangsdaten wechseln, gegebenenfalls erneut per USB flashen. **Keine** Zugangsdaten aus der Beispiel-Secrets-Datei unverändert produktiv nutzen.
+
+**Prüfhinweis:** Vor einem realen zehnsekündigen Tastendruck COM/NO ohne Mainboardanschluss auf exakt einen Impuls von ca. 10 Sekunden prüfen. Der LED-Test ohne Relais dauert unverändert 6 Sekunden.

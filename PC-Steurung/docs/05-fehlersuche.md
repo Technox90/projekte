@@ -18,11 +18,11 @@ Eine alte Testkonfiguration enthält womöglich einen interval-Schaltzyklus. Die
 
 ## Relais klickt, PC reagiert nicht
 
-COM und NO unter spannungsfreier Messung identifizieren. Am Mainboard nur PWR_SW-Kontaktpaar nach Originalhandbuch verwenden. Impulsdauer von 300 ms prüfen; die originalen Gehäusetasteranschlüsse bleiben parallel bestehen.
+COM und NO unter spannungsfreier Messung identifizieren. Am Mainboard nur PWR_SW-Kontaktpaar nach Originalhandbuch verwenden. Impulsdauer von 500 ms prüfen; die originalen Gehäusetasteranschlüsse bleiben parallel bestehen.
 
 ## Optokoppler meldet falschen 12-V-Status
 
-Ausgangspegel U1 gegen ESP-GND im Zustand Haupt-12 V AUS/EIN messen, nicht raten. Die aktuelle Firmware nimmt einen aktiv-LOW-Ausgang an. Bei falscher Logik nicht den sechssekündigen Ausschaltbefehl auslösen. Auch bei offenem Eingang kann der interne Pull-up einen vermeintlich definierten Zustand anzeigen.
+Ausgangspegel U1 gegen ESP-GND im Zustand Haupt-12 V AUS/EIN messen, nicht raten. Die aktuelle Firmware nimmt einen aktiv-LOW-Ausgang an. Bei falscher Logik nicht den zehnsekündigen Ausschaltbefehl auslösen. Auch bei offenem Eingang kann der interne Pull-up einen vermeintlich definierten Zustand anzeigen.
 
 ## Mainboard-Power-LED bleibt immer aus
 
@@ -34,20 +34,20 @@ Die PWR-LED wird fast immer fest von der Boardversorgung gespeist. D2 kann die *
 
 ## Erzwungenes Ausschalten aktiv bleibt stehen
 
-Die Anzeige endet erst, wenn der separat gemessene 12-V-Sensor PC AUS meldet. Das Relais wird **trotzdem nach sechs Sekunden freigegeben**. Bleibt die Anzeige nach tatsächlichem PC-Aus bestehen, zuerst den 12-V-Sensor untersuchen.
+Die Anzeige endet, wenn **12 V und qualifizierte Power-LED** den PC nicht mehr als EIN erkennen (mit 3 Sekunden Aus-Nachlauf). Das Relais wird **trotzdem nach zehn Sekunden freigegeben**. Bleibt die Anzeige nach tatsächlichem PC-Aus bestehen, zuerst den 12-V-Sensor untersuchen.
 
 ## Ausschalten erzwingen: LED blinkt nicht (Diagnose)
 
 1. **Not-Aus LED Test (ohne Relais)** in Home Assistant betaetigen. Er blinkt sechs Sekunden (0,5 s EIN / 0,5 s AUS), ohne das Relais zu schalten.
 2. Falls der Test **nicht** sichtbar blinkt: Auf dieser Boardrevision ist D2 eventuell nicht an GPIO2 angeschlossen, GPIO2 ist ungeeignet oder die LED-Polaritaet ist invertiert. Vor weiteren Aenderungen elektrische Anbindung pruefen.
-3. Falls der Test blinkt, aber der echte Not-Aus nicht: Den Textsensor **Ausschalten Rueckmeldung** anschauen. "Abgelehnt: 12V AUS oder Status unbekannt" zeigt an, dass die Sicherheitsfreigabe blockiert hat.
+3. Falls der Test blinkt, aber der echte Not-Aus nicht: Den Textsensor **Ausschalten Rueckmeldung** anschauen. "Abgelehnt: 12V AUS und Power-LED nicht stabil EIN" zeigt an, dass die Sicherheitsfreigabe blockiert hat.
 4. In Home Assistant pruefen, ob **PC 12V Versorgung** bei eingeschaltetem PC wirklich EIN meldet. Nicht durch Umgehen dieser Bedingung korrigieren; Optokopplerlogik und Signale messen.
-5. Bei akzeptiertem Not-Aus setzt die Firmware den LED-Ausgang sofort auf EIN, danach wechselt sie 500 ms EIN / 500 ms AUS. Das Relais darf maximal sechs Sekunden angezogen bleiben.
+5. Bei akzeptiertem Not-Aus setzt die Firmware den LED-Ausgang sofort auf EIN, danach wechselt sie 500 ms EIN / 500 ms AUS. Das Relais darf maximal zehn Sekunden angezogen bleiben.
 
 ## Kombinierte Erkennung: nur einer der beiden Sensoren meldet EIN
 
 1. **PC 12V Versorgung** und **PC Power LED** einzeln im HA-Geraet pruefen.
 2. **PC Power LED stabil** wird nur EIN, wenn die LED **2 Sekunden ununterbrochen EIN** meldet. Bei langsamer blinkender PLED wird absichtlich keine Freigabe erteilt.
 3. **PC Betrieb erkannt** kombiniert beide Quellen per ODER. Erst wenn beide Quellen mindestens 3 Sekunden keine Aktivitaet mehr melden, gilt der PC als AUS.
-4. Vor dem echten sechssekündigen Ausschalten am PC die Anzeige **PC Betrieb erkannt** und die beiden Ursprungsquellen vergleichen. Bei abweichendem Zustand zuerst Sensorpolung und Optokopplerverdrahtung durchmessen.
+4. Vor dem echten zehnsekündigen Ausschalten am PC die Anzeige **PC Betrieb erkannt** und die beiden Ursprungsquellen vergleichen. Bei abweichendem Zustand zuerst Sensorpolung und Optokopplerverdrahtung durchmessen.
 5. Wenn PLED im Standby auch mehr als zwei Sekunden kontinuierlich leuchtet, kann sie als EIN fehlinterpretiert werden. In diesem Fall erzwungenes Ausschalten nur mit verifizierter 12-V-Erkennung verwenden bzw. PLED-Logik fuer dieses Board anpassen.

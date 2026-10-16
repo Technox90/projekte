@@ -4,15 +4,15 @@
 
 | Aktion | Relais | Weitere Wirkung |
 |---|---|---|
-| HA: PC Power | 300 ms schließen | 10 s LED weich pulsieren |
-| Physischer GPIO18-Taster | 300 ms schließen | 10 s LED weich pulsieren |
-| HA: Ausschalten erzwingen | 6 s schließen | LED 0,5 s EIN / 0,5 s AUS, bis PC aus |
+| HA: PC Power | 500 ms schließen | 10 s LED weich pulsieren |
+| Physischer GPIO18-Taster | 500 ms schließen | 10 s LED weich pulsieren |
+| HA: Ausschalten erzwingen | 10 s schließen | LED 0,5 s EIN / 0,5 s AUS, bis PC aus |
 | Erzwungenes Ausschalten bei weder 12V noch stabiler PLED EIN | Befehl abgelehnt | Schutz gegen versehentliches Einschalten |
 | Weiterer Power-Befehl während erzwungenem Ausschalten | Gesperrt | Keine konkurrierenden Impulse |
 
-Das **erzwungene Ausschalten** ist nur ein sechs Sekunden gehaltener ATX-Power-Taster, **kein normgerechter Not-Aus**. Ungespeicherte Daten können verloren gehen. Die Verriegelung akzeptiert **entweder geschaltete 12 V EIN oder die mindestens 2 Sekunden ohne Unterbrechung aktive Mainboard-Power-LED**. Beide Signale muessen elektrisch korrekt gemessen sein. Eine im S3-Standby blinkende LED ist kein verlaesslicher Betriebsindikator; lange EIN-Phasen der Standby-LED koennen dennoch fehlinterpretiert werden.
+Das **erzwungene Ausschalten** ist nur ein zehn Sekunden gehaltener ATX-Power-Taster, **kein normgerechter Not-Aus**. Ungespeicherte Daten können verloren gehen. Die Verriegelung akzeptiert **entweder geschaltete 12 V EIN oder die mindestens 2 Sekunden ohne Unterbrechung aktive Mainboard-Power-LED**. Beide Signale muessen elektrisch korrekt gemessen sein. Eine im S3-Standby blinkende LED ist kein verlaesslicher Betriebsindikator; lange EIN-Phasen der Standby-LED koennen dennoch fehlinterpretiert werden.
 
-Wenn nach Ablauf der sechs Sekunden mindestens eine der beiden Quellen weiter PC EIN meldet, bleibt die *Warnanzeige* aktiv. Die kombinierte Erkennung geht erst auf AUS, wenn beide Quellen drei Sekunden durchgehend AUS melden. Das Relais fällt nach sechs Sekunden unabhängig davon ab. Nach einem ESP32-Neustart werden Not-Aus-Zustände nicht wiederhergestellt.
+Wenn nach Ablauf der zehn Sekunden mindestens eine der beiden Quellen weiter PC EIN meldet, bleibt die *Warnanzeige* aktiv. Die kombinierte Erkennung geht erst auf AUS, wenn beide Quellen drei Sekunden durchgehend AUS melden. Das Relais fällt nach zehn Sekunden unabhängig davon ab. Nach einem ESP32-Neustart werden Not-Aus-Zustände nicht wiederhergestellt.
 
 ## Sieben LED-Modi
 
@@ -63,8 +63,8 @@ Die WLAN- und API-Reboot-Timeouts sind auf null gesetzt, damit die LED bei lange
 
 - **Not-Aus LED Test (ohne Relais):** sechs Sekunden 500 ms EIN / 500 ms AUS; kein Relaisimpuls, kein PC-Ausschalten.
 - **Ausschalten Rueckmeldung:** Statusmeldung "Gestartet", "Abgelehnt", "Abgeschlossen" oder "LED-Test beendet".
-- Die Not-Aus-Blinkanzeige startet bei akzeptiertem sechsekündigem Ausschalten **sofort**; der eigentliche Impuls bleibt weiterhin von einem validierten **PC EIN** an GPIO22 abhaengig.
-- Falls der PC817 **AUS** oder **UNBEKANNT** meldet, darf das Relais nicht sechs Sekunden anziehen; der Textsensor macht das sichtbar.
+- Die Not-Aus-Blinkanzeige startet bei akzeptiertem zehnsekündigem Ausschalten **sofort**; der eigentliche Impuls bleibt weiterhin von einem validierten **PC EIN** via 12 V oder mindestens zwei Sekunden stabiler Power-LED abhaengig.
+- Falls weder 12 V noch stabile Power-LED EIN melden, darf das Relais nicht zehn Sekunden anziehen; der Textsensor macht das sichtbar.
 - Blinkt die zweite LED bereits beim reinen Test nicht, ist zuerst deren Verbindung mit GPIO2, Polaritaet bzw. PWM-Eignung zu pruefen.
 
 ## Kombinierte Erkennung ab Revision 3
@@ -74,7 +74,11 @@ Die WLAN- und API-Reboot-Timeouts sind auf null gesetzt, damit die LED bei lange
 - **PC Power LED stabil:** zusaetzliche Auswertung, nur wenn PLED mindestens **2 Sekunden ohne Unterbrechung EIN** war. Kurzes Standby-Blinken soll kein erzwungenes Ausschalten freigeben.
 - **PC Betrieb erkannt:** ODER aus 12 V und stabiler PLED; beim Wechsel auf AUS **3 Sekunden Nachlauf** gegen kurze Signalunterbrechungen.
 - **Relaisfreigabe:** verlangt zum Zeitpunkt der Betaetigung entweder 12 V EIN oder stabile PLED EIN – NICHT bloss einen nachlaufenden, alten Kombinationszustand.
-- **Not-Aus-Anzeige:** endet nach dem 6-s-Relaisimpuls erst, wenn die kombinierte Erkennung AUS geworden ist. Die erzwungene Kontaktbetaetigung dauert immer maximal 6 Sekunden.
+- **Not-Aus-Anzeige:** endet nach dem 10-s-Relaisimpuls erst, wenn die kombinierte Erkennung AUS geworden ist. Die erzwungene Kontaktbetaetigung dauert immer maximal 10 Sekunden.
 - **Sieben normale LED-Modi:** verwenden jetzt ebenfalls die kombinierte PC-EIN/AUS-Erkennung.
 
 **Sicherheit:** Bei S3/Sleep/PLED-Blinken mit langen Leuchtphasen kann eine reine Power-LED-Erkennung trotz Qualifizierung falsch sein. Im Standby kann langer Power-Taster-Druck eine unerwartete Wirkung (z. B. Aufwachen) haben. Vor Aktivierung mit realer Hardware AUS, EIN und S3 pruefen. Niemals die 2-s-Qualifizierung unbedacht entfernen.
+
+## Anpassung der Relaisschaltzeiten
+
+Normaler Power-Befehl über HA oder GPIO18: **500 ms** statt zuvor 300 ms. Erzwungenes Ausschalten: **10 s** statt zuvor 6 s. **Unverändert:** separater LED-Test ohne Relais 6 s; normale Power-LED-Pulsanimation 10 s; WLAN-Blinken 300 ms EIN/AUS; Not-Aus-Warnblinken 500 ms EIN/AUS. Der zehnsekündige Tastendruck kann je nach PC-/UEFI-Verhalten einen unerwarteten Neustart nach dem Abschalten auslösen und sollte vor Nutzung am Relaiskontakt ohne angeschlossenes Mainboard geprüft werden.

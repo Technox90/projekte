@@ -14,9 +14,9 @@ Dies ist eine **leere Prüfliste**, keine Behauptung über bestandene Messungen.
 
 - [ ] NO, COM, NC durch **Durchgangsmessung** identifiziert
 - [ ] COM/NO in Ruhe offen, bei angezogenem Relais geschlossen
-- [ ] 300-ms-Impuls gemessen, ohne PC-Mainboard
-- [ ] Lokaler GPIO18-Taster löst genau einen 300-ms-Impuls aus
-- [ ] 6-s-Impuls separat und **ohne Mainboard** mit simulierter, überprüfter 12-V-Statusmeldung getestet
+- [ ] 500-ms-Impuls gemessen, ohne PC-Mainboard
+- [ ] Lokaler GPIO18-Taster löst genau einen 500-ms-Impuls aus
+- [ ] 10-s-Impuls separat und **ohne Mainboard** mit simulierter, überprüfter 12-V-Statusmeldung getestet
 - [ ] Kein unerwünschter Relaisimpuls bei WLAN-Verlust, OTA und ESP32-Neustart
 
 ## PC817 Kanal 1: 12-V-Versorgung
@@ -59,3 +59,6 @@ Dies ist eine **leere Prüfliste**, keine Behauptung über bestandene Messungen.
 - [ ] Standby/S3: PLED-Blinkrhythmus gemessen und bestaetigt, dass die 2-s-Stabilitaetspruefung keinen unbeabsichtigten langen Power-Tastendruck freigibt
 - [ ] Signalunterbrechung der PLED fuehrt nicht zum vorzeitigen Ende der erzwungenen Ausschaltanzeige
 - [ ] Keine ungewollte Aktivierung durch nachlaufenden Kombinationszustand (Relaisfreigabe benutzt aktuelle Ursprungswerte)
+
+- [ ] Separater LED-Test bleibt auf 6 Sekunden begrenzt und schaltet **niemals** das Relais
+- [ ] Tatsächliche Freigabe-/Abfallzeit des Relais bei 500 ms und 10 s gemessen; Kontakt löst danach zuverlässig
