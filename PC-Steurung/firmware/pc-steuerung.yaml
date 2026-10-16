@@ -39,8 +39,13 @@ wifi:
 
 captive_portal:
 
-# Passwortgeschuetzte lokale ESPHome-Weboberflaeche.
-# Nur im vertrauenswuerdigen LAN, keine Router-Portfreigabe.
+# Interne ESPHome-Wartungsoberflaeche: durchgehend passwortgeschuetzt.
+# Die geplante Caddy-Seite https://pc.home.arpa/ (mit /login, /steuerung)
+# laeuft NICHT auf dem ESP32, sondern in einem separaten Portal-Backend.
+# Nur Home Assistant darf intern per verschluesselter ESPHome-API
+# die Schalt- und Number-Entitaeten bedienen. Caddy darf NICHT den
+# nativen ESPHome-Webserver/REST-Endpunkt direkt weiterreichen.
+# Keine Router-Portfreigabe, kein Abschalten von web_server.auth.
 web_server:
   port: 80
   version: 3
@@ -365,6 +370,23 @@ binary_sensor:
     lambda: |-
       return id(notaus_aktiv);
 
+  # Read-only Status fuer den Portal-Statusadapter in Home Assistant.
+  # Beide Werte sind Beobachtungen, keine freigegebenen Schreib-Endpunkte.
+  - platform: template
+    name: "PC Relais aktiv"
+    id: pc_relais_aktiv
+    icon: mdi:electric-switch
+    lambda: |-
+      return id(pc_relais_belegt);
+
+  - platform: template
+    name: "PC Schaltsperre aktiv"
+    id: pc_schaltsperre_aktiv
+    icon: mdi:shield-lock
+    lambda: |-
+      return (uint32_t)(millis() - id(pc_relais_zuletzt_off_ms)) <
+             id(pc_relais_sperre_ms);
+
   # Potentialfreier Schliesser zwischen GPIO18 und GND.
   - platform: gpio
     id: pc_manueller_taster
@@ -542,6 +564,34 @@ text_sensor:
     entity_category: diagnostic
     update_interval: never
 
+  # Kompakter, lesbarer PC-Status fuer die lokale Status-Webseite.
+  # UNBEKANNT waehrend Start/nicht initialisierter kombinierter Sensor.
+  # Ob die beiden PC817-Eingaenge elektrisch funktionieren, MUSS
+  # vorher am realen Rechner geprueft werden.
+  - platform: template
+    name: "PC Zustand"
+    id: pc_zustand_portal
+    icon: mdi:desktop-tower-monitor
+    update_interval: 2s
+    lambda: |-
+      if (!id(pc_betrieb_erkannt).has_state()) return {"UNBEKANNT"};
+      if (id(pc_betrieb_erkannt).state) return {"EIN"};
+      return {"AUS"};
+
+  # Der Login-Backend-Status ist hiervon unabhaengig: Dieser Sensor
+  # informiert nur darueber, ob ein Relaisbefehl momentan blockiert waere.
+  - platform: template
+    name: "PC Steuerung Status"
+    id: pc_steuerung_status
+    icon: mdi:shield-check
+    update_interval: 1s
+    lambda: |-
+      if (id(pc_relais_belegt)) return {"Relais aktiv"};
+      if (id(notaus_aktiv)) return {"Ausschaltkontrolle aktiv"};
+      if ((uint32_t)(millis() - id(pc_relais_zuletzt_off_ms)) <
+          id(pc_relais_sperre_ms)) return {"Schaltsperre aktiv"};
+      return {"Bereit"};
+
 sensor:
   - platform: wifi_signal
     name: "WLAN Signal"
@@ -553,3 +603,19 @@ sensor:
     id: pc_controller_uptime
     update_interval: 30s
     entity_category: diagnostic
+
+  # Verbleibende lokale Relaissperre fuer Portal und HA (Sekunden).
+  # Ein Wert 0 ist nur eine Statusinformation, kein Authentifizierungsrecht.
+  - platform: template
+    name: "PC Schaltsperre Restzeit"
+    id: pc_schaltsperre_restzeit
+    icon: mdi:timer-sand
+    unit_of_measurement: "s"
+    accuracy_decimals: 1
+    update_interval: 1s
+    lambda: |-
+      const uint32_t vergangen = (uint32_t)(
+          millis() - id(pc_relais_zuletzt_off_ms));
+      const uint32_t sperre = id(pc_relais_sperre_ms);
+      if (vergangen >= sperre) return 0.0f;
+      return (sperre - vergangen) / 1000.0f;
