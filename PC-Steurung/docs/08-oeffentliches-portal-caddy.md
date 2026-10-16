@@ -1,3 +1,9 @@
+# Überholtes Konzept: öffentliches Internetportal mit Caddy
+
+**ARCHIV – NICHT MEHR UMSETZEN:** Die früher gewünschte öffentlich erreichbare Drei-Subdomain-Variante wurde verworfen. Der **aktuelle** Plan ist eine einzige **lokale HTTPS-Adresse mit /login, /steuerung und /einstellungen**, ohne Veröffentlichung ins Internet: [09-lokales-portal-caddy.md](09-lokales-portal-caddy.md). Der Rest dieses Dokuments ist nur zur historischen Nachvollziehbarkeit belassen.
+
+---
+
 # Architekturplan: weltweit öffentliches Statusportal mit Caddy
 
 **Status: Konzept, noch NICHT installiert oder produktiv getestet.** Keine Änderung der bestehenden ESPHome-Webserver-Authentifizierung oder Freigabe des HA-/ESPHome-Ports! Dieser Plan ist eine technische Vorlage. Vor einer Installation müssen Domain, Caddy-Laufzeitumgebung, DNS, WAN-Erreichbarkeit, Firewall-Regeln, Backends und Authentifizierung geprüft werden.
