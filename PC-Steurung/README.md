@@ -11,6 +11,7 @@ Generisches Projekt zur Steuerung des PC-Power-Tasters und zur getrennten Erfass
 | PC Ein/Aus (Home Assistant und Web) | Einstellbarer Power-Impuls 0,2–1,5 s (Standard 0,5 s) |
 | Lokaler Taster | GPIO18 gegen GND, gleicher einstellbarer Normalimpuls |
 | PC Not-Aus (Home Assistant und Web) | Einstellbarer langer Tastendruck 4–12 s (Standard 10 s), nur bei geprüfter 12-V- ODER stabiler Power-LED-Freigabe |
+| Relaisschutz | Gegenseitige Verriegelung; gespeicherte Nachlauf-Sperrzeit 0,5–10 s (Standard 2 s), Boot-Sperre |
 | PC 12-V-Status | Separater binärer Sensor an GPIO22 über PC817 Kanal 1 |
 | Mainboard-Power-LED | Separater binärer Sensor an GPIO21 über PC817 Kanal 2 (passende Eingangsstufe erforderlich) |
 | LED-Betriebsarten | 7 wählbare, gespeicherte Modi |
@@ -81,3 +82,9 @@ Der Textsensor **Ausschalten Rueckmeldung** meldet, ob das erzwungene Ausschalte
 Die Firmware enthält einen ESPHome-Webserver V3 mit **HTTP Digest** und zwei **lokalen** Secrets: `pc_web_username` und `pc_web_password`. Nach Installation unter `http://pc-steuerung.local/` oder der lokalen IP-Adresse erreichbar. Die zwei Hauptbuttons **PC Ein/Aus** und **PC Not-Aus (Ausschalten erzwingen)** sowie die beiden Power-Zeitregler sind über die Weboberfläche und Home Assistant nutzbar. Der LED-Test ist eine zusätzliche Diagnosefunktion. Nur im vertrauenswürdigen LAN betreiben: **keine öffentliche Portfreigabe**.
 
 **Vor dem Aktualisieren:** Die beiden neuen Web-Secrets im ESPHome Device Builder lokal anlegen und [Anleitung für Weboberfläche und Regler](docs/07-weboberflaeche.md) lesen.
+
+## Relaisschutz
+
+Ein **Schaltvorgang verriegelt das Relais**, bis der Kontakt nach der eingestellten Dauer wieder geöffnet wurde. Währenddessen werden normale und erzwungene Power-Befehle nicht parallel ausgeführt; ein langer Power-Befehl unterbricht keinen laufenden kurzen Tastendruck mehr. Nach dem Öffnen beginnt eine einstellbare **PC Relais Schaltsperre** von 0,5–10 s (Standard **2 s**, `restore_value: true`). In dieser Zeit wird kein neuer Relaisimpuls gestartet. Auch nach dem ESP32-Neustart gilt zunächst die Standardsperre. Bei Ablehnung des langen Tastendrucks erscheint eine entsprechende Rückmeldung.
+
+**Wichtig zur noch gewünschten öffentlichen Status-Webseite:** Der ESPHome-Webserver unterstützt nur eine **globale** Digest-Anmeldung, keine separate Anmeldung ausschließlich bei Power-Buttons. Bis eine zusätzliche sichere Status-/Steuerlösung festgelegt ist, bleibt die **gesamte native ESP32-Weboberfläche passwortgeschützt**. Ein Entfernen der Authentifizierung würde auch die Power-REST-Endpunkte freigeben. Es gibt deshalb **keine** öffentliche ESP32-Portfreigabe.
