@@ -48,7 +48,7 @@ Die dauerleuchtende **PWR-LED des ESP32** hängt in der Regel fest an der Versor
 
 **Normale PC-Bedienung**
 
-- Ein Home-Assistant-Button namens „PC Power“ schließt das Relais genau ungefähr **500 ms** und öffnet es wieder.
+- Ein Home-Assistant- und Web-Button namens „PC Ein/Aus“ schließt das Relais **einstellbar 0,2–1,5 s (Standard 0,5 s)** und öffnet es wieder.
 - Ein separater Taster an GPIO18/GND löst denselben Impuls aus, inklusive Entprellung.
 - Beim normalen Power-Befehl pulsiert die **zweite GPIO-gesteuerte LED** für **zehn Sekunden sanft** per PWM: fünf Atemzyklen von ungefähr zwei Sekunden.
 - Der Original-Gehäusetaster bleibt unabhängig funktionsfähig.
@@ -56,11 +56,11 @@ Die dauerleuchtende **PWR-LED des ESP32** hängt in der Regel fest an der Versor
 
 **Erzwungenes Ausschalten (kein sicherheitstechnischer Not-Aus!)**
 
-- Ein eigener Button hält den trockenen Relaiskontakt **maximal zehn Sekunden** geschlossen und gibt ihn danach sicher frei.
+- Ein eigener Button „PC Not-Aus (Ausschalten erzwingen)“ hält den trockenen Relaiskontakt **einstellbar 4–12 s (Standard 10 s)** geschlossen und gibt ihn danach sicher frei.
 - Der Befehl wird **nur** angenommen, wenn die überwachte **geschaltete Haupt-12-V-Versorgung EIN** meldet **ODER** die unabhängig gemessene Mainboard-Power-LED **mindestens zwei Sekunden durchgehend EIN** war.
 - Die Power-LED kann auch im Standby/S3/Sleep leuchten oder blinken. Selbst die Zwei-Sekunden-Bedingung ist **kein vollständiger Schutz** vor falsch positiver Einschaltmeldung. Vor Verwendung am realen PC unter AUS, EIN und Standby messen; im Zweifel 10-s-Ausschalten deaktiviert lassen.
-- Solange das erzwungene Ausschalten aktiv ist, keine zusätzlichen 500-ms-Power-Impulse zulassen.
-- Der ESP32-LED-Ausgang blinkt dabei **500 ms EIN / 500 ms AUS**. Nach zehn Sekunden bleibt allenfalls die **Warnanzeige** aktiv, das **Relais nicht**.
+- Solange das erzwungene Ausschalten aktiv ist, keine zusätzlichen normalen Power-Impulse zulassen.
+- Der ESP32-LED-Ausgang blinkt dabei **500 ms EIN / 500 ms AUS**. Nach Ablauf der konfigurierten langen Dauer bleibt allenfalls die **Warnanzeige** aktiv, das **Relais nicht**.
 - Abschaltbestätigung über beide Statusquellen: Der kombinierte Zustand soll erst AUS melden, wenn **12 V und qualifizierte Power-LED AUS** sind, mit **drei Sekunden Aus-Nachlauf**.
 - Ein Home-Assistant-Textsensor „Ausschalten Rueckmeldung“ meldet, ob der Befehl gestartet, abgeschlossen oder mangels zuverlässiger PC-EIN-Freigabe abgelehnt wurde.
 - Ein separater Button „Not-Aus LED Test (ohne Relais)“ lässt die zweite LED **sechs Sekunden** lang 500 ms EIN / 500 ms AUS blinken, **ohne das Relais zu betätigen**.
@@ -106,7 +106,7 @@ Die früher vorgeschlagene Bedingung (t % 5 < 20) ist **falsch** (praktisch imme
 4. **12-V-Erfassung:** Nur die geschaltete Haupt-12-V-Schiene, nicht 5VSB/Standby, abgreifen. Das reale PC817-Modul muss dafür ausgelegt sein.
 5. **PLED-Erfassung:** PLED-Spannung, Polarität, Blinktakt und Eingangsstrom am echten Mainboard messen. Ein als 3,6–30 V beworbenes PC817-Modul erkennt möglicherweise eine 3,3-V-LED-Leitung nicht zuverlässig. Ohne geeignete Eingangsaufbereitung **nicht direkt anklemmen**. Gehäuse-LED nicht überlasten.
 6. **Ausgangslogik:** An ESP32 GPIO21/GPIO22 darf maximal **3,3 V** liegen. Aktiv-LOW-Logik, Open-Collector-Ausgänge, Pull-ups sowie mögliche Jumper zwischen Eingangs- und Ausgangsmasse messen. Galvanische Trennung nicht blind annehmen.
-7. **Sicherheit:** Keine Arbeiten an Netzspannung, kein Öffnen des ATX-Netzteils. Leitungen isolieren, kurzschlussschützen und mechanisch sichern. Der zehnsekündige Power-Druck **ist kein normgerechter Not-Aus** und kann Datenverlust verursachen.
+7. **Sicherheit:** Keine Arbeiten an Netzspannung, kein Öffnen des ATX-Netzteils. Leitungen isolieren, kurzschlussschützen und mechanisch sichern. Der lange Power-Druck **ist kein normgerechter Not-Aus** und kann Datenverlust verursachen.
 
 Wenn eine erforderliche Messung fehlt, bitte **nicht raten und kein fertiges Anschlussbild vortäuschen**, sondern zuerst die fehlenden Werte anfragen.
 
@@ -135,7 +135,7 @@ Arbeite in dieser Reihenfolge:
 4. **ESPHome:** Die verlinkte aktuelle YAML auf mein bestätigtes Board anpassen. Vollständige funktionierende Datei ausgeben, syntaktisch prüfen/kompilieren, sofern tatsächlich möglich. Bestehende Funktionen nicht stillschweigend entfernen.
 5. **Home Assistant:** Einrichtung der ESPHome-Integration, Liste der Buttons, Statussensoren, LED-Modi und Diagnose-Entitäten erläutern.
 6. **Sichere Inbetriebnahme:** Erst ESP32 alleine flashen; dann Relais **ohne Mainboardverbindung** prüfen; danach 12-V- und PLED-Sensoren bei allen PC-Zuständen messen; erst abschließend COM/NO an PWR_SW anschließen.
-7. **Testprotokoll:** 500-ms- und 10-s-Relaiszeit, Schutz bei Boot/WLAN-Ausfall, LED-Test ohne Relais, zehnsekündige Pulsanimation, WLAN-Blinken, alle sieben Modi, EIN/AUS/Standby-Status, Ablehnung bei unbekanntem Zustand und Relaisfreigabe nach zehn Sekunden prüfen.
+7. **Testprotokoll:** die einstellbaren Impulszeiten von 0,2–1,5 s und 4–12 s, Schutz bei Boot/WLAN-Ausfall, LED-Test ohne Relais, zehnsekündige Pulsanimation, WLAN-Blinken, alle sieben Modi, EIN/AUS/Standby-Status, Ablehnung bei unbekanntem Zustand und Relaisfreigabe nach der gewählten Dauer, spätestens nach zwölf Sekunden, prüfen.
 8. **Transparenz:** Offene Risiken, ungeprüfte Annahmen, nötige Messungen und nicht durchgeführte Hardwaretests explizit kennzeichnen.
 
 Führe keine Änderungen an meinem GitHub, Home Assistant, ESP32 oder anderen Geräten aus, ohne dass ich sie konkret beauftrage. Gib keine vorgetäuschten Prüf- oder Installationserfolge aus.
@@ -148,4 +148,17 @@ Führe keine Änderungen an meinem GitHub, Home Assistant, ESP32 oder anderen Ge
 - Lies vor jedem Nachbau die aktuelle GitHub-Version der Firmware und Dokumentation. Alte Chatbeispiele können überholt sein.
 - Der Prompt ist eine Arbeitsanweisung für eine KI und **keine Freigabe** zur unkontrollierten Verdrahtung.
 
-**Zeitabgleich:** Normales Schalten via HA oder lokalem GPIO18-Taster = **500 ms**. Erzwungenes Ausschalten = **10 s**. LED-Test *ohne Relais* = weiterhin **6 s**, Pulsanimation nach normalem Power-Befehl = weiterhin **10 s**. Ein dauerhaft gehaltener Power-Schalter kann je nach BIOS/UEFI nach dem Ausschalten ein unerwünschtes Wiedereinschalten bewirken; Kontaktzeit erst getrennt vom Mainboard prüfen.
+**Zeitabgleich:** Normales Schalten via HA, Web oder GPIO18 = **einstellbar 0,2–1,5 s (Standard 0,5 s)**. Erzwungenes Ausschalten via HA oder Web = **einstellbar 4–12 s (Standard 10 s)**. LED-Test *ohne Relais* = weiterhin **6 s**, Pulsanimation nach normalem Power-Befehl = weiterhin **10 s**. Ein dauerhaft gehaltener Power-Schalter kann je nach BIOS/UEFI nach dem Ausschalten ein unerwünschtes Wiedereinschalten bewirken; Kontaktzeit erst getrennt vom Mainboard prüfen.
+
+## Zusatzanforderung: gespeicherte Power-Zeiten und passwortgeschützte ESP32-Weboberfläche
+
+Die aktuelle Firmware unterstützt jetzt eine **lokale ESPHome-Weboberfläche V3** mit **HTTP Digest** auf Port 80. Die Benutzeranmeldung erfolgt ausschließlich mit **lokalen Secrets** `pc_web_username` und `pc_web_password`. Web-OTA ist deaktiviert, ESPHome OTA bleibt nutzbar. **Nicht ins öffentliche Internet exponieren:** HTTP Digest ist kein HTTPS.
+
+Zwei gespeicherte `number.template`-Regler (`optimistic: true`, `restore_value: true`) stehen in Home Assistant und direkt auf der Weboberfläche zur Verfügung:
+
+- `PC Ein/Aus Impulsdauer`: **0,2–1,5 s**, 0,1-s-Schritte, Standard 0,5 s.
+- `PC Not-Aus Impulsdauer`: **4–12 s**, 0,5-s-Schritte, Standard 10 s.
+
+Die beiden Hauptbuttons heißen `PC Ein/Aus` und `PC Not-Aus (Ausschalten erzwingen)`. Die Relais-Skripte verwenden eine dynamische ESPHome-`delay: !lambda` mit **Millisekunden**, die Zeit wird zu Beginn des Impulses einmalig gelesen. Ungültige Werte werden sicher durch 500 ms bzw. 10 s ersetzt. Die Statusfreigabe über 12 V oder mindestens zwei Sekunden stabile Power-LED bleibt erhalten. LED-Test (sechs Sekunden **ohne Relais**) und zehnsekündiges weiches Power-Pulsieren sind von den Zeitreglern getrennt.
+
+Bei der Anleitung **immer die aktuelle Firmware** und [Weboberflächen-Dokumentation](https://github.com/Technox90/projekte/blob/main/PC-Steurung/docs/07-weboberflaeche.md) verwenden, keine veralteten festen Zeiten voraussetzen. Bei Inbetriebnahme jede Zeit **mit vom Mainboard getrenntem Relaiskontakt** prüfen.
