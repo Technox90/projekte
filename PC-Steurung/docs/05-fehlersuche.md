@@ -61,3 +61,14 @@ Die Anzeige endet, wenn **12 V und qualifizierte Power-LED** den PC nicht mehr a
 - Die Regler bleiben nach Neustart gespeichert; bei ungültigen Einstellungen verwendet die Firmware die Standardwerte 0,5 s / 10 s.
 - HTTP Digest ist **keine** TLS-Verschlüsselung. Keine WAN-Portfreigabe, keine öffentlich erreichbare Proxy-Route.
 - Für korrekte Zeitmessung zuerst COM/NO vom Mainboard abziehen; normaler Impuls 0,2–1,5 s, langer Impuls 4–12 s.
+
+## PC Ein/Aus oder Not-Aus reagiert nicht nach einem Befehl
+
+1. Während ein Relaisimpuls aktiv ist, sind weitere Impulse durch die **gegenseitige Verriegelung** gesperrt. Der Not-Aus-Befehl unterbricht auch den laufenden Normalimpuls nicht mehr.
+2. Nach dem Abfallen des Relais beginnt die **PC Relais Schaltsperre**, einstellbar von 0,5–10 s; Standard 2 s. Währenddessen werden weitere Tastendrücke abgelehnt. Direkt nach einem ESP32-Neustart sind zunächst mindestens 2 s Sperre aktiv.
+3. Der lange Befehl meldet bei fehlgeschlagener Sperrprüfung ausdrücklich **Abgelehnt: Relais belegt oder Schaltsperre aktiv**. Die bestehende Ablehnung bei fehlender PC-EIN-Erkennung bleibt getrennt.
+4. COM/NO vom Mainboard lösen, Kontakt und Sperre messen. Die Relais-Schutzvariable ist nur Software; einen glitchfreien Bootvorgang auch mit geeignetem Messgerät prüfen.
+
+## Öffentliche ESP32-Webseite nur mit Passwort für Buttons?
+
+Der native ESPHome-Webserver unterstützt globales HTTP Digest, **kein** getrenntes Passwort ausschließlich beim Drücken einzelner Buttons. Deaktiviert man `web_server.auth`, sind auch die REST-Schaltbefehle ohne Passwort erreichbar. Deshalb den direkten ESP32-Port 80 **nicht** ungeschützt oder im Internet freigeben. Für öffentliche Statusdaten eine getrennte, schreibgeschützte Webseite mit eigenen authentifizierten Steuer-Endpunkten planen.
