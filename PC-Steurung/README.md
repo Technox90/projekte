@@ -18,7 +18,7 @@ Generisches Projekt zur Steuerung des PC-Power-Tasters und zur getrennten Erfass
 | Normaler Power-Befehl | 10 s weich pulsierende LED |
 | WLAN-Ausfall | 0,3 s EIN / 0,3 s AUS |
 | Erzwungenes Ausschalten aktiv | 0,5 s EIN / 0,5 s AUS bis PC aus gemeldet |
-| Diagnose | ESP32-Verbindung, WLAN-Signal, Uptime |
+| Diagnose | ESP32-Verbindung, WLAN-Signal, Uptime, PC-Zustand, Relais aktiv, Schaltsperre und Restzeit |
 | Updates/Sicherheit | ESPHome OTA, verschlüsselte HA-API, Fallback-WLAN und passwortgeschützte ESP32-Weboberfläche |
 
 **GPIO2 steuert ausschließlich eine eventuell GPIO-gesteuerte zweite Board-LED.** Die gewöhnliche **PWR-LED** ist direkt an die Spannungsversorgung angeschlossen und lässt sich nicht per ESPHome ansteuern. Die Kennzeichnung D2 auf einer Platine allein beweist nicht, dass diese LED an GPIO2 liegt.
@@ -90,3 +90,21 @@ Die Firmware enthält einen ESPHome-Webserver V3 mit **HTTP Digest** und zwei **
 Ein **Schaltvorgang verriegelt das Relais**, bis der Kontakt nach der eingestellten Dauer wieder geöffnet wurde. Währenddessen werden normale und erzwungene Power-Befehle nicht parallel ausgeführt; ein langer Power-Befehl unterbricht keinen laufenden kurzen Tastendruck mehr. Nach dem Öffnen beginnt eine einstellbare **PC Relais Schaltsperre** von 0,5–10 s (Standard **2 s**, `restore_value: true`). In dieser Zeit wird kein neuer Relaisimpuls gestartet. Auch nach dem ESP32-Neustart gilt zunächst die Standardsperre. Bei Ablehnung des langen Tastendrucks erscheint eine entsprechende Rückmeldung.
 
 **Wichtig zur noch gewünschten öffentlichen Status-Webseite:** Der ESPHome-Webserver unterstützt nur eine **globale** Digest-Anmeldung, keine separate Anmeldung ausschließlich bei Power-Buttons. Bis eine zusätzliche sichere Status-/Steuerlösung festgelegt ist, bleibt die **gesamte native ESP32-Weboberfläche passwortgeschützt**. Ein Entfernen der Authentifizierung würde auch die Power-REST-Endpunkte freigeben. Es gibt deshalb **keine** öffentliche ESP32-Portfreigabe.
+
+## Firmware-Schnittstelle für das lokale Caddy-Portal
+
+Die Firmware liefert über die **verschlüsselte ESPHome-API an Home Assistant** zusätzlich fünf für das Portal geeignete, **nur lesende Status-Entitäten**:
+
+| HA-Anzeigename | Bedeutung |
+|---|---|
+| `PC Zustand` | `EIN`, `AUS`, `UNBEKANNT` aus kombinierter PC-Erkennung |
+| `PC Steuerung Status` | `Bereit`, `Relais aktiv`, `Schaltsperre aktiv` oder `Ausschaltkontrolle aktiv` |
+| `PC Relais aktiv` | Wahr während eines Kontaktbefehls (Softwarestatus) |
+| `PC Schaltsperre aktiv` | Wahr während der zeitlichen Nachlauf-/Boot-Sperre |
+| `PC Schaltsperre Restzeit` | Verbleibende Sperrzeit in Sekunden |
+
+Bestehende ESP32-/PC817-Sensoren bleiben erhalten. Der lokale Caddy-Viewer darf die freigegebenen Zustände **nur über einen eigenen Read-only-Adapter** beziehen; die eigentlichen Power-Buttons und die drei Number-Entitäten bleiben ausschließlich hinter einer **serverseitig authentifizierten Steuerungs-API**. Der ESPHome-Webserver bleibt global durch Digest geschützt und **darf nicht direkt als ungeschützter Caddy-Upstream veröffentlicht werden**.
+
+Der **Weblogin unter `/login` und die Portalseiten unter `/steuerung` und `/einstellungen` müssen separat auf Proxmox erstellt werden**. Die ESPHome-Firmware allein bietet diese Routen nicht. [Aktueller Plan](docs/09-lokales-portal-caddy.md).
+
+**Einschränkung:** Die Zustände basieren auf den vorhandenen physischen Signalen. Ob die PC817-Kanäle korrekt angeschlossen sind, kann die Firmware nicht zuverlässig automatisch feststellen. `PC Zustand = AUS` ist daher erst nach Prüfung der Verdrahtung eine belastbare Anzeige.
