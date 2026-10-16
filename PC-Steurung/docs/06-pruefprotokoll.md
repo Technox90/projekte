@@ -14,9 +14,9 @@ Dies ist eine **leere Prüfliste**, keine Behauptung über bestandene Messungen.
 
 - [ ] NO, COM, NC durch **Durchgangsmessung** identifiziert
 - [ ] COM/NO in Ruhe offen, bei angezogenem Relais geschlossen
-- [ ] 500-ms-Impuls gemessen, ohne PC-Mainboard
-- [ ] Lokaler GPIO18-Taster löst genau einen 500-ms-Impuls aus
-- [ ] 10-s-Impuls separat und **ohne Mainboard** mit simulierter, überprüfter 12-V-Statusmeldung getestet
+- [ ] einstellbarer normaler Impuls von 0,2–1,5 s (Standard 0,5 s) gemessen, ohne PC-Mainboard
+- [ ] Lokaler GPIO18-Taster löst genau einen Impuls mit der aktuell eingestellten normalen Dauer aus
+- [ ] einstellbaren 4–12-s-Impuls separat und **ohne Mainboard** mit simulierter, überprüfter 12-V-Statusmeldung getestet
 - [ ] Kein unerwünschter Relaisimpuls bei WLAN-Verlust, OTA und ESP32-Neustart
 
 ## PC817 Kanal 1: 12-V-Versorgung
@@ -62,3 +62,17 @@ Dies ist eine **leere Prüfliste**, keine Behauptung über bestandene Messungen.
 
 - [ ] Separater LED-Test bleibt auf 6 Sekunden begrenzt und schaltet **niemals** das Relais
 - [ ] Tatsächliche Freigabe-/Abfallzeit des Relais bei 500 ms und 10 s gemessen; Kontakt löst danach zuverlässig
+
+## ESP32-Weboberfläche und variable Zeiten
+
+- [ ] Individuelle Web-Zugangsdaten sind ausschließlich als lokale Secrets hinterlegt
+- [ ] ESPHome-Konfiguration einschließlich Webserver V3 / Digest kompiliert
+- [ ] HTTP-Weboberfläche lässt sich aus dem vertrauenswürdigen lokalen Netzwerk mit Passwort öffnen
+- [ ] Ohne gültige Web-Zugangsdaten keine Bedienung möglich
+- [ ] Keine WAN-Portfreigabe und keine öffentliche Web-Weiterleitung vorhanden
+- [ ] Über HA und Web beide Zeitregler gleichermaßen einstellbar und synchron
+- [ ] Normalimpuls: Minimum 0,2 s / Standard 0,5 s / Maximum 1,5 s mit Messgerät nachgewiesen
+- [ ] Langer Impuls: Minimum 4 s / Standard 10 s / Maximum 12 s mit Messgerät nachgewiesen, **Mainboard dabei abgeklemmt**
+- [ ] Relais fällt nach jedem Impuls automatisch ab und bleibt beim Neustart AUS
+- [ ] Veränderte Reglerwerte bleiben nach Neustart gespeichert
+- [ ] Not-Aus LED Test (ohne Relais) dauert weiterhin 6 Sekunden und betätigt den Relaiskontakt nicht
