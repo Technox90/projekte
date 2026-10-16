@@ -18,7 +18,7 @@ Eine alte Testkonfiguration enthält womöglich einen interval-Schaltzyklus. Die
 
 ## Relais klickt, PC reagiert nicht
 
-COM und NO unter spannungsfreier Messung identifizieren. Am Mainboard nur PWR_SW-Kontaktpaar nach Originalhandbuch verwenden. Impulsdauer von 500 ms prüfen; die originalen Gehäusetasteranschlüsse bleiben parallel bestehen.
+COM und NO unter spannungsfreier Messung identifizieren. Am Mainboard nur PWR_SW-Kontaktpaar nach Originalhandbuch verwenden. eingestellte Impulsdauer (Standard 500 ms) prüfen; die originalen Gehäusetasteranschlüsse bleiben parallel bestehen.
 
 ## Optokoppler meldet falschen 12-V-Status
 
@@ -34,7 +34,7 @@ Die PWR-LED wird fast immer fest von der Boardversorgung gespeist. D2 kann die *
 
 ## Erzwungenes Ausschalten aktiv bleibt stehen
 
-Die Anzeige endet, wenn **12 V und qualifizierte Power-LED** den PC nicht mehr als EIN erkennen (mit 3 Sekunden Aus-Nachlauf). Das Relais wird **trotzdem nach zehn Sekunden freigegeben**. Bleibt die Anzeige nach tatsächlichem PC-Aus bestehen, zuerst den 12-V-Sensor untersuchen.
+Die Anzeige endet, wenn **12 V und qualifizierte Power-LED** den PC nicht mehr als EIN erkennen (mit 3 Sekunden Aus-Nachlauf). Das Relais wird **trotzdem nach der eingestellten Dauer (maximal 12 Sekunden) freigegeben**. Bleibt die Anzeige nach tatsächlichem PC-Aus bestehen, zuerst den 12-V-Sensor untersuchen.
 
 ## Ausschalten erzwingen: LED blinkt nicht (Diagnose)
 
@@ -42,7 +42,7 @@ Die Anzeige endet, wenn **12 V und qualifizierte Power-LED** den PC nicht mehr a
 2. Falls der Test **nicht** sichtbar blinkt: Auf dieser Boardrevision ist D2 eventuell nicht an GPIO2 angeschlossen, GPIO2 ist ungeeignet oder die LED-Polaritaet ist invertiert. Vor weiteren Aenderungen elektrische Anbindung pruefen.
 3. Falls der Test blinkt, aber der echte Not-Aus nicht: Den Textsensor **Ausschalten Rueckmeldung** anschauen. "Abgelehnt: 12V AUS und Power-LED nicht stabil EIN" zeigt an, dass die Sicherheitsfreigabe blockiert hat.
 4. In Home Assistant pruefen, ob **PC 12V Versorgung** bei eingeschaltetem PC wirklich EIN meldet. Nicht durch Umgehen dieser Bedingung korrigieren; Optokopplerlogik und Signale messen.
-5. Bei akzeptiertem Not-Aus setzt die Firmware den LED-Ausgang sofort auf EIN, danach wechselt sie 500 ms EIN / 500 ms AUS. Das Relais darf maximal zehn Sekunden angezogen bleiben.
+5. Bei akzeptiertem Not-Aus setzt die Firmware den LED-Ausgang sofort auf EIN, danach wechselt sie 500 ms EIN / 500 ms AUS. Das Relais darf maximal zwölf Sekunden angezogen bleiben.
 
 ## Kombinierte Erkennung: nur einer der beiden Sensoren meldet EIN
 
@@ -51,3 +51,13 @@ Die Anzeige endet, wenn **12 V und qualifizierte Power-LED** den PC nicht mehr a
 3. **PC Betrieb erkannt** kombiniert beide Quellen per ODER. Erst wenn beide Quellen mindestens 3 Sekunden keine Aktivitaet mehr melden, gilt der PC als AUS.
 4. Vor dem echten zehnsekündigen Ausschalten am PC die Anzeige **PC Betrieb erkannt** und die beiden Ursprungsquellen vergleichen. Bei abweichendem Zustand zuerst Sensorpolung und Optokopplerverdrahtung durchmessen.
 5. Wenn PLED im Standby auch mehr als zwei Sekunden kontinuierlich leuchtet, kann sie als EIN fehlinterpretiert werden. In diesem Fall erzwungenes Ausschalten nur mit verifizierter 12-V-Erkennung verwenden bzw. PLED-Logik fuer dieses Board anpassen.
+
+## ESP32-Weboberfläche nicht erreichbar oder Zeitregler fehlen
+
+- Neue Firmware und die zwei lokalen Secrets `pc_web_username`, `pc_web_password` prüfen; Webserver benötigt vor dem Build diese Werte.
+- Lokale IP-Adresse aus ESPHome-Log oder Router statt `pc-steuerung.local` verwenden. `.local` benötigt mDNS.
+- Im Browser mit HTTP und den selbst gewählten Web-Digest-Zugangsdaten anmelden; nicht mit einem anderen ESPHome-API-Schlüssel verwechseln.
+- Nach Firmware-Update Web und Home Assistant aktualisieren: Beide sollten die Number-Entitäten **PC Ein/Aus Impulsdauer** und **PC Not-Aus Impulsdauer** anzeigen.
+- Die Regler bleiben nach Neustart gespeichert; bei ungültigen Einstellungen verwendet die Firmware die Standardwerte 0,5 s / 10 s.
+- HTTP Digest ist **keine** TLS-Verschlüsselung. Keine WAN-Portfreigabe, keine öffentlich erreichbare Proxy-Route.
+- Für korrekte Zeitmessung zuerst COM/NO vom Mainboard abziehen; normaler Impuls 0,2–1,5 s, langer Impuls 4–12 s.
