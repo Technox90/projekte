@@ -9,6 +9,8 @@
 | HA oder Web: PC Not-Aus | 4–12 s (Standard 10 s) | LED 0,5 s EIN / 0,5 s AUS, bis PC aus |
 | Erzwungenes Ausschalten bei weder 12V noch stabiler PLED EIN | Befehl abgelehnt | Schutz gegen versehentliches Einschalten |
 | Weiterer Power-Befehl während erzwungenem Ausschalten | Gesperrt | Keine konkurrierenden Impulse |
+| Neuer Befehl während eines laufenden Normalimpulses | Gesperrt, auch langer Power-Befehl | Kein Abbruch des laufenden Relaisimpulses |
+| Neuer Befehl während Nachlauf-Sperrzeit | Gesperrt | 0,5–10 s nach Relaisabfall, Standard 2 s |
 
 Das **erzwungene Ausschalten** ist nur ein 4–12 Sekunden gehaltener ATX-Power-Taster, **kein normgerechter Not-Aus**. Ungespeicherte Daten können verloren gehen. Die Verriegelung akzeptiert **entweder geschaltete 12 V EIN oder die mindestens 2 Sekunden ohne Unterbrechung aktive Mainboard-Power-LED**. Beide Signale muessen elektrisch korrekt gemessen sein. Eine im S3-Standby blinkende LED ist kein verlaesslicher Betriebsindikator; lange EIN-Phasen der Standby-LED koennen dennoch fehlinterpretiert werden.
 
@@ -93,3 +95,13 @@ Normaler Power-Befehl über HA, Web oder GPIO18: **0,2–1,5 s** (Standard **0,5
 - Unverändert: LED-Test ohne Relais 6 s, weiches LED-Pulsieren nach normalem Power-Befehl 10 s, WLAN-Anzeige 0,3 s EIN/AUS und Warnblinken 0,5 s EIN/AUS.
 
 [Einrichtung der Weboberfläche](07-weboberflaeche.md).
+
+## Relais-Schutz (Software-Verriegelung)
+
+- Die globale Sperrvariable `pc_relais_belegt` wird **vor** dem Kontakt-Schließen gesetzt und erst **nach** dem Kontakt-Öffnen freigegeben.
+- Beide Power-Skripte prüfen gegenseitige Ausführung, Sperrvariable und eine **Millisekunden-basierte Schaltpause** seit dem letzten Relaisabfall. Der lange Befehl unterbricht einen laufenden normalen Impuls **nicht** mehr.
+- Ein zusätzlicher gespeicherter Regler `PC Relais Schaltsperre`: 0,5–10 s (Schritte 0,5 s), Standard 2 s. Die Dauer wird beim Loslassen des Relais übernommen; eine nachträgliche Regleränderung ändert eine bereits laufende Pause nicht.
+- Die Sperre gilt auch unmittelbar nach dem ESP32-Boot, basierend auf dem nicht gespeicherten Millisekundenzähler. `restore_mode: ALWAYS_OFF` steuert den Relaisausgang beim Initialisieren in AUS; eine vollständig glitchfreie Hardware-Power-on-Sequenz **kann Software allein nicht garantieren**.
+- Fällt ein Power-Befehl in die Nachlauf-Sperre oder während eines laufenden Impulses, wird er abgelehnt. Bei langem Power-Befehl unterscheidet der Rückmeldungssensor `Relais belegt oder Schaltsperre aktiv` von `PC ist nicht als EIN erkannt`.
+- Die schon zuvor eingeführten Grenzen bleiben: normaler Impuls 0,2–1,5 s, langer Impuls 4–12 s, mit Fallback 0,5 bzw. 10 s. Diese Grenzen sind ein **Software-Schutz**, kein hardwareseitiger unabhängiger Relais-Watchdog und kein echter Not-Aus.
+- Die derzeitige Digest-Anmeldung am ESPHome-Webserver ist **global**, nicht pro Schaltaktion. Bis eine getrennte, authentifizierte Steueroberfläche eingerichtet ist, bleibt die komplette lokale Weboberfläche passwortgeschützt.
