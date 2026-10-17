@@ -1,5 +1,10 @@
 # Nightscout-Updater (Plesk)
 
+**Navigation:** [🏠 Alle Projekte](../README.md) · [📤 Export-Anleitung](README-export.md) · [📝 Nightscout-Prompt](../promts/module/projekte--nightscout.md) · [🔄 Updater](nightscout-updater-install.sh) · [📥 Export-Installer](nightscout-export-install.sh)
+
+> **Kurzüberblick:** Nightscout-Patchupdates mit Sicherung sowie separater Nur-Lese-Export. Zugangsdaten und Gesundheitsdaten bleiben lokal.
+
+
 **Navigation:** [🏠 Projektübersicht](../README.md) · [Dateien](./) · [Projekt-Prompt](../promts/module/projekte--nightscout.md)
 
 ### 📁 Nightscout-Werkzeuge
