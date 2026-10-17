@@ -1,5 +1,10 @@
 # PC-Steuerung mit ESP32, ESPHome und Home Assistant
 
+**Navigation:** [🏠 Alle Projekte](../README.md) · [🔧 Firmware](firmware/README.md) · [📚 Dokumentation](docs/README.md) · [📝 Projekt-Prompt](../promts/module/projekte--PC-Steurung.md)
+
+> **Kurzüberblick:** ESPHome-PC-Steuerung mit Statussignalen und geplantem lokalem Portal. Hardware vor Einsatz prüfen.
+
+
 **Navigation:** [🏠 Projektübersicht](../README.md) · [Alle Anleitungen](docs/README.md) · [Firmware](firmware/README.md) · [Projekt-Prompt](../promts/module/projekte--PC-Steurung.md)
 
 ### 📁 Verzeichnisübersicht
