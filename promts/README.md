@@ -1,5 +1,10 @@
 # Projekt-Prompts
 
+**Navigation:** [🏠 Projektübersicht](../README.md) · [Alle Modul-Prompts nach Themen](module/README.md) · [Ausführliche PC-Steuerung-Vorlage](PC-Steuerung.md)
+
+**Schnellwahl:** Nutze den Hauptprompt für ein ganzes Repository oder einen [Modul-Prompt](module/README.md) für einen konkreten Unterordner. Alle Prompttexte sind auf höchstens 1.000 Zeichen ausgelegt.
+
+
 Kurze, deutschsprachige Einstiegsprompts (je Prompt maximal 1.000 Zeichen), Stand 17.10.2026. Für jedes Repository gibt es einen Hauptprompt; wichtige Unterprojekte und Module haben eigene Prompts.
 
 ## Repository-Übersicht
