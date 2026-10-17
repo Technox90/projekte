@@ -1,5 +1,8 @@
 # Projekt-Prompts
 
+**Navigation:** [🏠 Alle Projekte](../README.md) · [🧩 Alle Modul-Prompts](module/README.md) · [📄 PC-Steuerung – ausführlich](PC-Steuerung.md)
+
+
 **Navigation:** [🏠 Projektübersicht](../README.md) · [Alle Modul-Prompts nach Themen](module/README.md) · [Ausführliche PC-Steuerung-Vorlage](PC-Steuerung.md)
 
 **Schnellwahl:** Nutze den Hauptprompt für ein ganzes Repository oder einen [Modul-Prompt](module/README.md) für einen konkreten Unterordner. Alle Prompttexte sind auf höchstens 1.000 Zeichen ausgelegt.
