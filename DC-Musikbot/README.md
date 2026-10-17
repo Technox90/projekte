@@ -1,5 +1,22 @@
 # DC-Musikbot – BBQ-Chaos-Deutschland
 
+**Navigation:** [🏠 Projektübersicht](../README.md) · [Dateien](./) · [Projekt-Prompt](../promts/module/projekte--DC-Musikbot.md)
+
+### 📁 Wichtige Dateien
+
+| Datei | Inhalt |
+|---|---|
+| [bot.py](bot.py) | Hauptprogramm / Discord-Bot |
+| [commands.py](commands.py) | Bot-Befehle |
+| [nowplaying.py](nowplaying.py) | Aktuelle Titel und Wiedergabestatus |
+| [install.sh](install.sh) | Installation des Bots |
+| [update.sh](update.sh) | Aktualisierung |
+| [radio.env.example](radio.env.example) | Konfigurationsvorlage ohne echte Geheimnisse |
+| [requirements.txt](requirements.txt) | Python-Abhängigkeiten |
+
+**Ausgangspunkt:** Installation und Verwaltung werden weiter unten ausführlich erklärt.
+
+
 Discord-Radiobot fuer den bestehenden **AzuraCast-Stream** auf dem **Hetzner-Server**. Ohne Proxmox, ohne zusaetzlichen Docker-Container und ohne Veraenderung der AzuraCast-Konfiguration.
 
 **Stream:** `https://stream.bopzocker.de/listen/chaos/radio.mp3`
