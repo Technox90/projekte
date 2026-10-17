@@ -1,5 +1,10 @@
 # BBQ CHAOS – Factorio 2.0.77 · Bob's + Angel's + Space Age
 
+**Navigation:** [🏠 Alle Projekte](../README.md) · [📝 Factorio-Prompt](../promts/module/projekte--Factorio.md) · [📋 Modliste](MODS.md) · [📌 Version-Pins](version-pins.json) · [⬇️ Update](BBQ-UPDATE.cmd)
+
+> **Kurzüberblick:** Modpack, offizieller Modportal-Downloader und AMP-Synchronisierung für Factorio 2.0.77.
+
+
 **Navigation:** [🏠 Projektübersicht](../README.md) · [Dateien](./) · [Modliste](MODS.md) · [Projekt-Prompt](../promts/module/projekte--Factorio.md)
 
 ### 📁 Schnellübersicht
