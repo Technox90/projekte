@@ -1,5 +1,18 @@
 # Nightscout-Updater (Plesk)
 
+**Navigation:** [🏠 Projektübersicht](../README.md) · [Dateien](./) · [Projekt-Prompt](../promts/module/projekte--nightscout.md)
+
+### 📁 Nightscout-Werkzeuge
+
+| Datei | Aufgabe |
+|---|---|
+| [nightscout-updater-install.sh](nightscout-updater-install.sh) | Installation des wöchentlichen Patch-Updaters |
+| [nightscout-export-install.sh](nightscout-export-install.sh) | Installation des Nur-Lese-Exports |
+| [README-export.md](README-export.md) | Ausführliche Beschreibung des Exports |
+
+**Sicherheit:** Produktive Daten und API-Geheimnisse nicht auf GitHub ablegen. Anleitungen zur geprüften Installation folgen unten.
+
+
 Woechentlicher Nightscout-Patch-Updater mit Backup, Health-Checks und Image-Rollback. **Die produktive MongoDB wird nicht aktualisiert.**
 
 ## Installation auf Plesk (root)
