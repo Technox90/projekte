@@ -1,5 +1,19 @@
 # PC-Steuerung mit ESP32, ESPHome und Home Assistant
 
+**Navigation:** [🏠 Projektübersicht](../README.md) · [Alle Anleitungen](docs/README.md) · [Firmware](firmware/README.md) · [Projekt-Prompt](../promts/module/projekte--PC-Steurung.md)
+
+### 📁 Verzeichnisübersicht
+
+| Bereich | Inhalt |
+|---|---|
+| [docs/](docs/README.md) | Alle neun Anleitungen: Bauteile, Verdrahtung, Installation, Betriebslogik, Fehlersuche, Prüfung, Weboberfläche und Caddy |
+| [firmware/](firmware/README.md) | ESPHome-YAML und Secrets-Vorlage |
+| [Firmware-Prompt](../promts/module/projekte--PC-Steurung--firmware.md) | Für Firmware-Änderungen |
+| [Dokumentations-Prompt](../promts/module/projekte--PC-Steurung--docs.md) | Für Dokumentationsarbeiten |
+
+**Status:** Elektrische Funktion und Firmware müssen vor produktivem Betrieb am tatsächlichen Aufbau geprüft werden; das lokale Caddy-Portal ist noch ein Architekturplan.
+
+
 Generisches Projekt zur Steuerung des PC-Power-Tasters und zur getrennten Erfassung von zwei Hardware-Statussignalen. Ohne Personennamen, Kennwörter oder individuelle Geräte-IDs.
 
 > **Wichtig:** Dies ist eine dokumentierte Firmware-Vorlage, kein elektrisch freigegebener Fertigaufbau. Die tatsächlichen Relais-/PC817-Platinen müssen vor dem Anschluss anhand ihrer Beschriftungen und durch Messungen geprüft werden. Die Firmware wurde **nicht auf einem echten Gerät kompiliert oder elektrisch getestet**. Beachte das [Prüfprotokoll](docs/06-pruefprotokoll.md).
