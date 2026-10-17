@@ -1,5 +1,10 @@
 # DC-Musikbot – BBQ-Chaos-Deutschland
 
+**Navigation:** [🏠 Alle Projekte](../README.md) · [📝 Musikbot-Prompt](../promts/module/projekte--DC-Musikbot.md) · [💻 Bot-Code](bot.py) · [⬇️ Installation](install.sh) · [🔄 Update](update.sh)
+
+> **Kurzüberblick:** 24/7-Discord-Radio mit AzuraCast-Stream, Slash-Commands und Songanzeige. Voraussetzungen, Installation und Wartung folgen unten.
+
+
 **Navigation:** [🏠 Projektübersicht](../README.md) · [Dateien](./) · [Projekt-Prompt](../promts/module/projekte--DC-Musikbot.md)
 
 ### 📁 Wichtige Dateien
