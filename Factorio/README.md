@@ -1,5 +1,22 @@
 # BBQ CHAOS – Factorio 2.0.77 · Bob's + Angel's + Space Age
 
+**Navigation:** [🏠 Projektübersicht](../README.md) · [Dateien](./) · [Modliste](MODS.md) · [Projekt-Prompt](../promts/module/projekte--Factorio.md)
+
+### 📁 Schnellübersicht
+
+| Datei | Funktion |
+|---|---|
+| [BBQ-UPDATE.cmd](BBQ-UPDATE.cmd) | Empfohlener Startpunkt für die Aktualisierung |
+| [BBQ-GitHub-Launcher-v2.ps1](BBQ-GitHub-Launcher-v2.ps1) | Aktueller Windows-Launcher |
+| [BBQ-AMP-Portal-Sync.py](BBQ-AMP-Portal-Sync.py) | AMP-/Modportal-Synchronisierung |
+| [mod-list.json](mod-list.json) | Konfigurierte Mod-Auswahl |
+| [version-pins.json](version-pins.json) | Fixierte Mod-Versionen |
+| [MODS.md](MODS.md) | Beschreibung der Mods |
+| [BBQ-ModDownloader-core.ps1.gz.b64](BBQ-ModDownloader-core.ps1.gz.b64) | Verpackter Downloader-Core |
+
+**Hinweis:** Weitere alte Startdateien liegen ebenfalls hier. Die nachfolgende Dokumentation erklärt, welche verwendet werden sollen.
+
+
 **Leitlinie seit 03.10.2026:** ausschliesslich **unveraenderte Original-ZIP-Dateien aus dem offiziellen [Factorio-Modportal](https://mods.factorio.com/)**. Keine selbst erstellten BBQ-Reparaturmods, Lua-Eingriffe, gepatchten ZIPs, alternativen Downloadquellen oder grossen zusaetzlichen Planetensammlungen.
 
 ## Modpack-Zusammensetzung
