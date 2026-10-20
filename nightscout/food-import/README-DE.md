@@ -6,20 +6,20 @@ Dieses **optionale** Werkzeug importiert Lebensmittel in die Nightscout-**food**
 
 Der Importer verändert **keine** Glukosewerte, Behandlungen, Pumpenbefehle, Profile oder Basalraten. Er ist unabhängig vom vorhandenen Nightscout-Exporter.
 
-## 1. CSV-Vorlage ausfüllen
+## 1. Ausgefüllten Beispieldatensatz prüfen
 
-Datei: [template-de.csv](template-de.csv). In Excel, LibreOffice oder einem Editor öffnen und unter einem **anderen Namen** speichern, z. B. `foods-de.csv`.
+Datei: [template-de.csv](template-de.csv) – **45 ausgefüllte Referenzeinträge**. Öffne die CSV in Excel oder einem Texteditor, überprüfe die Werte und speichere eine angepasste Kopie als `foods-de.csv`.
 
 | Name | Kategorie | Unterkategorie | Portion | Einheit | Kohlenhydrate_g | Fett_g | Eiweiss_g | Energie_kJ | GI |
 |---|---|---|---:|---|---:|---:|---:|---:|---:|
 | *Bezeichnung* | *z. B. Frühstück* | *z. B. Brot* | *Menge* | *g/ml/pcs/oz* | *KH für diese Menge* | *optional* | *optional* | *optional* | *1, 2 oder 3* |
 
-**Die Tabellenzeile oben ist nur eine Beschreibung und kein Beispieldatensatz.** Die bereitgestellte CSV enthält ausschließlich die Kopfzeile. Eigene Nährwerte anhand Verpackung oder verlässlicher Datenquelle eintragen – keine geschätzten Kohlenhydratwerte übernehmen.
+**Die CSV enthält 45 häufige Lebensmittel mit Referenz-Nährwerten auf Basis des Bundeslebensmittelschlüssels 4.0**. Das sind Durchschnittswerte, keine Werte Deiner konkreten Marke oder Rezeptur. Nicht blind importieren oder zur Bolusberechnung verwenden; bei abgepackten Lebensmitteln gilt die Packungsangabe. [Quellen und Lizenz](QUELLEN.md).
 
 - In deutscher CSV Spaltentrenner `;`, Dezimalzahlen `12,5` oder `12.5`.
 - Nightscout verwendet nur die Einheiten `g`, `ml`, `pcs` (Stück) und `oz`. Auch `Stück` wird erkannt und in `pcs` umgewandelt.
-- `Kohlenhydrate_g` ist die **gesamte KH-Menge der eingetragenen Portion**, **nicht automatisch je 100 g**.
-- `GI` ist in Nightscout eine Kategorie: `1` niedrig, `2` mittel, `3` hoch (nicht der klassische numerische glykämische Index). Leer = 2.
+- `Kohlenhydrate_g` ist die **gesamte KH-Menge der eingetragenen Portion**. Bei den 45 Beispielen ist die Portion überall **100 g bzw. 100 ml**. Wenn Du die Portion änderst, musst Du die Nährwerte entsprechend umrechnen.
+- `GI` ist in Nightscout eine Kategorie: `1` niedrig, `2` mittel, `3` hoch (nicht der klassische numerische glykämische Index). Die CSV lässt GI **leer**, weil keine GI-Werte ermittelt wurden. **Achtung:** Der vorhandene Importer setzt einen leeren GI-Wert technisch auf `2` (Vorgabewert, keine Messung).
 - Fett, Eiweiß und Energie dürfen leer bleiben und werden dann mit 0 gespeichert. Lebensmittelname, Portion, Einheit und KH müssen ausgefüllt werden.
 - Keine medizinischen Dosierungsempfehlungen: fehlerhafte KH-Angaben können spätere Bolusberechnungen verfälschen.
 
@@ -38,7 +38,7 @@ curl -fL --proto '=https' --tlsv1.2 \
 python3 -m py_compile /opt/nightscout-food-import/import-food.py
 ```
 
-`foods-de.csv` füllst Du danach im Editor aus oder lädst Deine bearbeitete CSV mit WinSCP an diesen Pfad.
+`foods-de.csv` enthält nun die Beispieldaten; **prüfe und bearbeite sie** vor dem Import. Du kannst auch eine korrigierte CSV per WinSCP an den Pfad hochladen.
 
 ## 3. Separaten Food-Token erstellen
 
