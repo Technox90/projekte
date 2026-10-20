@@ -68,3 +68,19 @@ Nightscout-API ausschließlich lesend ab, legt JSON.gz-Dateien unter
 
 **Bei bereits installiertem Exportdienst ist keine Neuinstallation nötig.**
 Tokens und Gesundheitsdaten niemals in dieses öffentliche GitHub-Repository hochladen.
+
+---
+
+## Lebensmittel-Datenimport / Food data import (DE / EN)
+
+Für den AAPS-Reiter **ESSEN / FOOD** gibt es jetzt einen separaten CSV-Importer mit deutscher
+und englischer Vorlage, Duplikatprüfung, Offline-Vorschau und manueller Importfreigabe.
+
+- [Lebensmittelimport öffnen](food-import/)
+- [Deutsch: Anleitung](food-import/README-DE.md) · [Vorlage DE](food-import/template-de.csv)
+- [English: Instructions](food-import/README-EN.md) · [Template EN](food-import/template-en.csv)
+- [Python-Importprogramm](food-import/import-food.py)
+
+Das Programm verändert keine AAPS-Therapieprofile, Insulindosierungen oder Pumpenbefehle.
+Es benötigt einen **separaten Token mit ausschließlich Leserechten und Erstellungsrechten für die Sammlung food**.
+Der bestehende Nur-Lese-Exporter bleibt unverändert. Keine Tokens oder persönlichen Daten auf GitHub speichern.
