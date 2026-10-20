@@ -8,17 +8,17 @@ Der Importer verändert **keine** Glukosewerte, Behandlungen, Pumpenbefehle, Pro
 
 ## 1. Ausgefüllten Beispieldatensatz prüfen
 
-Datei: [template-de.csv](template-de.csv) – **45 ausgefüllte Referenzeinträge**. Öffne die CSV in Excel oder einem Texteditor, überprüfe die Werte und speichere eine angepasste Kopie als `foods-de.csv`.
+Datei: [template-de.csv](template-de.csv) – **93 ausgefüllte Referenzeinträge**. Öffne die CSV in Excel oder einem Texteditor, überprüfe die Werte und speichere eine angepasste Kopie als `foods-de.csv`.
 
 | Name | Kategorie | Unterkategorie | Portion | Einheit | Kohlenhydrate_g | Fett_g | Eiweiss_g | Energie_kJ | GI |
 |---|---|---|---:|---|---:|---:|---:|---:|---:|
 | *Bezeichnung* | *z. B. Frühstück* | *z. B. Brot* | *Menge* | *g/ml/pcs/oz* | *KH für diese Menge* | *optional* | *optional* | *optional* | *1, 2 oder 3* |
 
-**Die CSV enthält 45 häufige Lebensmittel mit Referenz-Nährwerten auf Basis des Bundeslebensmittelschlüssels 4.0**. Das sind Durchschnittswerte, keine Werte Deiner konkreten Marke oder Rezeptur. Nicht blind importieren oder zur Bolusberechnung verwenden; bei abgepackten Lebensmitteln gilt die Packungsangabe. [Quellen und Lizenz](QUELLEN.md).
+**Die CSV enthält 93 Lebensmittel mit Referenz-Nährwerten auf Basis des Bundeslebensmittelschlüssels 4.0**. Das sind Durchschnittswerte, keine Werte Deiner konkreten Marke oder Rezeptur. Nicht blind importieren oder zur Bolusberechnung verwenden; bei abgepackten Lebensmitteln gilt die Packungsangabe. [Quellen und Lizenz](QUELLEN.md) · [Quellen der 48 Ergänzungen](QUELLEN-ERWEITERUNG.md).
 
 - In deutscher CSV Spaltentrenner `;`, Dezimalzahlen `12,5` oder `12.5`.
 - Nightscout verwendet nur die Einheiten `g`, `ml`, `pcs` (Stück) und `oz`. Auch `Stück` wird erkannt und in `pcs` umgewandelt.
-- `Kohlenhydrate_g` ist die **gesamte KH-Menge der eingetragenen Portion**. Bei den 45 Beispielen ist die Portion überall **100 g bzw. 100 ml**. Wenn Du die Portion änderst, musst Du die Nährwerte entsprechend umrechnen.
+- `Kohlenhydrate_g` ist die **gesamte KH-Menge der eingetragenen Portion**. Bei den 93 Beispielen ist die Portion überall **100 g bzw. 100 ml**. Wenn Du die Portion änderst, musst Du die Nährwerte entsprechend umrechnen.
 - `GI` ist in Nightscout eine Kategorie: `1` niedrig, `2` mittel, `3` hoch (nicht der klassische numerische glykämische Index). Die CSV lässt GI **leer**, weil keine GI-Werte ermittelt wurden. **Achtung:** Der vorhandene Importer setzt einen leeren GI-Wert technisch auf `2` (Vorgabewert, keine Messung).
 - Fett, Eiweiß und Energie dürfen leer bleiben und werden dann mit 0 gespeichert. Lebensmittelname, Portion, Einheit und KH müssen ausgefüllt werden.
 - Keine medizinischen Dosierungsempfehlungen: fehlerhafte KH-Angaben können spätere Bolusberechnungen verfälschen.
@@ -85,3 +85,23 @@ Prüfe anschließend über `https://sweet.bopzocker.de/food` (bei aktiviertem Ni
 - Der produktive Import wurde **nicht** auf Deinem Server getestet. Erst mit einer einzelnen überprüften Lebensmittelzeile beginnen und die Anzeige in Nightscout kontrollieren.
 
 Quelle: [Nightscout API v3](https://github.com/nightscout/cgm-remote-monitor/blob/master/lib/api3/swagger.yaml) · [Nightscout Food Editor](https://github.com/nightscout/cgm-remote-monitor/blob/master/lib/food/food.js) · [AAPS 3.4 Essen](https://wiki.aaps.app/de/latest/SettingUpAaps/ConfigBuilder.html)
+
+## Neu: typisch deutsche Gerichte und weitere Alltagslebensmittel
+
+Die CSV enthält jetzt **93 Einträge pro Sprache**. Ergänzt wurden u. a. Käsespätzle, Kartoffelsalat (mit Mayo oder Essig-Öl), Currywurst mit Brötchen, Schnitzel, Maultaschen, Rinderroulade, Sauerbraten, Semmelknödel, verschiedene Suppen und Kartoffelgerichte. Zusätzlich gibt es mehr Obst, Gemüse, Milchprodukte, Backwaren, Hülsenfrüchte und Frühstücksprodukte.
+
+**ACHTUNG bei Insulinberechnungen:** Mischgerichte basieren auf Standardrezepturen; Deine selbst gekochten Gerichte können erheblich abweichen. Alle Mengen sind **pro 100 g oder 100 ml**, nicht pro Teller! Werte vor Nutzung anhand Deines Rezepts beziehungsweise des konkreten Produkts und der gewogenen Menge prüfen. Keine pauschalen Bolus-Empfehlungen.
+
+Alle neuen Lebensmittel samt Einzelquellen: [QUELLEN-ERWEITERUNG.md](QUELLEN-ERWEITERUNG.md).
+
+### Aktualisierte CSV vom GitHub-Repository holen (ohne Import)
+
+```bash
+curl -fL --proto '=https' --tlsv1.2 \
+  https://raw.githubusercontent.com/Technox90/projekte/main/nightscout/food-import/template-de.csv \
+  -o /opt/nightscout-food-import/foods-de.csv
+python3 /opt/nightscout-food-import/import-food.py \
+  --file /opt/nightscout-food-import/foods-de.csv --lang de
+```
+
+Der zweite Befehl ist **nur eine Vorschau**. Ein echter Import benötigt weiterhin einen separaten, eingeschränkten Food-Token sowie die bewusste Freigabe mit `--apply --confirm IMPORT_FOOD_ONLY`.
