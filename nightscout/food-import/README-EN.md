@@ -6,9 +6,9 @@ This optional tool imports food records into Nightscout's **food** collection. A
 
 The importer **does not** write glucose entries, treatments, insulin doses, pump commands, basal rates, or therapy profiles. It runs independently of the existing Nightscout data exporter.
 
-## 1. Prepare your CSV
+## 1. Review the populated food dataset
 
-Download [template-en.csv](template-en.csv), fill in your foods with Excel or a text editor, and save the edited file under a **different name**, e.g. `foods-en.csv`. The GitHub template contains **only the column header**, no made-up nutritional data.
+Download [template-en.csv](template-en.csv): it now contains **45 everyday foods populated with average nutrient reference values** from Germany's BLS 4.0 database. Review and adjust them in a spreadsheet editor or text editor, then save the reviewed copy as `foods-en.csv`. These are generic averages, **not your product's label values**. See [sources and licensing](QUELLEN.md).
 
 CSV columns:
 
@@ -18,8 +18,8 @@ Name,Category,Subcategory,Portion,Unit,Carbs_g,Fat_g,Protein_g,Energy_kJ,GI
 
 - Use a comma as the CSV delimiter and a decimal **dot** for numbers (e.g. `12.5`).
 - Units accepted by the Nightscout Food Editor: `g`, `ml`, `pcs`, `oz`. You may also enter `piece` or `pieces` and they are converted to `pcs`.
-- `Carbs_g` means carbohydrate grams **for the stated portion**, NOT automatically grams per 100 g.
-- `GI` is Nightscout's 1–3 categorical scale (1 low, 2 medium, 3 high), **not** the usual numerical glycemic index. Blank defaults to 2.
+- `Carbs_g` means carbohydrate grams **for the stated portion**. All 45 reference rows use **100 g or 100 ml**, so these example values are per 100 g/ml. If you change a portion size, recalculate its nutrient amounts.
+- `GI` is Nightscout's 1–3 categorical scale (1 low, 2 medium, 3 high), **not** the usual numerical glycemic index. GI is **blank** in the CSV because no glycemic index was measured; the importer defaults a blank field to **2**, which must not be interpreted as a measured value.
 - Fat, protein, and energy can be blank (saved as zero). Name, portion, unit, and carbohydrate amount must be supplied.
 - Check nutrition values against actual packaging or reliable food data; incorrect values can affect later carb or insulin calculations.
 
@@ -38,7 +38,7 @@ curl -fL --proto '=https' --tlsv1.2 \
 python3 -m py_compile /opt/nightscout-food-import/import-food.py
 ```
 
-Fill in `foods-en.csv` or upload the edited file with SFTP.
+Review the included reference values in `foods-en.csv`, correcting them for the foods you actually use, or upload your edited CSV with SFTP.
 
 ## 3. Create a dedicated food-only Nightscout token
 
