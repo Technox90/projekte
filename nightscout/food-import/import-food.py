@@ -55,9 +55,17 @@ def number(value, label, line, *, default=None, allow_zero=True, integer=False):
 
 
 def make_key(record):
-    return tuple(str(record.get(k, "")).strip().casefold()
-                 if k not in ("portion",) else f"{float(record.get(k, 0)):.6f}"
-                 for k in ("name", "category", "subcategory", "portion", "unit"))
+    parts = []
+    for field in ("name", "category", "subcategory", "portion", "unit"):
+        value = record.get(field, "")
+        if field == "portion":
+            try:
+                parts.append(f"{float(str(value).replace(',', '.')):.6f}")
+            except (ValueError, TypeError):
+                parts.append(str(value).strip().casefold())
+        else:
+            parts.append(str(value or "").strip().casefold())
+    return tuple(parts)
 
 
 def load_food_csv(path, lang):
@@ -112,6 +120,12 @@ def load_food_csv(path, lang):
     return rows
 
 
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    # Do not leak the authorization bearer token through an HTTP redirect.
+    def redirect_request(self, request, fp, code, msg, headers, newurl):
+        return None
+
+
 class NightscoutClient:
     def __init__(self, base_url, token_file):
         self.base = base_url.rstrip("/")
@@ -146,7 +160,9 @@ class NightscoutClient:
             headers["Content-Type"] = "application/json"
         req = urllib.request.Request(url, method=method, data=data, headers=headers)
         try:
-            with urllib.request.urlopen(req, timeout=30) as response:
+            # Disable redirects: a redirect may expose a bearer JWT to another host.
+            opener = urllib.request.build_opener(NoRedirect())
+            with opener.open(req, timeout=30) as response:
                 body = response.read()
                 return json.loads(body.decode("utf-8")) if body else {}
         except urllib.error.HTTPError as exc:
