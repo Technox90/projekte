@@ -6,9 +6,11 @@
 
 Offizielle Übersicht / official description: [Max Rubner-Institut](https://www.mri.bund.de/de/institute/ernaehrungsverhalten/forschungsbereiche/bundeslebensmittelschluessel-bls/).
 
-Für die hier enthaltenen 45 Datensätze wurden je Lebensmittel die gerundeten Referenzwerte aus den auf [kalorien.info](https://kalorien.info/daten-quellen/) dargestellten BLS-4.0-Werten für Energie, Kohlenhydrate, Fett und Eiweiß übernommen. Änderungen: **Auswahl der Lebensmittel, Gruppierung in Kategorien, Kurzbenennung, Übersetzung der Namen und Spalten in Englisch sowie Standardisierung der Portionsgröße auf 100 g oder 100 ml**. Für Getränke wird die dort verwendete Näherung 100 ml ≈ 100 g übernommen.
+Für die ursprünglich enthaltenen 45 Datensätze wurden je Lebensmittel die gerundeten Referenzwerte aus den auf [kalorien.info](https://kalorien.info/daten-quellen/) dargestellten BLS-4.0-Werten für Energie, Kohlenhydrate, Fett und Eiweiß übernommen. Änderungen: **Auswahl der Lebensmittel, Gruppierung in Kategorien, Kurzbenennung, Übersetzung der Namen und Spalten in Englisch sowie Standardisierung der Portionsgröße auf 100 g oder 100 ml**. Für Getränke wird die dort verwendete Näherung 100 ml ≈ 100 g übernommen.
 
-The 45 sample items reproduce rounded reference values (energy, carbohydrates, fat, protein) published from BLS 4.0 by kalorien.info. Changes include **selection, category grouping, simplified labels, English translations, and standard 100 g or 100 ml reference portions**. Beverage values use the source's approximate 100 ml ≈ 100 g assumption.
+The original 45 sample items reproduce rounded reference values (energy, carbohydrates, fat, protein) published from BLS 4.0 by kalorien.info. Changes include **selection, category grouping, simplified labels, English translations, and standard 100 g or 100 ml reference portions**. Beverage values use the source's approximate 100 ml ≈ 100 g assumption.
+
+**Insgesamt 93 Einträge pro Sprache:** Die ursprünglichen 45 Referenzeinträge wurden um 24 Gerichte und 24 normale Lebensmittel ergänzt. Einzelquellen aller Ergänzungen, Rezept- und Umrechnungshinweise siehe [QUELLEN-ERWEITERUNG.md](QUELLEN-ERWEITERUNG.md).
 
 ## Einzelquellen / Per-food lookup
 
@@ -58,5 +60,5 @@ The 45 sample items reproduce rounded reference values (energy, carbohydrates, f
 - **English:** Generic reference values are not manufacturer-specific. Actual recipes and brand products may differ substantially. **Verify carbohydrate numbers against the exact food and weighed portion before importing or using them to inform insulin treatment.**
 - Gekochter Reis, gekochte Nudeln und gekochte Kartoffeln sind **nicht** mit Rohgewichten austauschbar. / Cooked and dry weights are **not interchangeable**.
 - Die Spalte GI bleibt leer: Es wurde **kein gemessener glykämischer Index** beigefügt. Der Importer setzt leer technisch auf `2`; das bedeutet **nicht**, dass für die Lebensmittel ein GI-Wert 2 bestimmt wurde.
-- Beide Sprachdateien beschreiben dieselben 45 Lebensmittel. **Nicht beide Sprachdateien unkontrolliert importieren**, sonst entstehen doppelte Einträge unter anderen Namen. / Do **not** import both language files indiscriminately.
+- Beide Sprachdateien beschreiben dieselben 93 Lebensmittel. **Nicht beide Sprachdateien unkontrolliert importieren**, sonst entstehen doppelte Einträge unter anderen Namen. / Do **not** import both language files indiscriminately.
 - Die CSV ist öffentlich und enthält **keine persönlichen Gesundheitsdaten oder Zugangsdaten**. Die Quelle wird für die Referenzwerte genannt; das ersetzt keine individuelle Ernährungs- oder Diabetesberatung.
