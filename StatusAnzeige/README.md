@@ -116,3 +116,12 @@ Ab Firmware **2.1.0** gibt es die Seite `/features`.
 Dort lassen sich vorhandene Zusatzfunktionen einzeln aktivieren oder deaktivieren. Jede Option enthält direkt eine kurze Erklärung. Noch nicht programmierte Ideen werden separat unter **Geplant** angezeigt und sind bewusst deaktiviert, damit keine wirkungslosen Schalter entstehen.
 
 Aktuell schaltbar sind u. a. BLE, FTP, MQTT, Home Assistant Discovery, Touch, Uhr, Statusleiste, Fallback-Portal, Web-/SD-Update, letzter Status, Akku-Schutz, LED-Effekte und Bestätigungsblitz.
+
+
+## 2.2.0 – Einheitliches Webdesign, Schnellstatus & AUTO-Versorgung
+
+- Startseite als Schnellstatus-Menü: FREI / BUSSY / MEETING / PAUSE / SENDE EMAIL / BITTE WARTEN.
+- Passcode bleibt in der Browser-Sitzung gespeichert.
+- Systemdiagnose, Statusfarben, Update und Wiederherstellung an das gleiche Kartendesign angeglichen.
+- AUTO-Modus für USB/Akku über einen optionalen VBUS-Sense-GPIO.
+- BAT_ADC-Initialisierung endgültig auf GPIO5 korrigiert.
