@@ -77,7 +77,7 @@
 #define DEFAULT_STORAGE_TYPE_ESP32 STORAGE_SD
 #include <SimpleFTPServer.h>
 
-#define STATUSANZEIGE_VERSION "2.0.1"
+#define STATUSANZEIGE_VERSION "2.0.2"
 #define STATUSANZEIGE_BUILD "2026-10-25"
 
 // -----------------------------------------------------------------------------
@@ -858,7 +858,7 @@ void drawStatusBar(bool force) {
   lastBatteryPercent = batteryPct;
   lastBatteryVoltage = batteryV;
 
-  const int h = min((int)cfg.statusBarHeight, gfx->height());
+  const int h = min((int)cfg.statusBarHeight, (int)gfx->height());
   gfx->fillRect(0, 0, gfx->width(), h, RGB565_BLACK);
 
   // ---- WiFi icon: left side ----
