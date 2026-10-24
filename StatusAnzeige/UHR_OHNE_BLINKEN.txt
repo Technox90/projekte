@@ -1,0 +1,2 @@
+Der Doppelpunkt der Uhr blinkt nicht mehr.
+Anzeige bleibt dauerhaft im Format HH:MM, z. B. 23:05.

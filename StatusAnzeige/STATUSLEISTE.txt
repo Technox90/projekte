@@ -1,0 +1,37 @@
+STATUSANZEIGE – OBERE STATUSLEISTE
+
+Oben im Display werden jetzt angezeigt:
+
+LINKS:
+- WLAN-Empfang als 0..4 Balken
+- RSSI in dBm
+
+RECHTS:
+- Akkusymbol
+- Akkustand in Prozent
+- bei <=30 % gelb
+- bei <=15 % rot
+
+Akku-Messung:
+- BAT_ADC = GPIO21
+- interner Spannungsteiler 200k / 100k
+- Faktor = 3,0
+
+Config:
+"status_bar": {
+  "enabled": true,
+  "height": 22,
+  "refresh_ms": 1000
+}
+
+"battery": {
+  "enabled": true,
+  "adc_pin": 21,
+  "divider": 3.0,
+  "min_voltage": 3.30,
+  "max_voltage": 4.20
+}
+
+Hinweis:
+Die Prozentanzeige ist eine Näherung aus der LiPo-Spannung.
+Beim Laden über USB kann die angezeigte Spannung entsprechend beeinflusst werden.

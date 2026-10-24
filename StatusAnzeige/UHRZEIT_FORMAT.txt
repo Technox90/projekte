@@ -1,0 +1,6 @@
+Anzeige unten im Bild:
+
+23:05
+Sa 24.Okt
+
+Aktualisierung per NTP über WLAN.

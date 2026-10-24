@@ -1,0 +1,25 @@
+WEB-KONFIGURATION
+
+Neue Seite:
+http://statusanzeige.local/config
+
+oder:
+http://<IP>/config
+
+Dort konfigurierbar:
+- LED-Helligkeit
+- Display-Helligkeit
+- Display-Rotation
+- Statusleiste an/aus + Höhe
+- Akkuanzeige an/aus
+- WLAN-SSID + neues Passwort
+- FTP an/aus, Benutzer + neues Passwort
+- API-Passcode ändern
+- Hostname
+
+Sicherheitsprinzip:
+Zum Speichern muss der aktuelle API-Passcode eingegeben werden.
+Bestehende WLAN-/FTP-Passwörter werden niemals über die Weboberfläche ausgelesen.
+Leere Passwortfelder bedeuten: Passwort unverändert lassen.
+
+Nach dem Speichern startet das Gerät automatisch neu.
