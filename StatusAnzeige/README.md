@@ -107,3 +107,12 @@ Die Standardwerte in `config.json` sind nur Startwerte. Nach Inbetriebnahme bitt
 - WLAN-Zugangsdaten
 
 FTP und HTTP sind für das lokale LAN gedacht. Keine Portweiterleitung aus dem Internet auf Port 21 oder 80 einrichten.
+
+
+## Optionale Funktionen
+
+Ab Firmware **2.1.0** gibt es die Seite `/features`.
+
+Dort lassen sich vorhandene Zusatzfunktionen einzeln aktivieren oder deaktivieren. Jede Option enthält direkt eine kurze Erklärung. Noch nicht programmierte Ideen werden separat unter **Geplant** angezeigt und sind bewusst deaktiviert, damit keine wirkungslosen Schalter entstehen.
+
+Aktuell schaltbar sind u. a. BLE, FTP, MQTT, Home Assistant Discovery, Touch, Uhr, Statusleiste, Fallback-Portal, Web-/SD-Update, letzter Status, Akku-Schutz, LED-Effekte und Bestätigungsblitz.
