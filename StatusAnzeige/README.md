@@ -84,3 +84,14 @@ FTP und die lokale HTTP-Weboberflaeche sind fuer ein vertrauenswuerdiges LAN ged
 - `Bild neu laden`, `Config neu laden` und `Neustart` laufen im Hintergrund.
 - API-Passcode kann pro Browser-Sitzung auf der Startseite gemerkt werden.
 - API-Passcode ist in `/config` direkt änderbar, inklusive Bestätigungsfeld.
+
+
+## 2.0.2 – ESP32-Core 3.3.12 / GCC 14 Compile-Fix
+
+Korrigiert wurde die Statusleisten-Höhe:
+
+```cpp
+const int h = min((int)cfg.statusBarHeight, (int)gfx->height());
+```
+
+`gfx->height()` liefert `int16_t`. GCC 14 kann bei `std::min()` nicht automatisch zwischen `int` und `int16_t` ableiten. Beide Werte werden deshalb explizit als `int` übergeben.
