@@ -2056,11 +2056,9 @@ String configPage() {
         "const j=await r.json();"
         "if(!j.ok)throw new Error(j.error||'Speichern fehlgeschlagen');"
         "if(np)sessionStorage.setItem('statusanzeige_ps',np);else sessionStorage.setItem('statusanzeige_ps',ps);"
-        "if(np)sessionStorage.setItem('statusanzeige_ps',np);else sessionStorage.setItem('statusanzeige_ps',ps);"
         "el('result').innerHTML='<span class=\"ok\">Gespeichert. Neustart wird ausgeführt...</span>';"
       "}catch(e){el('result').innerHTML='<span class=\"bad\">'+e.message+'</span>';}"
     "}"
-    "el('auth_ps').value=sessionStorage.getItem('statusanzeige_ps')||'';"
     "el('auth_ps').value=sessionStorage.getItem('statusanzeige_ps')||'';"
     "loadCfg();"
     "</script></div></body></html>"
@@ -2444,23 +2442,74 @@ void updateLowBatteryProtection() {
 }
 
 String systemPage() {
-  String h = "<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'><style>body{background:#080b10;color:#eee;font-family:Arial;padding:20px}a{color:#7ab7ff}.c{background:#121822;padding:16px;border-radius:12px;margin:12px 0}</style></head><body>";
-  h += "<h1>Systemdiagnose</h1><div class='c'>";
-  h += "Firmware: " + String(STATUSANZEIGE_VERSION) + " (" + STATUSANZEIGE_BUILD + ")<br>";
-  h += "Uptime: " + String(millis()/1000) + " s<br>";
-  h += "IP: " + currentIpString() + "<br>";
-  h += "RSSI: " + String(WiFi.status()==WL_CONNECTED ? WiFi.RSSI() : -127) + " dBm<br>";
-  h += "Kanal: " + String(WiFi.channel()) + "<br>";
-  h += "Akku: " + String(lastBatteryPercent) + " % / " + String(lastBatteryVoltage,2) + " V<br>";
-  h += "Heap frei: " + String(ESP.getFreeHeap()) + "<br>PSRAM frei: " + String(ESP.getFreePsram()) + "<br>";
-  h += "SD: " + String(sdReady?"OK":"FEHLER") + " | FTP: " + String(ftpStarted?"AN":"AUS") + " | BLE: " + String(bleStarted?"AN":"AUS") + " | MQTT: " + String(mqttStarted?"AN":"AUS") + "<br>";
-  h += "Safe Mode: " + String(safeMode?"JA":"NEIN") + "</div><a href='/'>Zurueck</a></body></html>";
+  String h;
+  h.reserve(6500);
+  h += F(
+    "<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>"
+    "<title>StatusAnzeige – System</title><style>"
+    "body{margin:0;background:#080b10;color:#eef2f7;font-family:Arial,sans-serif}.wrap{max-width:820px;margin:auto;padding:22px}"
+    ".card{background:#121822;border:1px solid #273142;border-radius:14px;padding:18px;margin-bottom:16px}"
+    ".row{display:grid;grid-template-columns:180px 1fr;gap:10px;padding:7px 0;border-bottom:1px solid #273142}.row:last-child{border-bottom:0}.k{color:#9aa8ba}"
+    ".nav{display:flex;flex-wrap:wrap;gap:9px}.nav a{background:#283241;color:#fff;text-decoration:none;border-radius:9px;padding:10px 12px}@media(max-width:520px){.row{grid-template-columns:1fr}}"
+    "</style></head><body><div class='wrap'><h1>Systemdiagnose</h1><div class='card'>"
+  );
+
+  auto addRow = [&](const String &k, const String &v) {
+    h += "<div class='row'><div class='k'>" + k + "</div><div>" + v + "</div></div>";
+  };
+
+  addRow("Firmware", String(STATUSANZEIGE_VERSION) + " (" + STATUSANZEIGE_BUILD + ")");
+  addRow("Uptime", String(millis()/1000) + " s");
+  addRow("IP", currentIpString());
+  addRow("RSSI", String(WiFi.status()==WL_CONNECTED ? WiFi.RSSI() : -127) + " dBm");
+  addRow("WLAN-Kanal", String(WiFi.channel()));
+
+  if (cfg.powerDisplayMode == "usb") addRow("Versorgung", "USB");
+  else if (cfg.powerDisplayMode == "off") addRow("Versorgung", "Anzeige aus");
+  else if (cfg.powerDisplayMode == "auto") {
+    if (cfg.vbusSensePin >= 0) addRow("Versorgung", usbPowerDetected() ? "AUTO -> USB" : "AUTO -> Akku");
+    else addRow("Versorgung", "AUTO -> Akku (VBUS-Sense nicht konfiguriert)");
+  } else addRow("Versorgung", "Akku");
+
+  if (cfg.powerDisplayMode == "battery" || cfg.powerDisplayMode == "auto")
+    addRow("Akku", String(lastBatteryPercent) + " % / " + String(lastBatteryVoltage,2) + " V");
+
+  addRow("Heap frei", String(ESP.getFreeHeap()));
+  addRow("PSRAM frei", String(ESP.getFreePsram()));
+  addRow("SD", sdReady ? "OK" : "FEHLER");
+  addRow("FTP", ftpStarted ? "AN" : "AUS");
+  addRow("BLE", bleStarted ? "AN" : "AUS");
+  addRow("MQTT", mqttStarted ? "AN" : "AUS");
+  addRow("Safe Mode", safeMode ? "JA" : "NEIN");
+
+  h += F("</div><div class='card'><div class='nav'><a href='/'>Schnellstatus</a><a href='/config'>Konfiguration</a><a href='/features'>Optionen</a></div></div></div></body></html>");
   return h;
 }
 
+
 String statusesConfigPage() {
-  return String(F("<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'><style>body{background:#080b10;color:#eee;font-family:Arial;padding:18px}table{width:100%;border-collapse:collapse}td,th{padding:7px;border-bottom:1px solid #333}input,select,button{padding:7px;background:#111826;color:#fff;border:1px solid #3b4655;border-radius:6px}a{color:#7ab7ff}</style></head><body><h1>Status-Konfiguration</h1><div id='x'>Lade...</div><script>async function L(){let j=await (await fetch('/api/statuses')).json();let h='<table><tr><th>Status</th><th>Farbe</th><th>Effekt</th><th>Periode</th><th></th></tr>';j.statuses.forEach((s,i)=>{h+=`<tr><td>${s.label}</td><td><input id=c${i} type=color value=${s.color}></td><td><select id=e${i}><option>static</option><option>pulse</option><option>blink</option></select></td><td><input id=p${i} type=number value=${s.period} min=200 max=10000></td><td><button onclick=S(${i},'${s.id}')>Speichern</button></td></tr>`});h+='</table><p>API-Passcode: <input id=ps type=password></p><a href=/config>Zurueck</a>';x.innerHTML=h;j.statuses.forEach((s,i)=>document.getElementById('e'+i).value=s.effect)}async function S(i,id){let p=new URLSearchParams({id:id,color:document.getElementById('c'+i).value,effect:document.getElementById('e'+i).value,period:document.getElementById('p'+i).value});let r=await fetch('/api/statuses/save?ps='+encodeURIComponent(ps.value),{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:p});alert((await r.json()).ok?'Gespeichert - Neustart':'Fehler')}L()</script></body></html>"));
+  return String(F(
+    "<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>"
+    "<title>StatusAnzeige – Statusfarben</title><style>"
+    "body{margin:0;background:#080b10;color:#eef2f7;font-family:Arial,sans-serif}.wrap{max-width:980px;margin:auto;padding:22px}"
+    ".card{background:#121822;border:1px solid #273142;border-radius:14px;padding:18px;margin-bottom:16px;overflow:auto}"
+    "table{width:100%;border-collapse:collapse}td,th{padding:10px;border-bottom:1px solid #273142;text-align:left}"
+    "input,select{background:#090d13;color:#fff;border:1px solid #39465a;border-radius:8px;padding:8px}"
+    "button,.nav a{background:#1f6feb;color:#fff;border:0;border-radius:9px;padding:9px 12px;text-decoration:none;cursor:pointer}"
+    ".nav{display:flex;gap:9px;flex-wrap:wrap}.nav a{background:#283241}"
+    "</style></head><body><div class='wrap'><h1>Statusfarben & Effekte</h1>"
+    "<div class='card'><div id='x'>Lade...</div></div>"
+    "<div class='card'><label>API-Passcode</label><br><input id='ps' type='password' inputmode='numeric'>"
+    "<div class='nav' style='margin-top:12px'><a href='/'>Schnellstatus</a><a href='/config'>Konfiguration</a></div></div>"
+    "<script>"
+    "async function L(){let j=await (await fetch('/api/statuses')).json();let h='<table><tr><th>Status</th><th>Farbe</th><th>Effekt</th><th>Periode</th><th></th></tr>';"
+    "j.statuses.forEach((s,i)=>{h+='<tr><td>'+s.label+'</td><td><input id=\"c'+i+'\" type=\"color\" value=\"'+s.color+'\"></td><td><select id=\"e'+i+'\"><option>static</option><option>pulse</option><option>blink</option></select></td><td><input id=\"p'+i+'\" type=\"number\" value=\"'+s.period+'\" min=\"200\" max=\"10000\"></td><td><button onclick=\"S('+i+',\\\''+s.id+'\\\')\">Speichern</button></td></tr>'});"
+    "h+='</table>';x.innerHTML=h;j.statuses.forEach((s,i)=>document.getElementById('e'+i).value=s.effect);ps.value=sessionStorage.getItem('statusanzeige_ps')||'';}"
+    "async function S(i,id){let code=ps.value.trim();sessionStorage.setItem('statusanzeige_ps',code);let p=new URLSearchParams({id:id,color:document.getElementById('c'+i).value,effect:document.getElementById('e'+i).value,period:document.getElementById('p'+i).value});let r=await fetch('/api/statuses/save?ps='+encodeURIComponent(code),{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:p});alert((await r.json()).ok?'Gespeichert – Neustart':'Fehler')}"
+    "L();</script></div></body></html>"
+  ));
 }
+
 
 void handleStatusesJson() {
   JsonDocument d; d["ok"] = true;
@@ -2529,8 +2578,24 @@ void handleConfigRestoreDone() {
 }
 
 String updatePage() {
-  return String(F("<!doctype html><html><body style='background:#080b10;color:#eee;font-family:Arial;padding:20px'><h1>Firmware Update</h1><p>Nur .bin aus Arduino/PlatformIO verwenden.</p><form id=f><input id=b type=file accept=.bin required><p>API-Passcode: <input id=p type=password required></p><button>Update starten</button></form><pre id=o></pre><script>f.onsubmit=async e=>{e.preventDefault();let d=new FormData();d.append('firmware',b.files[0]);let r=await fetch('/update?ps='+encodeURIComponent(p.value),{method:'POST',body:d});o.textContent=await r.text()}</script><p><a href='/'>Zurueck</a></p></body></html>"));
+  return String(F(
+    "<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>"
+    "<title>StatusAnzeige – Update</title><style>"
+    "body{margin:0;background:#080b10;color:#eef2f7;font-family:Arial,sans-serif}.wrap{max-width:720px;margin:auto;padding:22px}"
+    ".card{background:#121822;border:1px solid #273142;border-radius:14px;padding:18px;margin-bottom:16px}"
+    "input{width:100%;box-sizing:border-box;background:#090d13;color:#fff;border:1px solid #39465a;border-radius:9px;padding:11px;margin:8px 0 14px}"
+    "button,.nav a{background:#1f6feb;color:#fff;border:0;border-radius:9px;padding:11px 14px;text-decoration:none;cursor:pointer}.nav a{background:#283241}"
+    ".nav{display:flex;gap:9px;flex-wrap:wrap}.muted{color:#9aa8ba}"
+    "</style></head><body><div class='wrap'><h1>Firmware Update</h1>"
+    "<div class='card'><p class='muted'>Nur eine passende .bin-Datei aus Arduino IDE oder PlatformIO verwenden.</p>"
+    "<form id='f'><label>Firmware</label><input id='b' type='file' accept='.bin' required>"
+    "<label>API-Passcode</label><input id='p' type='password' inputmode='numeric' required><button>Update starten</button></form><pre id='o'></pre></div>"
+    "<div class='card'><div class='nav'><a href='/'>Schnellstatus</a><a href='/config'>Konfiguration</a></div></div>"
+    "<script>p.value=sessionStorage.getItem('statusanzeige_ps')||'';f.onsubmit=async e=>{e.preventDefault();sessionStorage.setItem('statusanzeige_ps',p.value);let d=new FormData();d.append('firmware',b.files[0]);let r=await fetch('/update?ps='+encodeURIComponent(p.value),{method:'POST',body:d});o.textContent=await r.text()}</script>"
+    "</div></body></html>"
+  ));
 }
+
 
 void handleFirmwareUpload() {
   if (!cfg.webUpdateEnabled || !checkApiPasscode()) return;
@@ -2551,111 +2616,55 @@ void handleFirmwareUploadDone() {
 // -----------------------------------------------------------------------------
 String buildHomePage() {
   String html;
-  html.reserve(11000);
-
+  html.reserve(9000);
   html += F(
     "<!doctype html><html><head><meta charset='utf-8'>"
     "<meta name='viewport' content='width=device-width,initial-scale=1'>"
-    "<title>StatusAnzeige</title>"
+    "<title>StatusAnzeige – Schnellstatus</title>"
     "<style>"
-    "body{background:#080b10;color:#eee;font-family:Arial;margin:24px}"
-    ".grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}"
-    ".statusBtn,.actionBtn{padding:15px;background:#151b25;border:1px solid #202a38;"
-    "border-radius:10px;color:white;text-align:center;cursor:pointer;font:inherit}"
-    ".statusBtn:hover,.actionBtn:hover{background:#1b2432}"
-    ".statusBtn.active{outline:2px solid #4e9cff;background:#192b43}"
-    ".nav{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0}"
-    ".nav a{padding:10px 12px;background:#151b25;border-radius:9px;color:white;text-decoration:none}"
-    ".card{background:#101620;border:1px solid #202a38;border-radius:12px;padding:14px;margin:15px 0}"
-    ".small{color:#9aa4b2;font-size:13px}code{color:#8cf}"
-    "input{background:#090d13;color:#fff;border:1px solid #39465a;border-radius:8px;padding:9px}"
-    ".ok{color:#62d98b}.bad{color:#ff6b6b}.muted{color:#9aa8ba}"
-    "</style></head><body>"
-    "<h2>StatusAnzeige</h2>"
-    "<div class='card'>"
-    "<label>API-Passcode: <input id='apiPs' type='password' inputmode='numeric' size='12'></label> "
-    "<button class='actionBtn' style='padding:9px 12px' onclick='savePs()'>merken</button>"
-    "<div class='small'>Wird nur für diese Browser-Sitzung gespeichert.</div>"
-    "</div>"
-    "<div id='statusGrid' class='grid'>"
-  );
-
-  for (size_t i = 0; i < statusCount; i++) {
-    html += "<button class='statusBtn";
-    if ((int)i == currentStatusIndex) html += " active";
-    html += "' id='st_" + statuses[i].id + "' onclick=\"setStatus('" + statuses[i].id + "')\">";
-    html += statuses[i].label;
-    html += "</button>";
-  }
-
-  html += F(
-    "</div>"
-    "<div class='card'><div id='uiMsg' class='muted'>Bereit.</div></div>"
-    "<div class='nav'>"
-    "<a href='/wifi'>WLAN</a>"
-    "<a href='/config'>Konfiguration</a>"
-    "<a href='/features'>Optionen</a>"
-    "<a href='/statuses'>Statusfarben</a>"
-    "<a href='/system'>System</a>"
-    "<a href='/update'>Update</a>"
-    "</div>"
-    "<div class='card'><b>Systemaktionen</b><div class='nav'>"
-    "<button class='actionBtn' onclick=\"apiAction('/api/refresh','Bild neu geladen')\">Bild neu laden</button>"
-    "<button class='actionBtn' onclick=\"apiAction('/api/reload','Config neu geladen')\">Config neu laden</button>"
-    "<button class='actionBtn' onclick='rebootDevice()'>Neustart</button>"
+    "body{margin:0;background:#080b10;color:#eef2f7;font-family:Arial,sans-serif}"
+    ".wrap{max-width:760px;margin:auto;padding:22px}"
+    ".top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}"
+    ".title{font-size:28px;font-weight:700}.sub{color:#9aa8ba;font-size:13px}"
+    ".card{background:#121822;border:1px solid #273142;border-radius:14px;padding:18px;margin-bottom:16px}"
+    ".quick{display:grid;grid-template-columns:1fr 1fr;gap:12px}"
+    "@media(max-width:560px){.quick{grid-template-columns:1fr}}"
+    ".statusBtn{min-height:70px;background:#182130;color:#fff;border:1px solid #334159;border-radius:12px;font-size:17px;font-weight:700;cursor:pointer;padding:14px}"
+    ".statusBtn:hover{background:#20304a}.statusBtn.active{outline:2px solid #1f6feb;background:#17345b}"
+    ".nav{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}"
+    "@media(max-width:620px){.nav{grid-template-columns:1fr 1fr}}"
+    ".nav a{display:block;text-align:center;text-decoration:none;background:#283241;color:#fff;border-radius:9px;padding:11px 10px}"
+    "label{display:block;color:#aab5c5;font-size:13px;margin-bottom:6px}"
+    "input{width:100%;box-sizing:border-box;background:#090d13;color:#fff;border:1px solid #39465a;border-radius:9px;padding:11px}"
+    ".ok{color:#62d98b}.bad{color:#ff6b6b}.muted{color:#9aa8ba}.msg{margin-top:10px;min-height:20px}"
+    "</style></head><body><div class='wrap'>"
+    "<div class='top'><div><div class='title'>StatusAnzeige</div><div class='sub'>Schnellstatus via WLAN</div></div></div>"
+    "<div class='card'><div class='quick'>"
+    "<button id='st_frei' class='statusBtn' onclick=\"setStatus('frei')\">FREI</button>"
+    "<button id='st_busy' class='statusBtn' onclick=\"setStatus('busy')\">BUSSY</button>"
+    "<button id='st_meeting' class='statusBtn' onclick=\"setStatus('meeting')\">MEETING</button>"
+    "<button id='st_pause' class='statusBtn' onclick=\"setStatus('pause')\">PAUSE</button>"
+    "<button id='st_mail' class='statusBtn' onclick=\"setStatus('mail')\">SENDE EMAIL</button>"
+    "<button id='st_bitte_warten' class='statusBtn' onclick=\"setStatus('bitte_warten')\">BITTE WARTEN</button>"
     "</div></div>"
-    "<div class='small'>"
-  );
-
-  html += "IP: " + currentIpString() + "<br>";
-  html += "FTP: <code>ftp://" + currentIpString() + "/</code><br>";
-  html += "mDNS: <code>http://" + cfg.hostname + ".local/</code><br>";
-  html += "<a style='color:#7ab7ff' href='/api/info' target='_blank'>API-Info</a>";
-
-  html += F(
-    "</div>"
+    "<div class='card'><label>PASSCODE</label><input id='apiPs' type='password' inputmode='numeric' placeholder='API-Passcode'>"
+    "<div id='uiMsg' class='msg muted'>Bereit.</div></div>"
+    "<div class='card'><div class='nav'>"
+    "<a href='/wifi'>WLAN</a><a href='/config'>Konfiguration</a><a href='/features'>Optionen</a>"
+    "<a href='/statuses'>Statusfarben</a><a href='/system'>System</a><a href='/update'>Update</a>"
+    "</div></div>"
     "<script>"
-    "const psEl=document.getElementById('apiPs');"
-    "const msg=document.getElementById('uiMsg');"
-    "function getPs(){return psEl.value.trim();}"
-    "function savePs(){sessionStorage.setItem('statusanzeige_ps',getPs());showMsg('API-Passcode für diese Sitzung gemerkt.',true);}"
-    "function showMsg(t,ok){msg.textContent=t;msg.className=ok?'ok':'bad';}"
-    "async function callApi(path){"
-      "const ps=getPs();"
-      "if(!ps){showMsg('Bitte API-Passcode eingeben.',false);throw new Error('Passcode fehlt');}"
-      "sessionStorage.setItem('statusanzeige_ps',ps);"
-      "const sep=path.includes('?')?'&':'?';"
-      "const r=await fetch(path+sep+'ps='+encodeURIComponent(ps),{cache:'no-store'});"
-      "let j={};try{j=await r.json();}catch(e){}"
-      "if(!r.ok||j.ok===false)throw new Error(j.error||('HTTP '+r.status));"
-      "return j;"
-    "}"
-    "async function setStatus(id){"
-      "try{"
-        "const j=await callApi('/api/status?id='+encodeURIComponent(id));"
-        "document.querySelectorAll('.statusBtn').forEach(b=>b.classList.remove('active'));"
-        "const b=document.getElementById('st_'+id);if(b)b.classList.add('active');"
-        "showMsg('Status gesetzt: '+(j.status||id),true);"
-      "}catch(e){showMsg('Fehler: '+e.message,false);}"
-    "}"
-    "async function apiAction(path,okText){try{await callApi(path);showMsg(okText,true);}catch(e){showMsg('Fehler: '+e.message,false);}}"
-    "async function rebootDevice(){"
-      "try{await callApi('/api/reboot');showMsg('Neustart ausgelöst. Die Seite bleibt geöffnet und verbindet sich gleich wieder.',true);setTimeout(waitForDevice,2500);}"
-      "catch(e){showMsg('Fehler: '+e.message,false);}"
-    "}"
-    "async function waitForDevice(){"
-      "for(let i=0;i<20;i++){"
-        "try{const r=await fetch('/api/info',{cache:'no-store'});if(r.ok){showMsg('Gerät ist wieder erreichbar.',true);return;}}catch(e){}"
-        "await new Promise(r=>setTimeout(r,1000));"
-      "}"
-      "showMsg('Gerät startet noch oder ist unter dieser Adresse nicht erreichbar.',false);"
-    "}"
-    "psEl.value=sessionStorage.getItem('statusanzeige_ps')||'';"
-    "</script></body></html>"
+    "const psEl=document.getElementById('apiPs'),msg=document.getElementById('uiMsg');"
+    "function showMsg(t,ok){msg.textContent=t;msg.className='msg '+(ok?'ok':'bad');}"
+    "async function callApi(path){let ps=psEl.value.trim();if(!ps){showMsg('Bitte Passcode eingeben.',false);throw new Error('Passcode fehlt');}"
+    "sessionStorage.setItem('statusanzeige_ps',ps);let sep=path.includes('?')?'&':'?';let r=await fetch(path+sep+'ps='+encodeURIComponent(ps),{cache:'no-store'});let j={};try{j=await r.json()}catch(e){}if(!r.ok||j.ok===false)throw new Error(j.error||('HTTP '+r.status));return j;}"
+    "async function setStatus(id){try{let j=await callApi('/api/status?id='+encodeURIComponent(id));document.querySelectorAll('.statusBtn').forEach(b=>b.classList.remove('active'));let b=document.getElementById('st_'+id);if(b)b.classList.add('active');showMsg('Status gesetzt: '+(j.status||id),true)}catch(e){showMsg('Fehler: '+e.message,false)}}"
+    "psEl.value=sessionStorage.getItemById?sessionStorage.getItemById('statusanzeige_ps'):sessionStorage.getItem('statusanzeige_ps')||'';"
+    "</script></div></body></html>"
   );
-
   return html;
 }
+
 
 void sendInfoJson() {
   JsonDocument doc;
