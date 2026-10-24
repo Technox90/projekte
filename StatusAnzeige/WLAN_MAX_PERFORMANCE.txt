@@ -1,0 +1,23 @@
+STATUSANZEIGE – WLAN MAX PERFORMANCE
+
+Ergänzt:
+
+- WiFi Power Save deaktiviert:
+  WiFi.setSleep(false);
+
+- maximale ESP32-S3 Sendeleistung:
+  WiFi.setTxPower(WIFI_POWER_19_5dBm);
+
+- automatischer Reconnect:
+  WiFi.setAutoReconnect(true);
+
+- keine WLAN-Daten im ESP32-Flash speichern:
+  WiFi.persistent(false);
+
+- Reconnect-Prüfung alle 5 Sekunden
+- RSSI und WLAN-Kanal werden beim Verbindungsaufbau im Serial Monitor ausgegeben
+
+Wichtig:
+Diese Änderungen verbessern Stabilität und Sendeleistung.
+Der RSSI-Wert selbst hängt weiterhin stark von Antenne, Gehäuse, Akku,
+Kabeln, Router/AP und Abstand ab.
