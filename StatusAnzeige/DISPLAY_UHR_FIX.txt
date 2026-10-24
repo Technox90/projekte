@@ -1,0 +1,22 @@
+STATUSANZEIGE – DISPLAY/UHR FIX
+
+Geändert:
+
+1. Displaystandard:
+   rotation = 2
+   -> 180° gedreht, passend zur Gehäusemontage.
+
+2. Uhr:
+   Der Doppelpunkt blinkt im Sekundentakt.
+
+   Beispiel:
+   23:05
+   23 05
+   23:05
+
+3. Clock-Refresh:
+   250 ms, damit der Sekundenwechsel sauber erkannt wird.
+
+Wichtig:
+Auf der SD-Karte muss /config/config.json ebenfalls
+"display.rotation": 2 enthalten.

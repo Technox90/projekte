@@ -1,0 +1,52 @@
+STATUSANZEIGE – ERSTE SCHRITTE
+
+SD-KARTE
+1. microSD als FAT32 formatieren.
+2. Inhalt des Ordners SD_Karte direkt auf die Karte kopieren.
+3. /config/config.json öffnen.
+4. WLAN eintragen:
+   "ssid": "DEIN_WLAN_NAME"
+   "password": "DEIN_WLAN_PASSWORT"
+
+API
+Passcode: 123456
+
+Status setzen:
+http://statusanzeige.local/api/status?id=frei&ps=123456
+
+Weitere Status-IDs:
+frei
+busy
+meeting
+pause
+mail
+wc
+live
+telefon
+wartung
+bitte_warten
+bin_gleich_zurueck
+fck
+
+FTP
+Benutzer: status
+Passwort: StatusAnzeige123!
+Port: 21
+
+FLASHEN
+Arduino IDE:
+Arduino_IDE/StatusAnzeige/StatusAnzeige.ino
+
+Alternativ:
+PlatformIO/
+
+HINWEIS
+HTTP und FTP sind für das lokale Netzwerk vorgesehen.
+
+
+UHR / DATUM
+Unten im Bild wird automatisch angezeigt:
+23:05
+Sa 24.Okt
+
+Dafür muss WLAN/NTP funktionieren.

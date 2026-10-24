@@ -1,0 +1,28 @@
+StatusAnzeige - Pinbelegung
+
+Waveshare ESP32-S3-Touch-LCD-2
+
+LCD:
+SCLK GPIO39
+MOSI GPIO38
+MISO GPIO40
+DC   GPIO42
+CS   GPIO45
+BL   GPIO1
+
+microSD:
+SCLK GPIO39
+MOSI GPIO38
+MISO GPIO40
+CS   GPIO41
+
+Extern:
+ARGB DATA GPIO17
+Taster GPIO18 -> Taster -> GND
+
+Reserviert:
+GPIO47/48 Touch + IMU I2C
+GPIO19/20 USB
+
+Hinweis:
+GPIO17 wird von der optionalen Kamera genutzt. Kamera daher nicht gleichzeitig verwenden.

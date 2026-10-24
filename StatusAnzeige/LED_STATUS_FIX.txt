@@ -1,0 +1,25 @@
+STATUSANZEIGE – LED STATUS FIX
+
+Geändert:
+
+- Regenbogen beim Hochfahren entfernt.
+- Nach dem Start werden alle 13 LEDs direkt auf die Farbe
+  des aktiven/zuletzt gespeicherten Status gesetzt.
+- Außerhalb des Menüs gibt es keine laufenden LED-Farbeffekte.
+- Im Menü bleibt ausschließlich das gewünschte dunkelblaue
+  Pulsieren (#0000AA).
+- Bestätigung bleibt ein kurzer weißer Blitz.
+
+Statusfarben:
+FREI                Grün
+BUSY                Rot
+MEETING             Blau
+PAUSE               Orange
+SENDE E-MAIL        Cyan
+WC                  Violett
+LIVE                Magenta
+TELEFON             Grün/Cyan
+WARTUNG             Rot/Orange
+BITTE WARTEN        Weiß
+BIN GLEICH ZURÜCK   Blau
+F*CK YOU             Gelb

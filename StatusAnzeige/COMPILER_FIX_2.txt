@@ -1,0 +1,25 @@
+STATUSANZEIGE – COMPILER FIX 2
+
+Fehler:
+Arduino_XL9535SWSPI.h / Arduino_XCA9554SWSPI.h
+digitalPinToGPIONumber is not a type
+
+Ursache:
+ESP32 Arduino Core 3.3.x aktiviert eine Pin-Remapping-Schicht.
+Dabei werden pinMode(), digitalWrite() und digitalRead() als Makros definiert.
+Arduino_GFX besitzt Klassenmethoden mit denselben Namen; dadurch kollidieren
+die Makros mit den Headern der Bibliothek.
+
+Fix:
+Vor Arduino.h wird gesetzt:
+
+#define BOARD_USES_HW_GPIO_NUMBERS 1
+
+Das ist für dieses Projekt passend, weil sämtliche Board-Pins als echte
+ESP32-S3 GPIO-Nummern angegeben werden.
+
+Bereits enthaltene frühere Fixes:
+- PNGdec/NimBLE: #undef local
+- Arduino_GFX Farben: RGB565_BLACK / RGB565_WHITE
+
+Bitte dieses Paket anstelle der vorherigen Version verwenden.

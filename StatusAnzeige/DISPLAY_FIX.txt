@@ -1,0 +1,28 @@
+STATUSANZEIGE – DISPLAY FIX
+
+Der ESP startete beim bisherigen Code direkt bei gfx->begin() neu.
+
+Geändert wurde die Display-Initialisierung auf die Form aus dem
+Waveshare-Beispiel für ESP32-S3-Touch-LCD-2:
+
+Arduino_ESP32SPI(
+  LCD_DC,
+  LCD_CS,
+  LCD_SCLK,
+  LCD_MOSI,
+  LCD_MISO
+)
+
+und:
+
+gfx->begin()
+
+Die zusätzlichen FSPI/shared-Parameter wurden entfernt.
+
+Zusätzliche Diagnosemeldungen:
+[LCD] gfx->begin()...
+[LCD] gfx->begin OK
+[LCD] Backlight EIN
+[SD] Initialisiere SD-Karte...
+
+Das Backlight wird direkt nach erfolgreichem Display-Init eingeschaltet.
