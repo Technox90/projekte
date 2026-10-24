@@ -77,7 +77,7 @@
 #define DEFAULT_STORAGE_TYPE_ESP32 STORAGE_SD
 #include <SimpleFTPServer.h>
 
-#define STATUSANZEIGE_VERSION "2.0.0"
+#define STATUSANZEIGE_VERSION "2.0.1"
 #define STATUSANZEIGE_BUILD "2026-10-25"
 
 // -----------------------------------------------------------------------------
@@ -1845,9 +1845,13 @@ String configPage() {
     "</style></head><body><div class='wrap'>"
     "<h1>StatusAnzeige Konfiguration</h1>"
 
-    "<div class='card'><h2>Sicherheit</h2>"
-    "<label>Aktueller API-Passcode</label><input id='auth_ps' type='password' inputmode='numeric' required>"
-    "<div class='muted'>Wird nur zum Speichern benutzt und nicht aus dem Gerät ausgelesen.</div></div>"
+    "<div class='card'><h2>API / Sicherheit</h2>"
+    "<div class='grid'>"
+    "<div><label>Aktueller API-Passcode</label><input id='auth_ps' type='password' inputmode='numeric' required placeholder='aktueller Passcode'></div>"
+    "<div><label>Neuer API-Passcode</label><input id='new_api_passcode' type='password' inputmode='numeric' placeholder='leer = unverändert'></div>"
+    "<div><label>Neuen API-Passcode bestätigen</label><input id='new_api_passcode2' type='password' inputmode='numeric' placeholder='noch einmal eingeben'></div>"
+    "</div>"
+    "<div class='muted'>Der aktuelle Passcode autorisiert die Änderung. Der neue Passcode wird in config.json gespeichert.</div></div>"
 
     "<div class='card'><h2>Anzeige & LEDs</h2><div class='grid'>"
     "<div><label>LED-Helligkeit (%)</label><input id='led_brightness' type='number' min='0' max='100'></div>"
@@ -1885,8 +1889,7 @@ String configPage() {
     "<a href='/statuses'>Statusfarben / Effekte</a> &nbsp; | &nbsp; <a href='/system'>Systemdiagnose</a> &nbsp; | &nbsp; <a href='/update'>Firmwareupdate</a>"
     "</div>"
 
-    "<div class='card'><h2>API</h2><div class='grid'>"
-    "<div><label>Neuer API-Passcode</label><input id='new_api_passcode' type='password' placeholder='leer = unverändert'></div>"
+    "<div class='card'><h2>Gerät</h2><div class='grid'>"
     "<div><label>Hostname</label><input id='hostname'></div>"
     "</div></div>"
 
@@ -1922,7 +1925,10 @@ String configPage() {
     "}"
     "async function saveCfg(){"
       "const ps=el('auth_ps').value;"
-      "if(!ps){el('result').innerHTML='<span class=\"bad\">API-Passcode fehlt.</span>';return;}"
+      "if(!ps){el('result').innerHTML='<span class=\"bad\">Aktueller API-Passcode fehlt.</span>';return;}"
+      "const np=el('new_api_passcode').value;"
+      "const np2=el('new_api_passcode2').value;"
+      "if(np!==np2){el('result').innerHTML='<span class=\"bad\">Die neuen API-Passcodes stimmen nicht überein.</span>';return;}"
       "const p=new URLSearchParams();"
       "p.set('led_brightness',el('led_brightness').value);"
       "p.set('display_brightness',el('display_brightness').value);"
@@ -1942,7 +1948,7 @@ String configPage() {
       "p.set('mqtt_password',el('mqtt_password').value);"
       "p.set('mqtt_base_topic',el('mqtt_base_topic').value);"
       "p.set('mqtt_discovery',el('mqtt_discovery').checked?'1':'0');"
-      "p.set('new_api_passcode',el('new_api_passcode').value);"
+      "p.set('new_api_passcode',np);"
       "p.set('hostname',el('hostname').value);"
       "el('result').textContent='Speichere...';"
       "try{"
@@ -1951,9 +1957,11 @@ String configPage() {
         "});"
         "const j=await r.json();"
         "if(!j.ok)throw new Error(j.error||'Speichern fehlgeschlagen');"
+        "if(np)sessionStorage.setItem('statusanzeige_ps',np);else sessionStorage.setItem('statusanzeige_ps',ps);"
         "el('result').innerHTML='<span class=\"ok\">Gespeichert. Neustart wird ausgeführt...</span>';"
       "}catch(e){el('result').innerHTML='<span class=\"bad\">'+e.message+'</span>';}"
     "}"
+    "el('auth_ps').value=sessionStorage.getItem('statusanzeige_ps')||'';"
     "loadCfg();"
     "</script></div></body></html>"
   );
@@ -2228,34 +2236,115 @@ void handleFirmwareUploadDone() {
 // -----------------------------------------------------------------------------
 String buildHomePage() {
   String html;
-  html.reserve(6000);
-  html += F("<!doctype html><html><head><meta charset='utf-8'>");
-  html += F("<meta name='viewport' content='width=device-width,initial-scale=1'>");
-  html += F("<title>StatusAnzeige</title><style>");
-  html += F("body{background:#080b10;color:#eee;font-family:Arial;margin:24px}");
-  html += F(".grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}");
-  html += F("a{display:block;padding:15px;background:#151b25;border-radius:10px;color:white;text-decoration:none;text-align:center}");
-  html += F(".small{color:#9aa4b2;font-size:13px;margin-top:24px}code{color:#8cf}</style></head><body>");
-  html += F("<h2>StatusAnzeige</h2><div class='grid'>");
+  html.reserve(11000);
+
+  html += F(
+    "<!doctype html><html><head><meta charset='utf-8'>"
+    "<meta name='viewport' content='width=device-width,initial-scale=1'>"
+    "<title>StatusAnzeige</title>"
+    "<style>"
+    "body{background:#080b10;color:#eee;font-family:Arial;margin:24px}"
+    ".grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}"
+    ".statusBtn,.actionBtn{padding:15px;background:#151b25;border:1px solid #202a38;"
+    "border-radius:10px;color:white;text-align:center;cursor:pointer;font:inherit}"
+    ".statusBtn:hover,.actionBtn:hover{background:#1b2432}"
+    ".statusBtn.active{outline:2px solid #4e9cff;background:#192b43}"
+    ".nav{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0}"
+    ".nav a{padding:10px 12px;background:#151b25;border-radius:9px;color:white;text-decoration:none}"
+    ".card{background:#101620;border:1px solid #202a38;border-radius:12px;padding:14px;margin:15px 0}"
+    ".small{color:#9aa4b2;font-size:13px}code{color:#8cf}"
+    "input{background:#090d13;color:#fff;border:1px solid #39465a;border-radius:8px;padding:9px}"
+    ".ok{color:#62d98b}.bad{color:#ff6b6b}.muted{color:#9aa8ba}"
+    "</style></head><body>"
+    "<h2>StatusAnzeige</h2>"
+
+    "<div class='card'>"
+    "<label>API-Passcode: <input id='apiPs' type='password' inputmode='numeric' size='12'></label> "
+    "<button class='actionBtn' style='padding:9px 12px' onclick='savePs()'>merken</button>"
+    "<div class='small'>Wird nur für diese Browser-Sitzung gespeichert.</div>"
+    "</div>"
+
+    "<div id='statusGrid' class='grid'>"
+  );
 
   for (size_t i = 0; i < statusCount; i++) {
-    html += "<a href='/api/status?id=" + statuses[i].id + "&ps=" + cfg.apiPasscode + "'>";
+    html += "<button class='statusBtn";
+    if ((int)i == currentStatusIndex) html += " active";
+    html += "' id='st_" + statuses[i].id + "' onclick=\"setStatus('" + statuses[i].id + "')\">";
     html += statuses[i].label;
-    html += "</a>";
+    html += "</button>";
   }
 
-  html += F("</div><div style='margin:18px 0'>");
-  html += F("<a href='/wifi'>WLAN einrichten / suchen</a> &nbsp; | &nbsp; ");
-  html += F("<a href='/config'>Konfiguration</a> &nbsp; | &nbsp; <a href='/statuses'>Statusfarben</a> &nbsp; | &nbsp; <a href='/system'>System</a> &nbsp; | &nbsp; <a href='/update'>Update</a>");
-  html += F("</div><div class='small'>");
+  html += F(
+    "</div>"
+    "<div class='card'>"
+    "<div id='uiMsg' class='muted'>Bereit.</div>"
+    "</div>"
+
+    "<div class='nav'>"
+    "<a href='/wifi'>WLAN</a>"
+    "<a href='/config'>Konfiguration</a>"
+    "<a href='/statuses'>Statusfarben</a>"
+    "<a href='/system'>System</a>"
+    "<a href='/update'>Update</a>"
+    "</div>"
+
+    "<div class='card'><b>Systemaktionen</b><div class='nav'>"
+    "<button class='actionBtn' onclick=\"apiAction('/api/refresh','Bild neu geladen')\">Bild neu laden</button>"
+    "<button class='actionBtn' onclick=\"apiAction('/api/reload','Config neu geladen')\">Config neu laden</button>"
+    "<button class='actionBtn' onclick='rebootDevice()'>Neustart</button>"
+    "</div></div>"
+
+    "<div class='small'>"
+  );
+
   html += "IP: " + currentIpString() + "<br>";
   html += "FTP: <code>ftp://" + currentIpString() + "/</code><br>";
   html += "mDNS: <code>http://" + cfg.hostname + ".local/</code><br>";
-  html += F("<a href='/api/info'>API-Info</a> ");
-  html += "<a href='/api/refresh?ps=" + cfg.apiPasscode + "'>Bild neu laden</a> ";
-  html += "<a href='/api/reload?ps=" + cfg.apiPasscode + "'>Config neu laden</a> ";
-  html += "<a href='/api/reboot?ps=" + cfg.apiPasscode + "'>Neustart</a>";
-  html += F("</div></body></html>");
+  html += "<a style='color:#7ab7ff' href='/api/info' target='_blank'>API-Info</a>";
+  html += F(
+    "</div>"
+
+    "<script>"
+    "const psEl=document.getElementById('apiPs');"
+    "const msg=document.getElementById('uiMsg');"
+    "function getPs(){return psEl.value.trim();}"
+    "function savePs(){sessionStorage.setItem('statusanzeige_ps',getPs());showMsg('API-Passcode für diese Sitzung gemerkt.',true);}"
+    "function showMsg(t,ok){msg.textContent=t;msg.className=ok?'ok':'bad';}"
+    "async function callApi(path){"
+      "const ps=getPs();"
+      "if(!ps){showMsg('Bitte API-Passcode eingeben.',false);throw new Error('Passcode fehlt');}"
+      "sessionStorage.setItem('statusanzeige_ps',ps);"
+      "const sep=path.includes('?')?'&':'?';"
+      "const r=await fetch(path+sep+'ps='+encodeURIComponent(ps),{cache:'no-store'});"
+      "let j={};try{j=await r.json();}catch(e){}"
+      "if(!r.ok||j.ok===false)throw new Error(j.error||('HTTP '+r.status));"
+      "return j;"
+    "}"
+    "async function setStatus(id){"
+      "try{"
+        "const j=await callApi('/api/status?id='+encodeURIComponent(id));"
+        "document.querySelectorAll('.statusBtn').forEach(b=>b.classList.remove('active'));"
+        "const b=document.getElementById('st_'+id);if(b)b.classList.add('active');"
+        "showMsg('Status gesetzt: '+(j.status||id),true);"
+      "}catch(e){showMsg('Fehler: '+e.message,false);}"
+    "}"
+    "async function apiAction(path,okText){try{await callApi(path);showMsg(okText,true);}catch(e){showMsg('Fehler: '+e.message,false);}}"
+    "async function rebootDevice(){"
+      "try{await callApi('/api/reboot');showMsg('Neustart ausgelöst. Die Seite bleibt geöffnet und verbindet sich gleich wieder.',true);setTimeout(waitForDevice,2500);}"
+      "catch(e){showMsg('Fehler: '+e.message,false);}"
+    "}"
+    "async function waitForDevice(){"
+      "for(let i=0;i<20;i++){"
+        "try{const r=await fetch('/api/info',{cache:'no-store'});if(r.ok){showMsg('Gerät ist wieder erreichbar.',true);return;}}catch(e){}"
+        "await new Promise(r=>setTimeout(r,1000));"
+      "}"
+      "showMsg('Gerät startet noch oder ist unter dieser Adresse nicht erreichbar.',false);"
+    "}"
+    "psEl.value=sessionStorage.getItem('statusanzeige_ps')||'';"
+    "</script></body></html>"
+  );
+
   return html;
 }
 
