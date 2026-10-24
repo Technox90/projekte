@@ -19,7 +19,7 @@ Firmware fuer das Waveshare **ESP32-S3-Touch-LCD-2 (SKU 29667)** als portable St
 - optional MQTT + Home Assistant Discovery (PubSubClient)
 - letzter Status wird gespeichert
 - Config-Backup (`config.bak`) vor Aenderungen
-- Config-Download und Wiederherstellung im Browser
+- Config-Download im Browser
 - Firmwareupdate ueber Browser oder SD-Karte
 - Systemdiagnose im Browser
 - Safe Mode nach wiederholten Watchdog/Panic-Resets
@@ -33,7 +33,6 @@ Firmware fuer das Waveshare **ESP32-S3-Touch-LCD-2 (SKU 29667)** als portable St
 - `/system` Systemdiagnose
 - `/update` Firmware `.bin` hochladen
 - `/config/backup` aktuelle `config.json` herunterladen
-- `/config/restore-page` Konfiguration wiederherstellen
 
 Standard-API-Passcode: `123456` (bitte aendern).
 
@@ -58,7 +57,14 @@ Standard-API-Passcode: `123456` (bitte aendern).
 
 Board: `ESP32S3 Dev Module`, Flash 16 MB, PSRAM `OPI PSRAM`, USB CDC an, Partition `Huge APP`.
 
-Libraries: ArduinoJson, GFX Library for Arduino, Adafruit NeoPixel, PNGdec, SimpleFTPServer und optional PubSubClient fuer MQTT.
+Libraries:
+
+- ArduinoJson
+- GFX Library for Arduino
+- Adafruit NeoPixel
+- PNGdec
+- SimpleFTPServer
+- PubSubClient (nur fuer MQTT; Firmware kompiliert ohne diese Library ebenfalls, MQTT bleibt dann deaktiviert)
 
 Wegen SimpleFTPServer muss fuer ESP32 `DEFAULT_STORAGE_TYPE_ESP32` auf `STORAGE_SD` stehen. Eine korrigierte Referenzdatei liegt unter `Arduino_Library_Fix/FtpServerKey.h`.
 
