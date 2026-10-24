@@ -77,7 +77,7 @@
 #define DEFAULT_STORAGE_TYPE_ESP32 STORAGE_SD
 #include <SimpleFTPServer.h>
 
-#define STATUSANZEIGE_VERSION "2.1.0"
+#define STATUSANZEIGE_VERSION "2.2.0"
 #define STATUSANZEIGE_BUILD "2026-10-25"
 
 // -----------------------------------------------------------------------------
@@ -196,8 +196,11 @@ struct AppConfig {
   uint32_t statusBarRefreshMs = 1000;
 
   bool batteryEnabled = true;
-  String powerDisplayMode = "battery"; // battery | usb | off
+  String powerDisplayMode = "battery"; // auto | battery | usb | off
   int batteryAdcPin = 5;
+  int vbusSensePin = -1;
+  float vbusSenseDivider = 2.0f;
+  float vbusSenseThreshold = 4.0f;
   float batteryDivider = 3.0f;
   float batteryMinV = 3.30f;
   float batteryMaxV = 4.20f;
@@ -322,6 +325,7 @@ void initClockSync();
 void drawClockFooter(bool force = false);
 void initBatteryAdc();
 float readBatteryVoltage();
+bool usbPowerDetected();
 int batteryPercentFromVoltage(float voltage);
 void drawStatusBar(bool force = false);
 void initTouch();
@@ -538,7 +542,8 @@ bool loadConfig() {
   cfg.batteryEnabled = doc["battery"]["enabled"] | cfg.batteryEnabled;
   cfg.powerDisplayMode = doc["power"]["display_mode"] | cfg.powerDisplayMode;
   cfg.powerDisplayMode.toLowerCase();
-  if (cfg.powerDisplayMode != "battery" &&
+  if (cfg.powerDisplayMode != "auto" &&
+      cfg.powerDisplayMode != "battery" &&
       cfg.powerDisplayMode != "usb" &&
       cfg.powerDisplayMode != "off") {
     cfg.powerDisplayMode = cfg.batteryEnabled ? "battery" : "off";
@@ -547,6 +552,10 @@ bool loadConfig() {
   if (!cfg.batteryEnabled && cfg.powerDisplayMode == "battery") {
     cfg.powerDisplayMode = "off";
   }
+
+  cfg.vbusSensePin = doc["power"]["vbus_sense_pin"] | cfg.vbusSensePin;
+  cfg.vbusSenseDivider = doc["power"]["vbus_sense_divider"] | cfg.vbusSenseDivider;
+  cfg.vbusSenseThreshold = doc["power"]["vbus_sense_threshold"] | cfg.vbusSenseThreshold;
 
   // BAT_ADC is fixed by the Waveshare PCB wiring.
   // Ignore stale/wrong values from older config files.
@@ -790,19 +799,28 @@ void drawClockFooter(bool force) {
 }
 
 void initBatteryAdc() {
-  if (!cfg.batteryEnabled || cfg.powerDisplayMode != "battery") return;
+  if (!cfg.batteryEnabled) return;
 
   // Waveshare ESP32-S3-Touch-LCD-2:
   // BAT_ADC is GPIO5 = ADC1_CH4.
-  cfg.batteryAdcPin = 4;
+  cfg.batteryAdcPin = 5;
 
   analogReadResolution(12);
   analogSetPinAttenuation(cfg.batteryAdcPin, ADC_11db);
+
+  if (cfg.vbusSensePin >= 0) {
+    pinMode(cfg.vbusSensePin, INPUT);
+    analogSetPinAttenuation(cfg.vbusSensePin, ADC_11db);
+    (void)analogRead(cfg.vbusSensePin);
+  }
 
   // One dummy conversion initializes the Arduino-ESP32 ADC path.
   (void)analogRead(cfg.batteryAdcPin);
 
   Serial.printf("[BAT] BAT_ADC GPIO%d initialisiert\n", cfg.batteryAdcPin);
+  if (cfg.vbusSensePin >= 0) {
+    Serial.printf("[POWER] VBUS-Sense GPIO%d aktiv\n", cfg.vbusSensePin);
+  }
 }
 
 float readBatteryVoltage() {
@@ -822,6 +840,21 @@ float readBatteryVoltage() {
 
   float adcMv = mvSum / float(samples);
   return (adcMv / 1000.0f) * cfg.batteryDivider;
+}
+
+bool usbPowerDetected() {
+  if (cfg.vbusSensePin < 0) return false;
+
+  uint32_t mvSum = 0;
+  const int samples = 8;
+  for (int i = 0; i < samples; i++) {
+    mvSum += analogReadMilliVolts(cfg.vbusSensePin);
+    delayMicroseconds(250);
+  }
+
+  float pinV = (mvSum / float(samples)) / 1000.0f;
+  float vbusV = pinV * cfg.vbusSenseDivider;
+  return vbusV >= cfg.vbusSenseThreshold;
 }
 
 int batteryPercentFromVoltage(float v) {
@@ -872,9 +905,18 @@ void drawStatusBar(bool force) {
     else if (rssi >= -85) wifiBars = 1;
   }
 
+  const bool autoUsb =
+    cfg.powerDisplayMode == "auto" &&
+    cfg.vbusSensePin >= 0 &&
+    usbPowerDetected();
+
   const bool showBattery =
-    cfg.powerDisplayMode == "battery" && cfg.batteryEnabled;
-  const bool showUsb = cfg.powerDisplayMode == "usb";
+    (cfg.powerDisplayMode == "battery" ||
+     (cfg.powerDisplayMode == "auto" && !autoUsb)) &&
+    cfg.batteryEnabled;
+
+  const bool showUsb =
+    cfg.powerDisplayMode == "usb" || autoUsb;
 
   float batteryV = showBattery ? readBatteryVoltage() : 0.0f;
   int batteryPct = showBattery ? batteryPercentFromVoltage(batteryV) : -1;
