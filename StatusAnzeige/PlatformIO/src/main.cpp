@@ -77,7 +77,7 @@
 #define DEFAULT_STORAGE_TYPE_ESP32 STORAGE_SD
 #include <SimpleFTPServer.h>
 
-#define STATUSANZEIGE_VERSION "2.0.5"
+#define STATUSANZEIGE_VERSION "2.1.0"
 #define STATUSANZEIGE_BUILD "2026-10-25"
 
 // -----------------------------------------------------------------------------
@@ -220,6 +220,11 @@ struct AppConfig {
 
   bool webUpdateEnabled = true;
   bool captivePortalEnabled = true;
+
+  // Optionale Funktionen
+  bool lowBatteryProtectionEnabled = true;
+  bool ledEffectsEnabled = true;
+  bool confirmationFlashEnabled = true;
 
   uint8_t displayRotation = 2;
   uint8_t displayBrightness = 80;
@@ -377,6 +382,9 @@ void handleWifiSave();
 String configPage();
 void handleConfigGet();
 void handleConfigSave();
+String featuresPage();
+void handleFeaturesGet();
+void handleFeaturesSave();
 String buildHomePage();
 void sendInfoJson();
 
@@ -564,6 +572,9 @@ cfg.mqttDiscovery = doc["mqtt"]["home_assistant_discovery"] | cfg.mqttDiscovery;
 
 cfg.webUpdateEnabled = doc["web_update"]["enabled"] | cfg.webUpdateEnabled;
 cfg.captivePortalEnabled = doc["wifi"]["fallback_ap"]["captive_portal"] | cfg.captivePortalEnabled;
+cfg.lowBatteryProtectionEnabled = doc["features"]["low_battery_protection"] | cfg.lowBatteryProtectionEnabled;
+cfg.ledEffectsEnabled = doc["features"]["led_effects"] | cfg.ledEffectsEnabled;
+cfg.confirmationFlashEnabled = doc["features"]["confirmation_flash"] | cfg.confirmationFlashEnabled;
 
   cfg.displayRotation = doc["display"]["rotation"] | cfg.displayRotation;
   cfg.displayBrightness = doc["display"]["brightness_percent"] | cfg.displayBrightness;
@@ -685,6 +696,7 @@ void updateMenuPulse() {
 }
 
 void confirmationFlash() {
+  if (!cfg.confirmationFlashEnabled) return;
   setLedColor(cfg.confirmationColor);
   delay(cfg.confirmationMs);
 }
@@ -1919,7 +1931,7 @@ String configPage() {
 
     "<div class='card'><h2>Backup & weitere Seiten</h2>"
     "<a href='/config/backup'>config.json herunterladen</a> &nbsp; | &nbsp; <a href='/config/restore-page'>Wiederherstellen</a> &nbsp; | &nbsp; "
-    "<a href='/statuses'>Statusfarben / Effekte</a> &nbsp; | &nbsp; <a href='/system'>Systemdiagnose</a> &nbsp; | &nbsp; <a href='/update'>Firmwareupdate</a>"
+    "<a href='/features'>Optionale Funktionen</a> &nbsp; | &nbsp; <a href='/statuses'>Statusfarben / Effekte</a> &nbsp; | &nbsp; <a href='/system'>Systemdiagnose</a> &nbsp; | &nbsp; <a href='/update'>Firmwareupdate</a>"
     "</div>"
 
     "<div class='card'><h2>Gerät</h2><div class='grid'>"
@@ -2154,7 +2166,194 @@ void handleConfigSave() {
 }
 
 
+
+String featuresPage() {
+  String h;
+  h.reserve(15000);
+  h += F(
+    "<!doctype html><html><head><meta charset='utf-8'>"
+    "<meta name='viewport' content='width=device-width,initial-scale=1'>"
+    "<title>Optionale Funktionen</title>"
+    "<style>"
+    "body{margin:0;background:#080b10;color:#eef2f7;font-family:Arial,sans-serif}"
+    ".wrap{max-width:900px;margin:auto;padding:22px}"
+    ".card{background:#121822;border:1px solid #273142;border-radius:14px;padding:18px;margin-bottom:16px}"
+    ".feature{padding:13px 0;border-bottom:1px solid #273142}.feature:last-child{border-bottom:0}"
+    ".feature label{font-size:16px;font-weight:bold;display:flex;gap:10px;align-items:center}"
+    ".feature p{margin:6px 0 0 31px;color:#9aa8ba;line-height:1.4}"
+    "input[type=checkbox]{transform:scale(1.25)}"
+    "input[type=password]{background:#090d13;color:#fff;border:1px solid #39465a;border-radius:8px;padding:9px}"
+    "button{background:#1f6feb;color:#fff;border:0;border-radius:9px;padding:11px 14px;cursor:pointer}"
+    ".secondary{background:#283241}.planned{opacity:.58}.tag{font-size:12px;padding:3px 7px;border-radius:10px;background:#263247;margin-left:8px}"
+    ".ok{color:#62d98b}.bad{color:#ff6b6b}a{color:#77aaff}"
+    "</style></head><body><div class='wrap'>"
+    "<h1>Optionale Funktionen</h1>"
+    "<p>Alle Zusatzfunktionen sind unabhängig schaltbar. Änderungen werden in <code>config.json</code> gespeichert und nach Neustart aktiv.</p>"
+
+    "<div class='card'><h2>Verfügbar</h2>"
+
+    "<div class='feature'><label><input id='f_ble' type='checkbox'> Bluetooth / BLE</label>"
+    "<p>Erlaubt Statussteuerung und Abfragen über Bluetooth. Abschalten spart etwas RAM und Funkaktivität.</p></div>"
+
+    "<div class='feature'><label><input id='f_ftp' type='checkbox'> FTP-Zugriff</label>"
+    "<p>Stellt die SD-Karte im lokalen Netzwerk per FTP bereit. Nur im vertrauenswürdigen LAN verwenden.</p></div>"
+
+    "<div class='feature'><label><input id='f_mqtt' type='checkbox'> MQTT</label>"
+    "<p>Ermöglicht Steuerung und Statusübertragung über einen MQTT-Broker.</p></div>"
+
+    "<div class='feature'><label><input id='f_ha' type='checkbox'> Home Assistant Discovery</label>"
+    "<p>Meldet die StatusAnzeige automatisch über MQTT in Home Assistant an. Benötigt MQTT.</p></div>"
+
+    "<div class='feature'><label><input id='f_touch' type='checkbox'> Touch-Bedienung</label>"
+    "<p>Aktiviert den CST816D-Touchscreen für die lokale Bedienung.</p></div>"
+
+    "<div class='feature'><label><input id='f_clock' type='checkbox'> Uhr und Datum</label>"
+    "<p>Zeigt die per NTP synchronisierte Uhrzeit und das Datum auf dem Display an.</p></div>"
+
+    "<div class='feature'><label><input id='f_statusbar' type='checkbox'> Statusleiste</label>"
+    "<p>Zeigt WLAN-Empfang und – je nach Auswahl – Akku oder USB oben im Display an.</p></div>"
+
+    "<div class='feature'><label><input id='f_captive' type='checkbox'> Fallback-WLAN / Captive Portal</label>"
+    "<p>Öffnet bei fehlendem WLAN den Einrichtungs-Access-Point. Sinnvoll, damit das Gerät unterwegs rekonfiguriert werden kann.</p></div>"
+
+    "<div class='feature'><label><input id='f_webupdate' type='checkbox'> Firmwareupdate über Web</label>"
+    "<p>Erlaubt das Hochladen einer kompilierten .bin-Datei über die Weboberfläche.</p></div>"
+
+    "<div class='feature'><label><input id='f_sdupdate' type='checkbox'> Firmwareupdate über SD</label>"
+    "<p>Installiert firmware.bin beim Start, wenn zusätzlich update.flag vorhanden ist.</p></div>"
+
+    "<div class='feature'><label><input id='f_remember' type='checkbox'> Letzten Status merken</label>"
+    "<p>Nach einem Neustart wird der zuletzt aktive Status wiederhergestellt.</p></div>"
+
+    "<div class='feature'><label><input id='f_batprotect' type='checkbox'> Akku-Schutz / automatische Dimmung</label>"
+    "<p>Reduziert Display- und LED-Helligkeit automatisch bei niedrigem Akkustand.</p></div>"
+
+    "<div class='feature'><label><input id='f_ledeffects' type='checkbox'> LED-Effekte</label>"
+    "<p>Erlaubt Pulsieren und Blinken. Ist der Haken aus, werden Statusfarben nur statisch angezeigt.</p></div>"
+
+    "<div class='feature'><label><input id='f_confirm' type='checkbox'> LED-Bestätigungsblitz</label>"
+    "<p>Kurzer weißer LED-Blitz beim manuellen oder externen Statuswechsel.</p></div>"
+    "</div>"
+
+    "<div class='card'><h2>Geplant <span class='tag'>noch nicht verfügbar</span></h2>"
+    "<div class='feature planned'><label><input disabled type='checkbox'> Display-Energiesparen nach Inaktivität</label><p>Display und LEDs nach einer einstellbaren Zeit dimmen und bei Bedienung wieder aufwecken.</p></div>"
+    "<div class='feature planned'><label><input disabled type='checkbox'> Akku-Kalibrierung</label><p>Korrekturfaktor über die Weboberfläche einstellen und LiPo-Ladekurve genauer berechnen.</p></div>"
+    "<div class='feature planned'><label><input disabled type='checkbox'> Mehrere WLANs</label><p>Mehrere bekannte Netze speichern und automatisch das beste verfügbare auswählen.</p></div>"
+    "<div class='feature planned'><label><input disabled type='checkbox'> Status-Timer</label><p>Status für 15/30/60/120 Minuten setzen und danach automatisch zurückwechseln.</p></div>"
+    "<div class='feature planned'><label><input disabled type='checkbox'> Statusbilder per Web hochladen</label><p>PNG-Dateien ohne FTP direkt im Browser verwalten.</p></div>"
+    "<div class='feature planned'><label><input disabled type='checkbox'> Dynamische Statusverwaltung</label><p>Status anlegen, löschen, sortieren, Bild, Farbe und Effekt vollständig im Browser ändern.</p></div>"
+    "<div class='feature planned'><label><input disabled type='checkbox'> Status-Historie und Quelle</label><p>Letzte Statuswechsel mit Uhrzeit und Quelle wie Manuell, MQTT, API oder BLE protokollieren.</p></div>"
+    "<div class='feature planned'><label><input disabled type='checkbox'> Hardware-Selbsttest</label><p>Display, LEDs, Touch, Taster, SD, Akku und WLAN automatisch testen.</p></div>"
+    "<div class='feature planned'><label><input disabled type='checkbox'> Nachtmodus / zeitabhängige Helligkeit</label><p>Separate Helligkeit für Tag und Nacht sowie optional DND ohne blinkende Effekte.</p></div>"
+    "<div class='feature planned'><label><input disabled type='checkbox'> Touch-Gesten</label><p>Wischen für Statuswechsel, Schnellmenü und Helligkeitssteuerung.</p></div>"
+    "<div class='feature planned'><label><input disabled type='checkbox'> Sperrmodus</label><p>Lokale Bedienung sperren und Änderungen nur noch über freigegebene Schnittstellen zulassen.</p></div>"
+    "<div class='feature planned'><label><input disabled type='checkbox'> Diagnose-/Fehlerprotokoll</label><p>Neustartgrund, NTP-Status, Warnungen und Fehler auf SD protokollieren.</p></div>"
+    "<div class='feature planned'><label><input disabled type='checkbox'> Erweiterte HA-/Streamer.bot-Automatik</label><p>Prioritäten, Quellen und automatische Zustände für Stream, Meeting und andere Ereignisse.</p></div>"
+    "<div class='feature planned'><label><input disabled type='checkbox'> Kalenderstatus</label><p>Meetings aus einem Kalender automatisch auf der Anzeige darstellen.</p></div>"
+    "</div>"
+
+    "<div class='card'>"
+    "<label>API-Passcode zum Speichern</label><br><input id='ps' type='password' inputmode='numeric'> "
+    "<button onclick='saveFeatures()'>Speichern & Neustarten</button> "
+    "<button class='secondary' onclick='location.href=\"/config\"'>Zurück</button>"
+    "<div id='result' style='margin-top:12px'></div>"
+    "</div>"
+
+    "<script>"
+    "const ids=['ble','ftp','mqtt','ha','touch','clock','statusbar','captive','webupdate','sdupdate','remember','batprotect','ledeffects','confirm'];"
+    "async function loadFeatures(){"
+      "let r=await fetch('/api/features');let j=await r.json();"
+      "if(!j.ok)return;"
+      "ids.forEach(k=>{let e=document.getElementById('f_'+k);if(e)e.checked=!!j[k]});"
+      "ps.value=sessionStorage.getItem('statusanzeige_ps')||'';"
+    "}"
+    "async function saveFeatures(){"
+      "let code=ps.value.trim();if(!code){result.innerHTML='<span class=bad>API-Passcode fehlt.</span>';return;}"
+      "sessionStorage.setItem('statusanzeige_ps',code);"
+      "let p=new URLSearchParams();ids.forEach(k=>p.set(k,document.getElementById('f_'+k).checked?'1':'0'));"
+      "let r=await fetch('/api/features/save?ps='+encodeURIComponent(code),{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:p});"
+      "let j=await r.json().catch(()=>({ok:false}));"
+      "result.innerHTML=j.ok?'<span class=ok>Gespeichert. Gerät startet neu...</span>':'<span class=bad>Speichern fehlgeschlagen.</span>';"
+    "}"
+    "loadFeatures();"
+    "</script></div></body></html>"
+  );
+  return h;
+}
+
+void handleFeaturesGet() {
+  JsonDocument d;
+  d["ok"] = true;
+  d["ble"] = cfg.bleEnabled;
+  d["ftp"] = cfg.ftpEnabled;
+  d["mqtt"] = cfg.mqttEnabled;
+  d["ha"] = cfg.mqttDiscovery;
+  d["touch"] = cfg.touchEnabled;
+  d["clock"] = cfg.clockEnabled;
+  d["statusbar"] = cfg.statusBarEnabled;
+  d["captive"] = cfg.captivePortalEnabled;
+  d["webupdate"] = cfg.webUpdateEnabled;
+  d["sdupdate"] = cfg.sdUpdateEnabled;
+  d["remember"] = cfg.rememberLastStatus;
+  d["batprotect"] = cfg.lowBatteryProtectionEnabled;
+  d["ledeffects"] = cfg.ledEffectsEnabled;
+  d["confirm"] = cfg.confirmationFlashEnabled;
+  String out;
+  serializeJson(d, out);
+  web.send(200, "application/json; charset=utf-8", out);
+}
+
+void handleFeaturesSave() {
+  if (!checkApiPasscode()) return;
+
+  File f = SD.open("/config/config.json", FILE_READ);
+  if (!f) {
+    web.send(500, "application/json", "{\"ok\":false,\"error\":\"config nicht lesbar\"}");
+    return;
+  }
+
+  JsonDocument d;
+  if (deserializeJson(d, f)) {
+    f.close();
+    web.send(500, "application/json", "{\"ok\":false,\"error\":\"config ungueltig\"}");
+    return;
+  }
+  f.close();
+
+  auto on = [](const String &v) { return v == "1"; };
+
+  if (web.hasArg("ble")) d["bluetooth"]["enabled"] = on(web.arg("ble"));
+  if (web.hasArg("ftp")) d["ftp"]["enabled"] = on(web.arg("ftp"));
+  if (web.hasArg("mqtt")) d["mqtt"]["enabled"] = on(web.arg("mqtt"));
+  if (web.hasArg("ha")) d["mqtt"]["home_assistant_discovery"] = on(web.arg("ha"));
+  if (web.hasArg("touch")) d["touch"]["enabled"] = on(web.arg("touch"));
+  if (web.hasArg("clock")) d["clock"]["enabled"] = on(web.arg("clock"));
+  if (web.hasArg("statusbar")) d["status_bar"]["enabled"] = on(web.arg("statusbar"));
+  if (web.hasArg("captive")) d["wifi"]["fallback_ap"]["captive_portal"] = on(web.arg("captive"));
+  if (web.hasArg("webupdate")) d["web_update"]["enabled"] = on(web.arg("webupdate"));
+  if (web.hasArg("sdupdate")) d["sd_update"]["enabled"] = on(web.arg("sdupdate"));
+  if (web.hasArg("remember")) d["startup"]["remember_last_status"] = on(web.arg("remember"));
+  if (web.hasArg("batprotect")) d["features"]["low_battery_protection"] = on(web.arg("batprotect"));
+  if (web.hasArg("ledeffects")) d["features"]["led_effects"] = on(web.arg("ledeffects"));
+  if (web.hasArg("confirm")) d["features"]["confirmation_flash"] = on(web.arg("confirm"));
+
+  copySdFile("/config/config.json", "/config/config.bak");
+  SD.remove("/config/config.json");
+  File out = SD.open("/config/config.json", FILE_WRITE);
+  if (!out || serializeJsonPretty(d, out) == 0) {
+    if (out) out.close();
+    web.send(500, "application/json", "{\"ok\":false,\"error\":\"Speichern fehlgeschlagen\"}");
+    return;
+  }
+  out.close();
+
+  web.send(200, "application/json", "{\"ok\":true,\"reboot\":true}");
+  delay(700);
+  ESP.restart();
+}
+
 void updateLowBatteryProtection() {
+  if (!cfg.lowBatteryProtectionEnabled) return;
   if (cfg.powerDisplayMode != "battery" ||
       !cfg.batteryEnabled ||
       lastBatteryPercent < 0) return;
@@ -2325,6 +2524,7 @@ String buildHomePage() {
     "<div class='nav'>"
     "<a href='/wifi'>WLAN</a>"
     "<a href='/config'>Konfiguration</a>"
+    "<a href='/features'>Optionen</a>"
     "<a href='/statuses'>Statusfarben</a>"
     "<a href='/system'>System</a>"
     "<a href='/update'>Update</a>"
@@ -2458,6 +2658,18 @@ void startWeb() {
 
   web.on("/api/config/save", HTTP_POST, []() {
     handleConfigSave();
+  });
+
+  web.on("/features", HTTP_GET, []() {
+    web.send(200, "text/html; charset=utf-8", featuresPage());
+  });
+
+  web.on("/api/features", HTTP_GET, []() {
+    handleFeaturesGet();
+  });
+
+  web.on("/api/features/save", HTTP_POST, []() {
+    handleFeaturesSave();
   });
 
 web.on("/system", HTTP_GET, [](){ web.send(200,"text/html; charset=utf-8",systemPage()); });
