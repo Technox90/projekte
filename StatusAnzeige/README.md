@@ -75,3 +75,12 @@ Den Inhalt von `SD_Karte/` auf eine FAT32-microSD kopieren. WLAN, Passwoerter un
 ## Sicherheit
 
 FTP und die lokale HTTP-Weboberflaeche sind fuer ein vertrauenswuerdiges LAN gedacht. Keine Portweiterleitung aus dem Internet auf Port 21/80 einrichten.
+
+
+## 2.0.1 – Weboberfläche
+
+- Statusbuttons nutzen jetzt `fetch()` statt direkter Navigation auf `/api/status`.
+- Die Startseite bleibt bei Statuswechseln und Systemaktionen geöffnet.
+- `Bild neu laden`, `Config neu laden` und `Neustart` laufen im Hintergrund.
+- API-Passcode kann pro Browser-Sitzung auf der Startseite gemerkt werden.
+- API-Passcode ist in `/config` direkt änderbar, inklusive Bestätigungsfeld.
