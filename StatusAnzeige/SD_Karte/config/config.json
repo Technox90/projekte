@@ -55,7 +55,7 @@
   "battery": {
     "enabled": true,
     "adc_pin": 5,
-    "divider": 3.0,
+    "divider": 3,
     "min_voltage": 3.3,
     "max_voltage": 4.2,
     "warn_percent": 20,
@@ -226,5 +226,8 @@
   "firmware": {
     "version": "2.0.2",
     "build": "2026-10-25"
+  },
+  "power": {
+    "display_mode": "battery"
   }
 }
