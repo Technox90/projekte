@@ -228,7 +228,10 @@
     "build": "2026-10-25"
   },
   "power": {
-    "display_mode": "battery"
+    "display_mode": "battery",
+    "vbus_sense_pin": -1,
+    "vbus_sense_divider": 2,
+    "vbus_sense_threshold": 4
   },
   "features": {
     "low_battery_protection": true,
