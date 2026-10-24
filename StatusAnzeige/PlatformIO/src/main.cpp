@@ -1945,11 +1945,16 @@ String configPage() {
     "<label><input id='statusbar_enabled' type='checkbox'>Statusleiste anzeigen</label>"
     "<div class='grid'>"
     "<div><label>Versorgungsanzeige</label><select id='power_display_mode'>"
+    "<option value='auto'>AUTO</option>"
     "<option value='battery'>Akku</option>"
     "<option value='usb'>USB</option>"
     "<option value='off'>Aus</option>"
     "</select></div>"
+    "<div><label>VBUS-Sense GPIO</label><input id='vbus_sense_pin' type='number' min='-1' max='48'></div>"
+    "<div><label>VBUS Teiler-Faktor</label><input id='vbus_sense_divider' type='number' step='0.01' min='1' max='10'></div>"
+    "<div><label>USB-Erkennung ab (V)</label><input id='vbus_sense_threshold' type='number' step='0.1' min='1' max='6'></div>"
     "</div>"
+    "<div class='muted'>AUTO nutzt den separat verdrahteten VBUS-Sense-Pin. Bei GPIO -1 wird als Fallback Akku angezeigt.</div>"
     "</div>"
 
     "<div class='card'><h2>WLAN</h2><div class='grid'>"
@@ -1998,6 +2003,9 @@ String configPage() {
         "el('statusbar_enabled').checked=j.statusbar_enabled;"
         "el('statusbar_height').value=j.statusbar_height;"
         "el('power_display_mode').value=j.power_display_mode||'battery';"
+        "el('vbus_sense_pin').value=j.vbus_sense_pin??-1;"
+        "el('vbus_sense_divider').value=j.vbus_sense_divider??2.0;"
+        "el('vbus_sense_threshold').value=j.vbus_sense_threshold??4.0;"
         "el('wifi_ssid').value=j.wifi_ssid||'';"
         "el('ftp_enabled').checked=j.ftp_enabled;"
         "el('ftp_user').value=j.ftp_user||'';"
@@ -2023,6 +2031,9 @@ String configPage() {
       "p.set('statusbar_enabled',el('statusbar_enabled').checked?'1':'0');"
       "p.set('statusbar_height',el('statusbar_height').value);"
       "p.set('power_display_mode',el('power_display_mode').value);"
+      "p.set('vbus_sense_pin',el('vbus_sense_pin').value);"
+      "p.set('vbus_sense_divider',el('vbus_sense_divider').value);"
+      "p.set('vbus_sense_threshold',el('vbus_sense_threshold').value);"
       "p.set('wifi_ssid',el('wifi_ssid').value);"
       "p.set('wifi_password',el('wifi_password').value);"
       "p.set('ftp_enabled',el('ftp_enabled').checked?'1':'0');"
@@ -2068,6 +2079,9 @@ void handleConfigGet() {
   doc["statusbar_height"] = cfg.statusBarHeight;
   doc["battery_enabled"] = cfg.batteryEnabled;
   doc["power_display_mode"] = cfg.powerDisplayMode;
+  doc["vbus_sense_pin"] = cfg.vbusSensePin;
+  doc["vbus_sense_divider"] = cfg.vbusSenseDivider;
+  doc["vbus_sense_threshold"] = cfg.vbusSenseThreshold;
   doc["wifi_ssid"] = cfg.wifiSsid;
   doc["ftp_enabled"] = cfg.ftpEnabled;
   doc["ftp_user"] = cfg.ftpUser;
@@ -2128,12 +2142,26 @@ void handleConfigSave() {
     String mode = web.arg("power_display_mode");
     mode.toLowerCase();
 
-    if (mode != "battery" && mode != "usb" && mode != "off") {
+    if (mode != "auto" && mode != "battery" && mode != "usb" && mode != "off") {
       mode = "battery";
     }
 
     doc["power"]["display_mode"] = mode;
-    doc["battery"]["enabled"] = mode == "battery";
+    doc["battery"]["enabled"] = mode == "battery" || mode == "auto";
+  }
+
+  if (web.hasArg("vbus_sense_pin")) {
+    doc["power"]["vbus_sense_pin"] = constrain(web.arg("vbus_sense_pin").toInt(), -1, 48);
+  }
+
+  if (web.hasArg("vbus_sense_divider")) {
+    doc["power"]["vbus_sense_divider"] =
+      constrain(web.arg("vbus_sense_divider").toFloat(), 1.0f, 10.0f);
+  }
+
+  if (web.hasArg("vbus_sense_threshold")) {
+    doc["power"]["vbus_sense_threshold"] =
+      constrain(web.arg("vbus_sense_threshold").toFloat(), 1.0f, 6.0f);
   }
 
   if (web.hasArg("wifi_ssid")) {
