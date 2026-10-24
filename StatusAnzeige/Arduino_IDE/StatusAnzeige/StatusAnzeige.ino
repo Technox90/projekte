@@ -2550,7 +2550,24 @@ void handleConfigBackup() {
 }
 
 String restorePage() {
-  return String(F("<!doctype html><html><body style='background:#080b10;color:#eee;font-family:Arial;padding:20px'><h1>Config wiederherstellen</h1><form id=f><input id=j type=file accept=.json required><p>API-Passcode: <input id=p type=password required></p><button>config.json hochladen</button></form><p><button onclick=R()>config.bak wiederherstellen</button></p><pre id=o></pre><script>f.onsubmit=async e=>{e.preventDefault();let d=new FormData();d.append('config',j.files[0]);let r=await fetch('/config/restore?ps='+encodeURIComponent(p.value),{method:'POST',body:d});o.textContent=await r.text()};async function R(){let r=await fetch('/config/restore-backup?ps='+encodeURIComponent(p.value),{method:'POST'});o.textContent=await r.text()}</script><a href='/config'>Zurueck</a></body></html>"));
+  return String(F(
+    "<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>"
+    "<title>StatusAnzeige – Wiederherstellen</title><style>"
+    "body{margin:0;background:#080b10;color:#eef2f7;font-family:Arial,sans-serif}.wrap{max-width:720px;margin:auto;padding:22px}"
+    ".card{background:#121822;border:1px solid #273142;border-radius:14px;padding:18px;margin-bottom:16px}"
+    "input{width:100%;box-sizing:border-box;background:#090d13;color:#fff;border:1px solid #39465a;border-radius:9px;padding:11px;margin:8px 0 14px}"
+    "button,.nav a{background:#1f6feb;color:#fff;border:0;border-radius:9px;padding:11px 14px;text-decoration:none;cursor:pointer}.secondary,.nav a{background:#283241}"
+    ".nav{display:flex;gap:9px;flex-wrap:wrap}.muted{color:#9aa8ba}"
+    "</style></head><body><div class='wrap'><h1>Konfiguration wiederherstellen</h1>"
+    "<div class='card'><p class='muted'>Eine zuvor gesicherte config.json hochladen.</p><form id='f'><label>config.json</label><input id='j' type='file' accept='.json' required>"
+    "<label>API-Passcode</label><input id='p' type='password' inputmode='numeric' required><button>Config hochladen</button></form><pre id='o'></pre></div>"
+    "<div class='card'><h2>Automatisches Backup</h2><p class='muted'>Stellt die zuletzt automatisch gesicherte config.bak wieder her.</p><button class='secondary' onclick='R()'>config.bak wiederherstellen</button></div>"
+    "<div class='card'><div class='nav'><a href='/'>Schnellstatus</a><a href='/config'>Konfiguration</a></div></div>"
+    "<script>p.value=sessionStorage.getItem('statusanzeige_ps')||'';"
+    "f.onsubmit=async e=>{e.preventDefault();sessionStorage.setItem('statusanzeige_ps',p.value);let d=new FormData();d.append('config',j.files[0]);let r=await fetch('/config/restore?ps='+encodeURIComponent(p.value),{method:'POST',body:d});o.textContent=await r.text()};"
+    "async function R(){sessionStorage.setItem('statusanzeige_ps',p.value);let r=await fetch('/config/restore-backup?ps='+encodeURIComponent(p.value),{method:'POST'});o.textContent=await r.text()}"
+    "</script></div></body></html>"
+  ));
 }
 
 void handleConfigRestoreUpload() {
