@@ -1,0 +1,230 @@
+{
+  "device": {
+    "name": "StatusAnzeige",
+    "hostname": "statusanzeige",
+    "language": "de",
+    "timezone": "Europe/Berlin"
+  },
+  "wifi": {
+    "enabled": true,
+    "ssid": "DEIN_WLAN_NAME",
+    "password": "DEIN_WLAN_PASSWORT",
+    "connect_timeout_ms": 15000,
+    "fallback_ap": {
+      "enabled": true,
+      "ssid": "StatusAnzeige-Setup",
+      "password": "StatusAnzeige123",
+      "captive_portal": true
+    }
+  },
+  "bluetooth": {
+    "enabled": true,
+    "device_name": "StatusAnzeige"
+  },
+  "ftp": {
+    "enabled": true,
+    "user": "status",
+    "password": "StatusAnzeige123!"
+  },
+  "api": {
+    "enabled": true,
+    "passcode": "123456"
+  },
+  "clock": {
+    "enabled": true,
+    "timezone_posix": "CET-1CEST,M3.5.0/2,M10.5.0/3",
+    "ntp1": "pool.ntp.org",
+    "ntp2": "time.google.com",
+    "ntp3": "time.cloudflare.com",
+    "footer_height": 54,
+    "refresh_ms": 250,
+    "blink_colon": false
+  },
+  "display": {
+    "width": 240,
+    "height": 320,
+    "rotation": 2,
+    "brightness_percent": 80,
+    "image_folder": "/images"
+  },
+  "status_bar": {
+    "enabled": true,
+    "height": 22,
+    "refresh_ms": 1000
+  },
+  "battery": {
+    "enabled": true,
+    "adc_pin": 4,
+    "divider": 3.0,
+    "min_voltage": 3.3,
+    "max_voltage": 4.2,
+    "warn_percent": 20,
+    "dim_percent": 10,
+    "critical_percent": 5
+  },
+  "leds": {
+    "count": 13,
+    "data_pin": 17,
+    "brightness_percent": 35,
+    "startup": {
+      "effect": "none",
+      "duration_ms": 0,
+      "step_ms": 45
+    },
+    "menu": {
+      "effect": "pulse",
+      "color": "#0000AA",
+      "min_brightness_percent": 8,
+      "max_brightness_percent": 35,
+      "period_ms": 1600
+    },
+    "confirmation": {
+      "effect": "white_flash",
+      "color": "#FFFFFF",
+      "duration_ms": 120
+    }
+  },
+  "button": {
+    "pin": 18,
+    "active_low": true,
+    "internal_pullup": true,
+    "debounce_ms": 35,
+    "long_press_ms": 700,
+    "menu_timeout_ms": 12000
+  },
+  "statuses": [
+    {
+      "id": "frei",
+      "label": "FREI",
+      "image": "/images/frei.png",
+      "led_color": "#00FF00",
+      "led_effect": "static",
+      "effect_period_ms": 1000
+    },
+    {
+      "id": "busy",
+      "label": "BUSY",
+      "image": "/images/busy.png",
+      "led_color": "#FF0000",
+      "led_effect": "static",
+      "effect_period_ms": 1000
+    },
+    {
+      "id": "meeting",
+      "label": "MEETING",
+      "image": "/images/meeting.png",
+      "led_color": "#0066FF",
+      "led_effect": "static",
+      "effect_period_ms": 1000
+    },
+    {
+      "id": "pause",
+      "label": "PAUSE",
+      "image": "/images/pause.png",
+      "led_color": "#FF8800",
+      "led_effect": "static",
+      "effect_period_ms": 1000
+    },
+    {
+      "id": "mail",
+      "label": "SENDE E-MAIL",
+      "image": "/images/mail.png",
+      "led_color": "#00FFFF",
+      "led_effect": "static",
+      "effect_period_ms": 1000
+    },
+    {
+      "id": "wc",
+      "label": "WC",
+      "image": "/images/wc.png",
+      "led_color": "#AA00FF",
+      "led_effect": "static",
+      "effect_period_ms": 1000
+    },
+    {
+      "id": "live",
+      "label": "LIVE",
+      "image": "/images/live.png",
+      "led_color": "#FF00FF",
+      "led_effect": "static",
+      "effect_period_ms": 1000
+    },
+    {
+      "id": "telefon",
+      "label": "TELEFON",
+      "image": "/images/telefon.png",
+      "led_color": "#00FF66",
+      "led_effect": "static",
+      "effect_period_ms": 1000
+    },
+    {
+      "id": "wartung",
+      "label": "WARTUNG",
+      "image": "/images/wartung.png",
+      "led_color": "#FF3300",
+      "led_effect": "static",
+      "effect_period_ms": 1000
+    },
+    {
+      "id": "bitte_warten",
+      "label": "BITTE WARTEN",
+      "image": "/images/bitte_warten.png",
+      "led_color": "#FFFFFF",
+      "led_effect": "static",
+      "effect_period_ms": 1000
+    },
+    {
+      "id": "bin_gleich_zurueck",
+      "label": "BIN GLEICH ZURÜCK",
+      "image": "/images/bin_gleich_zurueck.png",
+      "led_color": "#3399FF",
+      "led_effect": "static",
+      "effect_period_ms": 1000
+    },
+    {
+      "id": "fck",
+      "label": "F*CK YOU",
+      "image": "/images/fck.png",
+      "led_color": "#FFD000",
+      "led_effect": "static",
+      "effect_period_ms": 1000
+    }
+  ],
+  "startup": {
+    "default_status": "frei",
+    "remember_last_status": true
+  },
+  "sd_update": {
+    "enabled": true,
+    "firmware_path": "/firmware/firmware.bin",
+    "update_flag_path": "/firmware/update.flag",
+    "done_firmware_path": "/firmware/firmware.done.bin"
+  },
+  "logging": {
+    "enabled": true,
+    "folder": "/logs"
+  },
+  "touch": {
+    "enabled": true,
+    "controller": "CST816D",
+    "sda": 48,
+    "scl": 47,
+    "address": "0x15"
+  },
+  "mqtt": {
+    "enabled": false,
+    "host": "",
+    "port": 1883,
+    "user": "",
+    "password": "",
+    "base_topic": "statusanzeige",
+    "home_assistant_discovery": true
+  },
+  "web_update": {
+    "enabled": true
+  },
+  "firmware": {
+    "version": "2.0.2",
+    "build": "2026-10-25"
+  }
+}
