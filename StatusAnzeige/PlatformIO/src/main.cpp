@@ -1958,9 +1958,11 @@ String configPage() {
         "const j=await r.json();"
         "if(!j.ok)throw new Error(j.error||'Speichern fehlgeschlagen');"
         "if(np)sessionStorage.setItem('statusanzeige_ps',np);else sessionStorage.setItem('statusanzeige_ps',ps);"
+        "if(np)sessionStorage.setItem('statusanzeige_ps',np);else sessionStorage.setItem('statusanzeige_ps',ps);"
         "el('result').innerHTML='<span class=\"ok\">Gespeichert. Neustart wird ausgeführt...</span>';"
       "}catch(e){el('result').innerHTML='<span class=\"bad\">'+e.message+'</span>';}"
     "}"
+    "el('auth_ps').value=sessionStorage.getItem('statusanzeige_ps')||'';"
     "el('auth_ps').value=sessionStorage.getItem('statusanzeige_ps')||'';"
     "loadCfg();"
     "</script></div></body></html>"
@@ -2257,13 +2259,11 @@ String buildHomePage() {
     ".ok{color:#62d98b}.bad{color:#ff6b6b}.muted{color:#9aa8ba}"
     "</style></head><body>"
     "<h2>StatusAnzeige</h2>"
-
     "<div class='card'>"
     "<label>API-Passcode: <input id='apiPs' type='password' inputmode='numeric' size='12'></label> "
     "<button class='actionBtn' style='padding:9px 12px' onclick='savePs()'>merken</button>"
     "<div class='small'>Wird nur für diese Browser-Sitzung gespeichert.</div>"
     "</div>"
-
     "<div id='statusGrid' class='grid'>"
   );
 
@@ -2277,10 +2277,7 @@ String buildHomePage() {
 
   html += F(
     "</div>"
-    "<div class='card'>"
-    "<div id='uiMsg' class='muted'>Bereit.</div>"
-    "</div>"
-
+    "<div class='card'><div id='uiMsg' class='muted'>Bereit.</div></div>"
     "<div class='nav'>"
     "<a href='/wifi'>WLAN</a>"
     "<a href='/config'>Konfiguration</a>"
@@ -2288,13 +2285,11 @@ String buildHomePage() {
     "<a href='/system'>System</a>"
     "<a href='/update'>Update</a>"
     "</div>"
-
     "<div class='card'><b>Systemaktionen</b><div class='nav'>"
     "<button class='actionBtn' onclick=\"apiAction('/api/refresh','Bild neu geladen')\">Bild neu laden</button>"
     "<button class='actionBtn' onclick=\"apiAction('/api/reload','Config neu geladen')\">Config neu laden</button>"
     "<button class='actionBtn' onclick='rebootDevice()'>Neustart</button>"
     "</div></div>"
-
     "<div class='small'>"
   );
 
@@ -2302,9 +2297,9 @@ String buildHomePage() {
   html += "FTP: <code>ftp://" + currentIpString() + "/</code><br>";
   html += "mDNS: <code>http://" + cfg.hostname + ".local/</code><br>";
   html += "<a style='color:#7ab7ff' href='/api/info' target='_blank'>API-Info</a>";
+
   html += F(
     "</div>"
-
     "<script>"
     "const psEl=document.getElementById('apiPs');"
     "const msg=document.getElementById('uiMsg');"
