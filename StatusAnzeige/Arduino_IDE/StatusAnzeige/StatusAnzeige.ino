@@ -77,7 +77,7 @@
 #define DEFAULT_STORAGE_TYPE_ESP32 STORAGE_SD
 #include <SimpleFTPServer.h>
 
-#define STATUSANZEIGE_VERSION "2.0.3"
+#define STATUSANZEIGE_VERSION "2.0.4"
 #define STATUSANZEIGE_BUILD "2026-10-25"
 
 // -----------------------------------------------------------------------------
@@ -196,7 +196,7 @@ struct AppConfig {
   uint32_t statusBarRefreshMs = 1000;
 
   bool batteryEnabled = true;
-  int batteryAdcPin = 4;
+  int batteryAdcPin = 5;
   float batteryDivider = 3.0f;
   float batteryMinV = 3.30f;
   float batteryMaxV = 4.20f;
@@ -529,7 +529,7 @@ bool loadConfig() {
   cfg.batteryEnabled = doc["battery"]["enabled"] | cfg.batteryEnabled;
   // BAT_ADC is fixed by the Waveshare PCB wiring.
   // Ignore stale/wrong values from older config files.
-  cfg.batteryAdcPin = 4;
+  cfg.batteryAdcPin = 5;
   cfg.batteryDivider = doc["battery"]["divider"] | cfg.batteryDivider;
   cfg.batteryMinV = doc["battery"]["min_voltage"] | cfg.batteryMinV;
   cfg.batteryMaxV = doc["battery"]["max_voltage"] | cfg.batteryMaxV;
@@ -768,7 +768,7 @@ void initBatteryAdc() {
   if (!cfg.batteryEnabled) return;
 
   // Waveshare ESP32-S3-Touch-LCD-2:
-  // BAT_ADC is GPIO4 = ADC1_CH3.
+  // BAT_ADC is GPIO5 = ADC1_CH4.
   cfg.batteryAdcPin = 4;
 
   analogReadResolution(12);
@@ -784,7 +784,7 @@ float readBatteryVoltage() {
   if (!cfg.batteryEnabled) return 0.0f;
 
   // Fixed hardware mapping on Waveshare ESP32-S3-Touch-LCD-2.
-  const int adcPin = 4;
+  const int adcPin = 5;
 
   // Average several ADC readings to reduce jitter.
   uint32_t mvSum = 0;
