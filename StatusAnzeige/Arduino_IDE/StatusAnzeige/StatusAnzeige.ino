@@ -77,7 +77,7 @@
 #define DEFAULT_STORAGE_TYPE_ESP32 STORAGE_SD
 #include <SimpleFTPServer.h>
 
-#define STATUSANZEIGE_VERSION "2.0.2"
+#define STATUSANZEIGE_VERSION "2.0.3"
 #define STATUSANZEIGE_BUILD "2026-10-25"
 
 // -----------------------------------------------------------------------------
@@ -1387,6 +1387,9 @@ void maintainWifiConnection() {
         WiFi.RSSI()
       );
     }
+
+    // Falls der Webserver beim Boot noch nicht starten konnte:
+    if (!webStarted) startWeb();
     return;
   }
 
@@ -2398,6 +2401,7 @@ bool checkApiPasscode() {
 }
 
 void startWeb() {
+  if (webStarted) return;
   if (!wifiConnected && !apActive) return;
 
   web.on("/config", HTTP_GET, []() {
@@ -2660,15 +2664,19 @@ void setup() {
   else showTextScreen("KEINE STATUS", "config.json pruefen");
 
   connectNetwork();
+
+  // Weboberfläche zuerst starten, damit FTP/BLE/MQTT sie nicht blockieren können.
+  startWeb();
+
   initBatteryAdc();
   initClockSync();
   initTouch();
+
   if (!safeMode) {
     startBle();
     startFtp();
     initMqtt();
   }
-  startWeb();
 
   Serial.println("[SYSTEM] Bereit");
 }
