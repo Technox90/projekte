@@ -1,0 +1,14 @@
+STATUSANZEIGE – BLE CONFIG FIX
+
+Behoben:
+
+1. Die beiden BLE-Serial.printf-Zeilen waren durch einen falschen
+   Zeilenumbruch syntaktisch beschädigt.
+
+2. Arduino-ESP32 Core 3.3.12 unterstützt bei fs::File kein truncate().
+   Deshalb wird /config/config.json beim Speichern neuer WLAN-Daten
+   zuerst entfernt und danach sauber neu angelegt.
+
+Die BLE-WLAN-Kommandos bleiben:
+wifi:SSID|PASSWORT
+reboot

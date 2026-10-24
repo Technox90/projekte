@@ -1,0 +1,21 @@
+STATUSANZEIGE – COLOR FIX
+
+Problem:
+PNG-Bilder wurden farblich verfälscht dargestellt.
+
+Ursache:
+PNGdec erzeugt die Zeile mit:
+PNG_RGB565_BIG_ENDIAN
+
+Der bisherige Code zeichnete diese Daten aber mit:
+draw16bitRGBBitmap()
+
+Das passt byteweise nicht zusammen.
+
+Fix:
+draw16bitBeRGBBitmap()
+
+Damit bleiben PNGdec-Ausgabe und Arduino_GFX in derselben
+Big-Endian RGB565-Reihenfolge.
+
+Die PNG-Dateien selbst müssen NICHT geändert werden.

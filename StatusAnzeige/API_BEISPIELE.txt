@@ -1,0 +1,31 @@
+STATUSANZEIGE – API BEISPIELE
+
+FREI:
+http://statusanzeige.local/api/status?id=frei&ps=123456
+
+BUSY:
+http://statusanzeige.local/api/status?id=busy&ps=123456
+
+MEETING:
+http://statusanzeige.local/api/status?id=meeting&ps=123456
+
+PAUSE:
+http://statusanzeige.local/api/status?id=pause&ps=123456
+
+LIVE:
+http://statusanzeige.local/api/status?id=live&ps=123456
+
+FCK:
+http://statusanzeige.local/api/status?id=fck&ps=123456
+
+INFO:
+http://statusanzeige.local/api/info
+
+REFRESH:
+http://statusanzeige.local/api/refresh?ps=123456
+
+CONFIG NEU LADEN:
+http://statusanzeige.local/api/reload?ps=123456
+
+NEUSTART:
+http://statusanzeige.local/api/reboot?ps=123456

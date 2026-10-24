@@ -1,0 +1,20 @@
+BATTERIE-ADC FIX
+
+Waveshare ESP32-S3-Touch-LCD-2 (2.0", 240x320):
+
+BAT_ADC = GPIO4 = ADC1_CH3
+
+Die vorherige GPIO21-Konfiguration war falsch.
+GPIO21 besitzt beim ESP32-S3 keinen ADC-Kanal und verursachte:
+
+adc_oneshot_read(...): invalid argument: null pointer
+adc_oneshot_get_calibrated_result(...): adc oneshot read fail
+adc_cali: invalid ADC unit
+
+Korrektur:
+- BAT_ADC fest auf GPIO4
+- 12 Bit ADC
+- ADC_11db Attenuation
+- Initialisierungs-Lesung
+- alte adc_pin-Werte aus config.json werden für dieses Board ignoriert
+- Spannungsteiler bleibt Faktor 3.0 (200k / 100k)

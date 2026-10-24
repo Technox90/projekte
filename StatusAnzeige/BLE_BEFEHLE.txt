@@ -1,0 +1,37 @@
+STATUSANZEIGE – BLE BEFEHLE
+
+WRITE UUID:
+7b4e1001-8b6f-4d69-9d52-5f6a7a8c1000
+
+READ/NOTIFY UUID:
+7b4e1002-8b6f-4d69-9d52-5f6a7a8c1000
+
+STATUS:
+status:frei
+status:busy
+status:meeting
+status:pause
+status:mail
+status:wc
+status:live
+status:telefon
+status:wartung
+status:bitte_warten
+status:bin_gleich_zurueck
+status:fck
+
+HELLIGKEIT:
+led:35
+display:80
+
+WLAN:
+wifi:SSID|PASSWORT
+
+BEISPIEL:
+wifi:FRITZ!Box 7690 XY|MeinPasswort
+
+NEUSTART:
+reboot
+
+Die WLAN-Zugangsdaten werden auf der SD-Karte in
+/config/config.json gespeichert.

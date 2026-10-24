@@ -1,0 +1,18 @@
+STATUSANZEIGE – COMPILER FIX
+
+Behoben für ESP32 Arduino Core 3.3.x:
+
+1. PNGdec / NimBLE Konflikt
+   PNGdec/zlib definiert ein Makro namens "local".
+   Dieses wird direkt nach PNGdec mit #undef local entfernt,
+   bevor die BLE/NimBLE-Header geladen werden.
+
+2. Arduino_GFX Farben
+   BLACK -> RGB565_BLACK
+   WHITE -> RGB565_WHITE
+
+Die Meldung zu mehreren SD.h-Bibliotheken ist normal.
+Verwendet werden soll:
+packages/esp32/hardware/esp32/.../libraries/SD
+
+Dieses Paket ersetzt die vorherige Uhr-Version.
