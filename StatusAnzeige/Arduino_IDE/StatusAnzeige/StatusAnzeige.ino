@@ -77,7 +77,7 @@
 #define DEFAULT_STORAGE_TYPE_ESP32 STORAGE_SD
 #include <SimpleFTPServer.h>
 
-#define STATUSANZEIGE_VERSION "2.0.4"
+#define STATUSANZEIGE_VERSION "2.0.5"
 #define STATUSANZEIGE_BUILD "2026-10-25"
 
 // -----------------------------------------------------------------------------
@@ -196,6 +196,7 @@ struct AppConfig {
   uint32_t statusBarRefreshMs = 1000;
 
   bool batteryEnabled = true;
+  String powerDisplayMode = "battery"; // battery | usb | off
   int batteryAdcPin = 5;
   float batteryDivider = 3.0f;
   float batteryMinV = 3.30f;
@@ -527,6 +528,18 @@ bool loadConfig() {
   cfg.statusBarRefreshMs = doc["status_bar"]["refresh_ms"] | cfg.statusBarRefreshMs;
 
   cfg.batteryEnabled = doc["battery"]["enabled"] | cfg.batteryEnabled;
+  cfg.powerDisplayMode = doc["power"]["display_mode"] | cfg.powerDisplayMode;
+  cfg.powerDisplayMode.toLowerCase();
+  if (cfg.powerDisplayMode != "battery" &&
+      cfg.powerDisplayMode != "usb" &&
+      cfg.powerDisplayMode != "off") {
+    cfg.powerDisplayMode = cfg.batteryEnabled ? "battery" : "off";
+  }
+
+  if (!cfg.batteryEnabled && cfg.powerDisplayMode == "battery") {
+    cfg.powerDisplayMode = "off";
+  }
+
   // BAT_ADC is fixed by the Waveshare PCB wiring.
   // Ignore stale/wrong values from older config files.
   cfg.batteryAdcPin = 5;
@@ -765,7 +778,7 @@ void drawClockFooter(bool force) {
 }
 
 void initBatteryAdc() {
-  if (!cfg.batteryEnabled) return;
+  if (!cfg.batteryEnabled || cfg.powerDisplayMode != "battery") return;
 
   // Waveshare ESP32-S3-Touch-LCD-2:
   // BAT_ADC is GPIO5 = ADC1_CH4.
@@ -847,16 +860,25 @@ void drawStatusBar(bool force) {
     else if (rssi >= -85) wifiBars = 1;
   }
 
-  float batteryV = readBatteryVoltage();
-  int batteryPct = cfg.batteryEnabled ? batteryPercentFromVoltage(batteryV) : -1;
+  const bool showBattery =
+    cfg.powerDisplayMode == "battery" && cfg.batteryEnabled;
+  const bool showUsb = cfg.powerDisplayMode == "usb";
 
-  if (!force && wifiBars == lastWifiBars && batteryPct == lastBatteryPercent) {
+  float batteryV = showBattery ? readBatteryVoltage() : 0.0f;
+  int batteryPct = showBattery ? batteryPercentFromVoltage(batteryV) : -1;
+
+  static String lastPowerDisplayMode = "";
+  if (!force &&
+      wifiBars == lastWifiBars &&
+      batteryPct == lastBatteryPercent &&
+      lastPowerDisplayMode == cfg.powerDisplayMode) {
     return;
   }
 
   lastWifiBars = wifiBars;
   lastBatteryPercent = batteryPct;
   lastBatteryVoltage = batteryV;
+  lastPowerDisplayMode = cfg.powerDisplayMode;
 
   const int h = min((int)cfg.statusBarHeight, (int)gfx->height());
   gfx->fillRect(0, 0, gfx->width(), h, RGB565_BLACK);
@@ -883,21 +905,21 @@ void drawStatusBar(bool force) {
     gfx->print("--");
   }
 
-  // ---- Battery icon: right side ----
-  const int bx = gfx->width() - 57;
-  const int by = 4;
-  const int bw = 27;
-  const int bh = 14;
+  // ---- Power source: right side ----
+  if (showBattery) {
+    const int bx = gfx->width() - 57;
+    const int by = 4;
+    const int bw = 27;
+    const int bh = 14;
 
-  gfx->drawRect(bx, by, bw, bh, RGB565_WHITE);
-  gfx->fillRect(bx + bw, by + 4, 3, 6, RGB565_WHITE);
+    gfx->drawRect(bx, by, bw, bh, RGB565_WHITE);
+    gfx->fillRect(bx + bw, by + 4, 3, 6, RGB565_WHITE);
 
-  if (batteryPct >= 0) {
     int fillW = map(constrain(batteryPct, 0, 100), 0, 100, 0, bw - 4);
 
     uint16_t fillColor = RGB565_WHITE;
-    if (batteryPct <= 15) fillColor = 0xF800;      // red
-    else if (batteryPct <= 30) fillColor = 0xFFE0; // yellow
+    if (batteryPct <= 15) fillColor = 0xF800;
+    else if (batteryPct <= 30) fillColor = 0xFFE0;
 
     if (fillW > 0) {
       gfx->fillRect(bx + 2, by + 2, fillW, bh - 4, fillColor);
@@ -908,9 +930,11 @@ void drawStatusBar(bool force) {
     gfx->setCursor(gfx->width() - 24, 7);
     gfx->print(String(batteryPct));
     gfx->print("%");
-  } else {
-    gfx->setCursor(gfx->width() - 21, 7);
-    gfx->print("--");
+  } else if (showUsb) {
+    gfx->setTextSize(1);
+    gfx->setTextColor(RGB565_WHITE, RGB565_BLACK);
+    gfx->setCursor(gfx->width() - 29, 7);
+    gfx->print("USB");
   }
 }
 
@@ -1865,7 +1889,13 @@ String configPage() {
     "<div><label>Statusleiste Höhe (px)</label><input id='statusbar_height' type='number' min='16' max='50'></div>"
     "</div>"
     "<label><input id='statusbar_enabled' type='checkbox'>Statusleiste anzeigen</label>"
-    "<label><input id='battery_enabled' type='checkbox'>Akkuanzeige aktiv</label>"
+    "<div class='grid'>"
+    "<div><label>Versorgungsanzeige</label><select id='power_display_mode'>"
+    "<option value='battery'>Akku</option>"
+    "<option value='usb'>USB</option>"
+    "<option value='off'>Aus</option>"
+    "</select></div>"
+    "</div>"
     "</div>"
 
     "<div class='card'><h2>WLAN</h2><div class='grid'>"
@@ -1913,7 +1943,7 @@ String configPage() {
         "el('rotation').value=j.rotation;"
         "el('statusbar_enabled').checked=j.statusbar_enabled;"
         "el('statusbar_height').value=j.statusbar_height;"
-        "el('battery_enabled').checked=j.battery_enabled;"
+        "el('power_display_mode').value=j.power_display_mode||'battery';"
         "el('wifi_ssid').value=j.wifi_ssid||'';"
         "el('ftp_enabled').checked=j.ftp_enabled;"
         "el('ftp_user').value=j.ftp_user||'';"
@@ -1938,7 +1968,7 @@ String configPage() {
       "p.set('rotation',el('rotation').value);"
       "p.set('statusbar_enabled',el('statusbar_enabled').checked?'1':'0');"
       "p.set('statusbar_height',el('statusbar_height').value);"
-      "p.set('battery_enabled',el('battery_enabled').checked?'1':'0');"
+      "p.set('power_display_mode',el('power_display_mode').value);"
       "p.set('wifi_ssid',el('wifi_ssid').value);"
       "p.set('wifi_password',el('wifi_password').value);"
       "p.set('ftp_enabled',el('ftp_enabled').checked?'1':'0');"
@@ -1983,6 +2013,7 @@ void handleConfigGet() {
   doc["statusbar_enabled"] = cfg.statusBarEnabled;
   doc["statusbar_height"] = cfg.statusBarHeight;
   doc["battery_enabled"] = cfg.batteryEnabled;
+  doc["power_display_mode"] = cfg.powerDisplayMode;
   doc["wifi_ssid"] = cfg.wifiSsid;
   doc["ftp_enabled"] = cfg.ftpEnabled;
   doc["ftp_user"] = cfg.ftpUser;
@@ -2039,8 +2070,16 @@ void handleConfigSave() {
     doc["status_bar"]["height"] = constrain(web.arg("statusbar_height").toInt(), 16, 50);
   }
 
-  if (web.hasArg("battery_enabled")) {
-    doc["battery"]["enabled"] = web.arg("battery_enabled") == "1";
+  if (web.hasArg("power_display_mode")) {
+    String mode = web.arg("power_display_mode");
+    mode.toLowerCase();
+
+    if (mode != "battery" && mode != "usb" && mode != "off") {
+      mode = "battery";
+    }
+
+    doc["power"]["display_mode"] = mode;
+    doc["battery"]["enabled"] = mode == "battery";
   }
 
   if (web.hasArg("wifi_ssid")) {
@@ -2116,7 +2155,9 @@ void handleConfigSave() {
 
 
 void updateLowBatteryProtection() {
-  if (!cfg.batteryEnabled || lastBatteryPercent < 0) return;
+  if (cfg.powerDisplayMode != "battery" ||
+      !cfg.batteryEnabled ||
+      lastBatteryPercent < 0) return;
   bool shouldDim = lastBatteryPercent <= cfg.batteryDimPercent;
   if (shouldDim == lowBatteryDimActive) return;
   lowBatteryDimActive = shouldDim;
@@ -2361,8 +2402,11 @@ void sendInfoJson() {
   doc["api_passcode_required"] = cfg.apiEnabled;
   doc["clock_enabled"] = cfg.clockEnabled;
   doc["clock_synced"] = timeSynced;
-  doc["battery_percent"] = lastBatteryPercent;
-  doc["battery_voltage"] = lastBatteryVoltage;
+  doc["power_display_mode"] = cfg.powerDisplayMode;
+  doc["battery_percent"] =
+    cfg.powerDisplayMode == "battery" ? lastBatteryPercent : -1;
+  doc["battery_voltage"] =
+    cfg.powerDisplayMode == "battery" ? lastBatteryVoltage : 0.0f;
   doc["wifi_rssi"] = wifiConnected ? WiFi.RSSI() : -127;
   doc["free_heap"] = ESP.getFreeHeap();
   doc["psram_free"] = ESP.getFreePsram();
