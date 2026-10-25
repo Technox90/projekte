@@ -1,0 +1,41 @@
+name: Build StatusAnzeige Firmware
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "StatusAnzeige/**"
+      - ".github/workflows/statusanzeige-firmware.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install PlatformIO
+        run: pip install --disable-pip-version-check platformio
+
+      - name: Build firmware
+        working-directory: StatusAnzeige/PlatformIO
+        run: pio run -e statusanzeige
+
+      - name: Prepare firmware
+        run: |
+          mkdir -p build-output
+          cp StatusAnzeige/PlatformIO/.pio/build/statusanzeige/firmware.bin build-output/firmware.bin
+          cp StatusAnzeige/PlatformIO/.pio/build/statusanzeige/firmware.elf build-output/firmware.elf
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: StatusAnzeige-Firmware
+          path: build-output/*
+          retention-days: 30
