@@ -79,7 +79,7 @@
 #define DEFAULT_STORAGE_TYPE_ESP32 STORAGE_SD
 #include <SimpleFTPServer.h>
 
-#define STATUSANZEIGE_VERSION "2.4.0"
+#define STATUSANZEIGE_VERSION "2.5.0"
 #define STATUSANZEIGE_BUILD "2026-10-25"
 
 // -----------------------------------------------------------------------------
@@ -232,6 +232,22 @@ struct AppConfig {
   bool ledEffectsEnabled = true;
   bool confirmationFlashEnabled = true;
 
+  // Kalenderstatus
+  bool calendarEnabled = false;
+  String calendarSource = "ical"; // ical | google_ical | home_assistant
+  String calendarIcsUrl = "";
+  String calendarHaUrl = "";
+  String calendarHaToken = "";
+  String calendarHaEntity = "";
+  String calendarStatusId = "meeting";
+  String calendarRestoreMode = "previous"; // previous | frei | default
+  uint16_t calendarPreMinutes = 0;
+  uint16_t calendarPostMinutes = 0;
+  uint16_t calendarPollSeconds = 60;
+  bool calendarIgnoreAllDay = true;
+  bool calendarShowTitle = false;
+  String calendarKeywords = "";
+
   uint8_t displayRotation = 2;
   uint8_t displayBrightness = 80;
 
@@ -312,6 +328,14 @@ uint32_t lastStatusBarRefresh = 0;
 int lastWifiBars = -1;
 int lastBatteryPercent = -1;
 float lastBatteryVoltage = 0.0f;
+
+uint32_t lastCalendarCheck = 0;
+bool calendarActive = false;
+String calendarPreviousStatusId = "";
+String calendarActiveTitle = "";
+String calendarNextTitle = "";
+time_t calendarNextStart = 0;
+String calendarLastError = "";
 
 // -----------------------------------------------------------------------------
 // Prototypen
@@ -399,6 +423,11 @@ void handleFeaturesSave();
 String buildHomePage();
 String buttonPage();
 void sendInfoJson();
+String calendarPage();
+void handleCalendarConfigGet();
+void handleCalendarSave();
+void handleCalendarTest();
+void maintainCalendar();
 
 // -----------------------------------------------------------------------------
 // Hilfen
@@ -593,6 +622,25 @@ cfg.captivePortalEnabled = doc["wifi"]["fallback_ap"]["captive_portal"] | cfg.ca
 cfg.lowBatteryProtectionEnabled = doc["features"]["low_battery_protection"] | cfg.lowBatteryProtectionEnabled;
 cfg.ledEffectsEnabled = doc["features"]["led_effects"] | cfg.ledEffectsEnabled;
 cfg.confirmationFlashEnabled = doc["features"]["confirmation_flash"] | cfg.confirmationFlashEnabled;
+
+cfg.calendarEnabled = doc["calendar"]["enabled"] | (doc["experimental"]["calendar"] | cfg.calendarEnabled);
+cfg.calendarSource = doc["calendar"]["source"] | cfg.calendarSource;
+cfg.calendarIcsUrl = doc["calendar"]["ical_url"] | cfg.calendarIcsUrl;
+cfg.calendarHaUrl = doc["calendar"]["ha_url"] | cfg.calendarHaUrl;
+cfg.calendarHaToken = doc["calendar"]["ha_token"] | cfg.calendarHaToken;
+cfg.calendarHaEntity = doc["calendar"]["ha_entity"] | cfg.calendarHaEntity;
+cfg.calendarStatusId = doc["calendar"]["status_id"] | cfg.calendarStatusId;
+cfg.calendarRestoreMode = doc["calendar"]["restore_mode"] | cfg.calendarRestoreMode;
+cfg.calendarPreMinutes = doc["calendar"]["pre_minutes"] | cfg.calendarPreMinutes;
+cfg.calendarPostMinutes = doc["calendar"]["post_minutes"] | cfg.calendarPostMinutes;
+cfg.calendarPollSeconds = doc["calendar"]["poll_seconds"] | cfg.calendarPollSeconds;
+cfg.calendarIgnoreAllDay = doc["calendar"]["ignore_all_day"] | cfg.calendarIgnoreAllDay;
+cfg.calendarShowTitle = doc["calendar"]["show_title"] | cfg.calendarShowTitle;
+cfg.calendarKeywords = doc["calendar"]["keywords"] | cfg.calendarKeywords;
+
+if (cfg.calendarSource != "ical" && cfg.calendarSource != "google_ical" && cfg.calendarSource != "home_assistant") cfg.calendarSource = "ical";
+if (cfg.calendarRestoreMode != "previous" && cfg.calendarRestoreMode != "frei" && cfg.calendarRestoreMode != "default") cfg.calendarRestoreMode = "previous";
+cfg.calendarPollSeconds = constrain(cfg.calendarPollSeconds, (uint16_t)15, (uint16_t)3600);
 
   cfg.displayRotation = doc["display"]["rotation"] | cfg.displayRotation;
   cfg.displayBrightness = doc["display"]["brightness_percent"] | cfg.displayBrightness;
@@ -2392,7 +2440,7 @@ void handleFeaturesGet() {
       d["lockmode"] = ed["experimental"]["lockmode"] | false;
       d["errorlog"] = ed["experimental"]["errorlog"] | false;
       d["advancedauto"] = ed["experimental"]["advancedauto"] | false;
-      d["calendar"] = ed["experimental"]["calendar"] | false;
+      d["calendar"] = cfg.calendarEnabled;
     }
     ef.close();
   }
@@ -2447,7 +2495,10 @@ void handleFeaturesSave() {
   if (web.hasArg("lockmode")) d["experimental"]["lockmode"] = on(web.arg("lockmode"));
   if (web.hasArg("errorlog")) d["experimental"]["errorlog"] = on(web.arg("errorlog"));
   if (web.hasArg("advancedauto")) d["experimental"]["advancedauto"] = on(web.arg("advancedauto"));
-  if (web.hasArg("calendar")) d["experimental"]["calendar"] = on(web.arg("calendar"));
+  if (web.hasArg("calendar")) {
+    d["experimental"]["calendar"] = on(web.arg("calendar"));
+    d["calendar"]["enabled"] = on(web.arg("calendar"));
+  }
 
   copySdFile("/config/config.json", "/config/config.bak");
   SD.remove("/config/config.json");
@@ -2462,6 +2513,607 @@ void handleFeaturesSave() {
   web.send(200, "application/json", "{\"ok\":true,\"reboot\":true}");
   delay(700);
   ESP.restart();
+}
+
+// -----------------------------------------------------------------------------
+// Kalenderstatus
+// -----------------------------------------------------------------------------
+struct CalendarEvent {
+  bool valid = false;
+  bool allDay = false;
+  String title;
+  time_t start = 0;
+  time_t end = 0;
+};
+
+time_t makeEpochUtc(int y, int mo, int d, int h, int mi, int se) {
+  struct tm t = {};
+  t.tm_year = y - 1900;
+  t.tm_mon = mo - 1;
+  t.tm_mday = d;
+  t.tm_hour = h;
+  t.tm_min = mi;
+  t.tm_sec = se;
+  t.tm_isdst = -1;
+  return timegm(&t);
+}
+
+time_t makeEpochLocal(int y, int mo, int d, int h, int mi, int se) {
+  struct tm t = {};
+  t.tm_year = y - 1900;
+  t.tm_mon = mo - 1;
+  t.tm_mday = d;
+  t.tm_hour = h;
+  t.tm_min = mi;
+  t.tm_sec = se;
+  t.tm_isdst = -1;
+  return mktime(&t);
+}
+
+bool parseIsoDateTime(const String &value, time_t &epoch, bool &allDay) {
+  String v = value;
+  v.trim();
+  allDay = false;
+
+  if (v.length() == 10 && v[4] == '-' && v[7] == '-') {
+    int y = v.substring(0,4).toInt();
+    int mo = v.substring(5,7).toInt();
+    int d = v.substring(8,10).toInt();
+    epoch = makeEpochLocal(y, mo, d, 0, 0, 0);
+    allDay = true;
+    return epoch > 0;
+  }
+
+  if (v.length() < 19) return false;
+  int y = v.substring(0,4).toInt();
+  int mo = v.substring(5,7).toInt();
+  int d = v.substring(8,10).toInt();
+  int h = v.substring(11,13).toInt();
+  int mi = v.substring(14,16).toInt();
+  int se = v.substring(17,19).toInt();
+
+  if (v.length() == 19) {
+    epoch = makeEpochLocal(y, mo, d, h, mi, se);
+    return epoch > 0;
+  }
+
+  if (v[19] == 'Z') {
+    epoch = makeEpochUtc(y, mo, d, h, mi, se);
+    return epoch > 0;
+  }
+
+  if (v[19] == '+' || v[19] == '-') {
+    int sign = v[19] == '+' ? 1 : -1;
+    int oh = 0, om = 0;
+    if (v.length() >= 25 && v[22] == ':') {
+      oh = v.substring(20,22).toInt();
+      om = v.substring(23,25).toInt();
+    } else if (v.length() >= 24) {
+      oh = v.substring(20,22).toInt();
+      om = v.substring(22,24).toInt();
+    }
+    epoch = makeEpochUtc(y, mo, d, h, mi, se) - sign * (oh * 3600 + om * 60);
+    return epoch > 0;
+  }
+
+  epoch = makeEpochLocal(y, mo, d, h, mi, se);
+  return epoch > 0;
+}
+
+bool parseIcsDateTime(String value, time_t &epoch, bool &allDay) {
+  value.trim();
+  allDay = false;
+
+  if (value.length() == 8) {
+    int y = value.substring(0,4).toInt();
+    int mo = value.substring(4,6).toInt();
+    int d = value.substring(6,8).toInt();
+    epoch = makeEpochLocal(y, mo, d, 0, 0, 0);
+    allDay = true;
+    return epoch > 0;
+  }
+
+  if (value.length() < 15 || value[8] != 'T') return false;
+  int y = value.substring(0,4).toInt();
+  int mo = value.substring(4,6).toInt();
+  int d = value.substring(6,8).toInt();
+  int h = value.substring(9,11).toInt();
+  int mi = value.substring(11,13).toInt();
+  int se = value.substring(13,15).toInt();
+
+  if (value.endsWith("Z")) epoch = makeEpochUtc(y, mo, d, h, mi, se);
+  else epoch = makeEpochLocal(y, mo, d, h, mi, se);
+
+  return epoch > 0;
+}
+
+String urlEncode(const String &src) {
+  String out;
+  const char *hex = "0123456789ABCDEF";
+  for (size_t i = 0; i < src.length(); i++) {
+    uint8_t c = (uint8_t)src[i];
+    if ((c >= 'a' && c <= 'z') ||
+        (c >= 'A' && c <= 'Z') ||
+        (c >= '0' && c <= '9') ||
+        c == '-' || c == '_' || c == '.' || c == '~') {
+      out += (char)c;
+    } else {
+      out += '%';
+      out += hex[c >> 4];
+      out += hex[c & 0x0F];
+    }
+  }
+  return out;
+}
+
+String isoUtc(time_t value) {
+  struct tm tmv;
+  gmtime_r(&value, &tmv);
+  char buf[25];
+  strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%SZ", &tmv);
+  return String(buf);
+}
+
+bool calendarTitleMatches(const String &title) {
+  String filters = cfg.calendarKeywords;
+  filters.trim();
+  if (filters.isEmpty()) return true;
+
+  String lowerTitle = title;
+  lowerTitle.toLowerCase();
+
+  int start = 0;
+  while (start <= filters.length()) {
+    int comma = filters.indexOf(',', start);
+    if (comma < 0) comma = filters.length();
+
+    String item = filters.substring(start, comma);
+    item.trim();
+    item.toLowerCase();
+
+    if (!item.isEmpty() && lowerTitle.indexOf(item) >= 0) return true;
+    start = comma + 1;
+  }
+  return false;
+}
+
+bool httpGetText(const String &url, const String &bearerToken, String &body, String &error) {
+  if (!wifiConnected) {
+    error = "WLAN nicht verbunden";
+    return false;
+  }
+
+  HTTPClient http;
+  WiFiClientSecure secure;
+  WiFiClient plain;
+  http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+  http.setTimeout(15000);
+
+  bool begun = false;
+  if (url.startsWith("https://")) {
+    secure.setInsecure();
+    begun = http.begin(secure, url);
+  } else {
+    begun = http.begin(plain, url);
+  }
+
+  if (!begun) {
+    error = "HTTP-Verbindung konnte nicht gestartet werden";
+    return false;
+  }
+
+  if (!bearerToken.isEmpty()) {
+    http.addHeader("Authorization", "Bearer " + bearerToken);
+  }
+
+  int code = http.GET();
+  if (code != HTTP_CODE_OK) {
+    error = "HTTP " + String(code);
+    http.end();
+    return false;
+  }
+
+  body = http.getString();
+  http.end();
+
+  if (body.isEmpty()) {
+    error = "Leere Antwort";
+    return false;
+  }
+  return true;
+}
+
+bool chooseCalendarEvent(const CalendarEvent &candidate, time_t now, CalendarEvent &best) {
+  if (!candidate.valid) return false;
+  if (cfg.calendarIgnoreAllDay && candidate.allDay) return false;
+  if (!calendarTitleMatches(candidate.title)) return false;
+
+  time_t activeStart = candidate.start - (time_t)cfg.calendarPreMinutes * 60;
+  time_t activeEnd = candidate.end + (time_t)cfg.calendarPostMinutes * 60;
+
+  bool candActive = now >= activeStart && now <= activeEnd;
+  bool bestActive = best.valid &&
+    now >= best.start - (time_t)cfg.calendarPreMinutes * 60 &&
+    now <= best.end + (time_t)cfg.calendarPostMinutes * 60;
+
+  if (!best.valid) {
+    best = candidate;
+    return true;
+  }
+
+  if (candActive && !bestActive) {
+    best = candidate;
+    return true;
+  }
+
+  if (candActive == bestActive && candidate.start < best.start) {
+    best = candidate;
+    return true;
+  }
+
+  return false;
+}
+
+bool fetchIcsCalendar(CalendarEvent &best, String &error) {
+  if (cfg.calendarIcsUrl.isEmpty()) {
+    error = "iCal-URL fehlt";
+    return false;
+  }
+
+  String body;
+  if (!httpGetText(cfg.calendarIcsUrl, "", body, error)) return false;
+
+  body.replace("\r\n ", "");
+  body.replace("\r\n\t", "");
+  body.replace("\r", "");
+
+  time_t now = time(nullptr);
+  int pos = 0;
+  bool anyParsed = false;
+
+  while (true) {
+    int begin = body.indexOf("BEGIN:VEVENT", pos);
+    if (begin < 0) break;
+    int end = body.indexOf("END:VEVENT", begin);
+    if (end < 0) break;
+
+    String block = body.substring(begin, end);
+    CalendarEvent ev;
+    String dtStart, dtEnd, summary;
+
+    int lp = 0;
+    while (lp < block.length()) {
+      int le = block.indexOf('\n', lp);
+      if (le < 0) le = block.length();
+      String line = block.substring(lp, le);
+      line.trim();
+
+      int colon = line.indexOf(':');
+      if (colon > 0) {
+        String key = line.substring(0, colon);
+        String val = line.substring(colon + 1);
+        if (key.startsWith("DTSTART")) dtStart = val;
+        else if (key.startsWith("DTEND")) dtEnd = val;
+        else if (key == "SUMMARY") summary = val;
+      }
+      lp = le + 1;
+    }
+
+    bool startAllDay = false, endAllDay = false;
+    if (parseIcsDateTime(dtStart, ev.start, startAllDay)) {
+      ev.allDay = startAllDay;
+      if (!parseIcsDateTime(dtEnd, ev.end, endAllDay)) {
+        ev.end = ev.start + (startAllDay ? 86400 : 3600);
+      }
+      if (ev.end <= ev.start) ev.end = ev.start + (startAllDay ? 86400 : 3600);
+      ev.title = summary.isEmpty() ? "Kalendertermin" : summary;
+      ev.valid = true;
+      anyParsed = true;
+
+      time_t relevanceStart = now - 86400;
+      time_t relevanceEnd = now + 7 * 86400;
+      if (ev.end >= relevanceStart && ev.start <= relevanceEnd) {
+        chooseCalendarEvent(ev, now, best);
+      }
+    }
+
+    pos = end + 10;
+  }
+
+  if (!anyParsed) {
+    error = "Keine VEVENT-Termine erkannt";
+    return false;
+  }
+  return true;
+}
+
+bool fetchHomeAssistantCalendar(CalendarEvent &best, String &error) {
+  if (cfg.calendarHaUrl.isEmpty() || cfg.calendarHaEntity.isEmpty()) {
+    error = "Home-Assistant URL oder Kalender-Entity fehlt";
+    return false;
+  }
+
+  String base = cfg.calendarHaUrl;
+  while (base.endsWith("/")) base.remove(base.length() - 1);
+
+  time_t now = time(nullptr);
+  String startIso = isoUtc(now - 86400);
+  String endIso = isoUtc(now + 7 * 86400);
+
+  String url = base + "/api/calendars/" + cfg.calendarHaEntity +
+    "?start=" + urlEncode(startIso) + "&end=" + urlEncode(endIso);
+
+  String body;
+  if (!httpGetText(url, cfg.calendarHaToken, body, error)) return false;
+
+  JsonDocument doc;
+  DeserializationError de = deserializeJson(doc, body);
+  if (de) {
+    error = "Home-Assistant JSON ungueltig";
+    return false;
+  }
+
+  JsonArray arr = doc.as<JsonArray>();
+  for (JsonObject item : arr) {
+    CalendarEvent ev;
+
+    JsonVariant startObj = item["start"];
+    JsonVariant endObj = item["end"];
+    String sv, evv;
+    bool startAllDay = false, endAllDay = false;
+
+    if (startObj["dateTime"].is<const char*>()) sv = String((const char*)startObj["dateTime"]);
+    else if (startObj["date"].is<const char*>()) sv = String((const char*)startObj["date"]);
+
+    if (endObj["dateTime"].is<const char*>()) evv = String((const char*)endObj["dateTime"]);
+    else if (endObj["date"].is<const char*>()) evv = String((const char*)endObj["date"]);
+
+    if (!parseIsoDateTime(sv, ev.start, startAllDay)) continue;
+    if (!parseIsoDateTime(evv, ev.end, endAllDay)) ev.end = ev.start + (startAllDay ? 86400 : 3600);
+
+    ev.allDay = startAllDay;
+    ev.title = item["summary"] | "Kalendertermin";
+    ev.valid = true;
+    chooseCalendarEvent(ev, now, best);
+  }
+
+  return true;
+}
+
+bool fetchCalendarEvent(CalendarEvent &best, String &error) {
+  best = CalendarEvent();
+  if (cfg.calendarSource == "home_assistant") {
+    return fetchHomeAssistantCalendar(best, error);
+  }
+  if (cfg.calendarSource == "ical" || cfg.calendarSource == "google_ical") {
+    return fetchIcsCalendar(best, error);
+  }
+  error = "Unbekannte Kalenderquelle";
+  return false;
+}
+
+void drawCalendarTitleOverlay(const String &title) {
+  if (!cfg.calendarShowTitle || title.isEmpty()) return;
+
+  String text = title;
+  if (text.length() > 30) text = text.substring(0, 27) + "...";
+
+  int y = cfg.statusBarEnabled ? cfg.statusBarHeight + 3 : 3;
+  gfx->fillRect(0, y, gfx->width(), 22, RGB565_BLACK);
+  gfx->setTextColor(RGB565_WHITE, RGB565_BLACK);
+  gfx->setTextSize(1);
+  gfx->setCursor(6, y + 7);
+  gfx->print(text);
+}
+
+void restoreStatusAfterCalendar() {
+  String target;
+  if (cfg.calendarRestoreMode == "previous") target = calendarPreviousStatusId;
+  else if (cfg.calendarRestoreMode == "frei") target = "frei";
+  else target = cfg.defaultStatus;
+
+  int idx = findStatusIndex(target);
+  if (idx < 0) idx = findStatusIndex(cfg.defaultStatus);
+  if (idx >= 0) activateStatus(idx, true);
+
+  calendarPreviousStatusId = "";
+}
+
+void maintainCalendar() {
+  if (!cfg.calendarEnabled || !wifiConnected || !timeSynced) return;
+  if (millis() - lastCalendarCheck < cfg.calendarPollSeconds * 1000UL) return;
+  lastCalendarCheck = millis();
+
+  CalendarEvent ev;
+  String error;
+  bool fetched = fetchCalendarEvent(ev, error);
+  calendarLastError = fetched ? "" : error;
+
+  time_t now = time(nullptr);
+  bool active = false;
+
+  if (fetched && ev.valid) {
+    time_t activeStart = ev.start - (time_t)cfg.calendarPreMinutes * 60;
+    time_t activeEnd = ev.end + (time_t)cfg.calendarPostMinutes * 60;
+    active = now >= activeStart && now <= activeEnd;
+
+    calendarNextTitle = ev.title;
+    calendarNextStart = ev.start;
+  } else {
+    calendarNextTitle = "";
+    calendarNextStart = 0;
+  }
+
+  if (active) {
+    if (!calendarActive) {
+      calendarPreviousStatusId =
+        currentStatusIndex >= 0 ? statuses[currentStatusIndex].id : cfg.defaultStatus;
+    }
+
+    calendarActive = true;
+    calendarActiveTitle = ev.title;
+
+    int idx = findStatusIndex(cfg.calendarStatusId);
+    if (idx < 0) idx = findStatusIndex("meeting");
+    if (idx >= 0 && currentStatusIndex != idx) activateStatus(idx, false);
+    drawCalendarTitleOverlay(calendarActiveTitle);
+  } else if (calendarActive) {
+    calendarActive = false;
+    calendarActiveTitle = "";
+    restoreStatusAfterCalendar();
+  }
+}
+
+String calendarPage() {
+  return String(F(
+    "<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>"
+    "<title>StatusAnzeige – Kalender</title><style>"
+    "body{margin:0;background:#080b10;color:#eef2f7;font-family:Arial,sans-serif}.wrap{max-width:900px;margin:auto;padding:22px}"
+    ".card{background:#121822;border:1px solid #273142;border-radius:14px;padding:18px;margin-bottom:16px}"
+    ".grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:650px){.grid{grid-template-columns:1fr}}"
+    "label{display:block;color:#aab5c5;font-size:13px;margin-bottom:5px}input,select{width:100%;box-sizing:border-box;background:#090d13;color:#fff;border:1px solid #39465a;border-radius:9px;padding:10px}"
+    "input[type=checkbox]{width:auto;transform:scale(1.2);margin-right:8px}.check{display:flex;align-items:center;color:#eef2f7;font-size:14px}"
+    "button,.nav a{background:#1f6feb;color:#fff;border:0;border-radius:9px;padding:11px 14px;text-decoration:none;cursor:pointer;margin-right:7px;margin-top:8px}.secondary,.nav a{background:#283241}"
+    ".muted{color:#9aa8ba}.ok{color:#62d98b}.bad{color:#ff6b6b}.nav{display:flex;gap:9px;flex-wrap:wrap}"
+    "</style></head><body><div class='wrap'><h1>Kalenderstatus</h1>"
+    "<div class='card'><div class='grid'>"
+    "<div><label class='check'><input id='enabled' type='checkbox'>Kalenderstatus aktiv</label></div>"
+    "<div><label>Quelle</label><select id='source'><option value='ical'>iCal / ICS</option><option value='google_ical'>Google Calendar – privater iCal-Link</option><option value='home_assistant'>Home Assistant</option></select></div>"
+    "</div><p class='muted'>Google Calendar wird ohne OAuth über den privaten iCal-Link des Kalenders eingebunden.</p></div>"
+
+    "<div class='card'><h2>iCal / Google Calendar</h2><label>iCal-/ICS-URL</label><input id='ical_url' type='url' placeholder='https://.../calendar.ics'>"
+    "<p class='muted'>Bei Google Calendar den privaten iCal-Link verwenden. Dieser Link ist vertraulich.</p></div>"
+
+    "<div class='card'><h2>Home Assistant</h2><div class='grid'>"
+    "<div><label>Home-Assistant URL</label><input id='ha_url' placeholder='http://homeassistant.local:8123'></div>"
+    "<div><label>Kalender-Entity</label><input id='ha_entity' placeholder='calendar.mein_kalender'></div>"
+    "</div><label>Long-Lived Access Token</label><input id='ha_token' type='password' placeholder='leer = gespeicherten Token behalten'>"
+    "<p class='muted'>Der Token wird nur in config.json auf der SD gespeichert und nicht über die Konfigurations-API zurückgegeben.</p></div>"
+
+    "<div class='card'><h2>Verhalten</h2><div class='grid'>"
+    "<div><label>Meeting-Status</label><select id='status_id'></select></div>"
+    "<div><label>Nach Termin</label><select id='restore_mode'><option value='previous'>Vorherigen Status wiederherstellen</option><option value='frei'>Auf FREI setzen</option><option value='default'>Standardstatus</option></select></div>"
+    "<div><label>Vorlauf (Minuten)</label><input id='pre_minutes' type='number' min='0' max='240'></div>"
+    "<div><label>Nachlauf (Minuten)</label><input id='post_minutes' type='number' min='0' max='240'></div>"
+    "<div><label>Abfrageintervall (Sekunden)</label><input id='poll_seconds' type='number' min='15' max='3600'></div>"
+    "<div><label>Schlüsselwörter (Komma getrennt)</label><input id='keywords' placeholder='Meeting, Teams, Besprechung'></div>"
+    "</div>"
+    "<p><label class='check'><input id='ignore_all_day' type='checkbox'>Ganztägige Termine ignorieren</label></p>"
+    "<p><label class='check'><input id='show_title' type='checkbox'>Termin-Titel auf dem Display einblenden</label></p>"
+    "</div>"
+
+    "<div class='card'><h2>Status</h2><div id='state' class='muted'>Noch nicht geprüft.</div>"
+    "<label style='margin-top:12px'>API-Passcode</label><input id='ps' type='password' inputmode='numeric'>"
+    "<button onclick='saveCfg()'>Speichern</button><button class='secondary' onclick='loadCfg()'>Neu laden</button><button class='secondary' onclick='testCalendar()'>Kalender testen</button></div>"
+    "<div class='card'><div class='nav'><a href='/'>Alle Status</a><a href='/btn'>Schnellstatus</a><a href='/features'>Optionen</a><a href='/config'>Konfiguration</a></div></div>"
+
+    "<script>"
+    "const E=id=>document.getElementById(id);"
+    "async function statuses(){let j=await (await fetch('/api/statuses')).json();E('status_id').innerHTML='';j.statuses.forEach(s=>{let o=document.createElement('option');o.value=s.id;o.textContent=s.label+' ('+s.id+')';E('status_id').appendChild(o)})}"
+    "async function loadCfg(){let ps=E('ps').value.trim();if(!ps){state.innerHTML='<span class=bad>Passcode eingeben.</span>';return;}sessionStorage.setItem('statusanzeige_ps',ps);let r=await fetch('/api/calendar/config?ps='+encodeURIComponent(ps),{cache:'no-store'});let j=await r.json();if(!j.ok){state.innerHTML='<span class=bad>Konfiguration konnte nicht geladen werden.</span>';return;}enabled.checked=j.enabled;source.value=j.source||'ical';ical_url.value=j.ical_url||'';ha_url.value=j.ha_url||'';ha_entity.value=j.ha_entity||'';status_id.value=j.status_id||'meeting';restore_mode.value=j.restore_mode||'previous';pre_minutes.value=j.pre_minutes||0;post_minutes.value=j.post_minutes||0;poll_seconds.value=j.poll_seconds||60;keywords.value=j.keywords||'';ignore_all_day.checked=!!j.ignore_all_day;show_title.checked=!!j.show_title;state.innerHTML='<span class=ok>Konfiguration geladen.</span>'}"
+    "async function saveCfg(){let ps=E('ps').value.trim();if(!ps){state.innerHTML='<span class=bad>Passcode fehlt.</span>';return;}sessionStorage.setItem('statusanzeige_ps',ps);let p=new URLSearchParams();['source','ical_url','ha_url','ha_entity','status_id','restore_mode','pre_minutes','post_minutes','poll_seconds','keywords'].forEach(k=>p.set(k,E(k).value));p.set('enabled',enabled.checked?'1':'0');p.set('ignore_all_day',ignore_all_day.checked?'1':'0');p.set('show_title',show_title.checked?'1':'0');if(ha_token.value)p.set('ha_token',ha_token.value);let r=await fetch('/api/calendar/save?ps='+encodeURIComponent(ps),{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:p});let j=await r.json();state.innerHTML=j.ok?'<span class=ok>Gespeichert. Einstellungen sind sofort aktiv.</span>':'<span class=bad>'+String(j.error||'Fehler')+'</span>';}"
+    "async function testCalendar(){let ps=E('ps').value.trim();if(!ps){state.innerHTML='<span class=bad>Passcode fehlt.</span>';return;}state.textContent='Kalender wird geprüft...';let r=await fetch('/api/calendar/test?ps='+encodeURIComponent(ps),{method:'POST'});let j=await r.json();if(!j.ok){state.innerHTML='<span class=bad>'+String(j.error||'Test fehlgeschlagen')+'</span>';return;}let t=j.event_title?('Termin: '+j.event_title+' | Start: '+j.event_start):'Verbindung OK – aktuell/kommende 7 Tage kein passender Termin.';state.innerHTML='<span class=ok>'+t+'</span>';}"
+    "async function init(){await statuses();E('ps').value=sessionStorage.getItem('statusanzeige_ps')||'';if(E('ps').value)loadCfg()}init();"
+    "</script></div></body></html>"
+  ));
+}
+
+void handleCalendarConfigGet() {
+  if (!checkApiPasscode()) return;
+
+  JsonDocument d;
+  d["ok"] = true;
+  d["enabled"] = cfg.calendarEnabled;
+  d["source"] = cfg.calendarSource;
+  d["ical_url"] = cfg.calendarIcsUrl;
+  d["ha_url"] = cfg.calendarHaUrl;
+  d["ha_entity"] = cfg.calendarHaEntity;
+  d["ha_token_set"] = !cfg.calendarHaToken.isEmpty();
+  d["status_id"] = cfg.calendarStatusId;
+  d["restore_mode"] = cfg.calendarRestoreMode;
+  d["pre_minutes"] = cfg.calendarPreMinutes;
+  d["post_minutes"] = cfg.calendarPostMinutes;
+  d["poll_seconds"] = cfg.calendarPollSeconds;
+  d["ignore_all_day"] = cfg.calendarIgnoreAllDay;
+  d["show_title"] = cfg.calendarShowTitle;
+  d["keywords"] = cfg.calendarKeywords;
+
+  String out;
+  serializeJson(d, out);
+  web.send(200, "application/json; charset=utf-8", out);
+}
+
+void handleCalendarSave() {
+  if (!checkApiPasscode()) return;
+
+  File f = SD.open("/config/config.json", FILE_READ);
+  if (!f) {
+    web.send(500, "application/json", "{\"ok\":false,\"error\":\"config.json nicht lesbar\"}");
+    return;
+  }
+
+  JsonDocument d;
+  if (deserializeJson(d, f)) {
+    f.close();
+    web.send(500, "application/json", "{\"ok\":false,\"error\":\"config.json ungueltig\"}");
+    return;
+  }
+  f.close();
+
+  if (web.hasArg("enabled")) d["calendar"]["enabled"] = web.arg("enabled") == "1";
+  if (web.hasArg("source")) d["calendar"]["source"] = web.arg("source");
+  if (web.hasArg("ical_url")) d["calendar"]["ical_url"] = web.arg("ical_url");
+  if (web.hasArg("ha_url")) d["calendar"]["ha_url"] = web.arg("ha_url");
+  if (web.hasArg("ha_entity")) d["calendar"]["ha_entity"] = web.arg("ha_entity");
+  if (web.hasArg("ha_token") && !web.arg("ha_token").isEmpty()) d["calendar"]["ha_token"] = web.arg("ha_token");
+  if (web.hasArg("status_id")) d["calendar"]["status_id"] = web.arg("status_id");
+  if (web.hasArg("restore_mode")) d["calendar"]["restore_mode"] = web.arg("restore_mode");
+  if (web.hasArg("pre_minutes")) d["calendar"]["pre_minutes"] = constrain(web.arg("pre_minutes").toInt(), 0, 240);
+  if (web.hasArg("post_minutes")) d["calendar"]["post_minutes"] = constrain(web.arg("post_minutes").toInt(), 0, 240);
+  if (web.hasArg("poll_seconds")) d["calendar"]["poll_seconds"] = constrain(web.arg("poll_seconds").toInt(), 15, 3600);
+  if (web.hasArg("ignore_all_day")) d["calendar"]["ignore_all_day"] = web.arg("ignore_all_day") == "1";
+  if (web.hasArg("show_title")) d["calendar"]["show_title"] = web.arg("show_title") == "1";
+  if (web.hasArg("keywords")) d["calendar"]["keywords"] = web.arg("keywords");
+
+  // Legacy-Schalter synchron halten.
+  d["experimental"]["calendar"] = d["calendar"]["enabled"];
+
+  copySdFile("/config/config.json", "/config/config.bak");
+  SD.remove("/config/config.json");
+  File out = SD.open("/config/config.json", FILE_WRITE);
+  if (!out || serializeJsonPretty(d, out) == 0) {
+    if (out) out.close();
+    web.send(500, "application/json", "{\"ok\":false,\"error\":\"Speichern fehlgeschlagen\"}");
+    return;
+  }
+  out.close();
+
+  loadConfig();
+  lastCalendarCheck = 0;
+  web.send(200, "application/json", "{\"ok\":true}");
+}
+
+void handleCalendarTest() {
+  if (!checkApiPasscode()) return;
+
+  CalendarEvent ev;
+  String error;
+  bool ok = fetchCalendarEvent(ev, error);
+
+  JsonDocument d;
+  d["ok"] = ok;
+  if (!ok) {
+    d["error"] = error;
+  } else if (ev.valid) {
+    d["event_title"] = ev.title;
+    d["event_start"] = isoUtc(ev.start);
+    d["event_end"] = isoUtc(ev.end);
+    d["all_day"] = ev.allDay;
+  }
+
+  String out;
+  serializeJson(d, out);
+  web.send(ok ? 200 : 500, "application/json; charset=utf-8", out);
 }
 
 void updateLowBatteryProtection() {
@@ -2524,6 +3176,8 @@ String systemPage() {
   addRow("FTP", ftpStarted ? "AN" : "AUS");
   addRow("BLE", bleStarted ? "AN" : "AUS");
   addRow("MQTT", mqttStarted ? "AN" : "AUS");
+  addRow("Kalender", cfg.calendarEnabled ? (calendarActive ? "AKTIV: " + calendarActiveTitle : "AN") : "AUS");
+  if (!calendarLastError.isEmpty()) addRow("Kalenderfehler", calendarLastError);
   addRow("Safe Mode", safeMode ? "JA" : "NEIN");
 
   h += F("</div><div class='card'><div class='nav'><a href='/'>Schnellstatus</a><a href='/config'>Konfiguration</a><a href='/features'>Optionen</a></div></div></div></body></html>");
@@ -3011,6 +3665,22 @@ void startWeb() {
     web.send(200, "text/html; charset=utf-8", featuresPage());
   });
 
+  web.on("/calendar", HTTP_GET, []() {
+    web.send(200, "text/html; charset=utf-8", calendarPage());
+  });
+
+  web.on("/api/calendar/config", HTTP_GET, []() {
+    handleCalendarConfigGet();
+  });
+
+  web.on("/api/calendar/save", HTTP_POST, []() {
+    handleCalendarSave();
+  });
+
+  web.on("/api/calendar/test", HTTP_POST, []() {
+    handleCalendarTest();
+  });
+
   web.on("/api/features", HTTP_GET, []() {
     handleFeaturesGet();
   });
@@ -3301,6 +3971,7 @@ void loop() {
   updateTouch();
   maintainWifiConnection();
   maintainMqtt();
+  maintainCalendar();
 
   if (menuActive) {
     // Im Menü ausschließlich dunkelblau pulsieren.
