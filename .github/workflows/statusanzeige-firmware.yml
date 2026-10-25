@@ -40,7 +40,7 @@ jobs:
           mkdir -p StatusAnzeige/firmware
           cp StatusAnzeige/PlatformIO/.pio/build/statusanzeige/firmware.bin StatusAnzeige/firmware/firmware.bin
           sha256sum StatusAnzeige/firmware/firmware.bin | awk '{print $1}' > StatusAnzeige/firmware/firmware.sha256
-          printf '%s\n' "2.4.0" > StatusAnzeige/firmware/version.txt
+          printf '%s\n' "2.5.0" > StatusAnzeige/firmware/version.txt
 
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
@@ -60,6 +60,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "Firmware unchanged."
           else
-            git commit -m "Build StatusAnzeige firmware 2.4.0 [skip ci]"
+            git commit -m "Build StatusAnzeige firmware 2.5.0 [skip ci]"
             git push
           fi
