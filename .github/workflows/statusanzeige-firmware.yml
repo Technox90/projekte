@@ -5,6 +5,7 @@ on:
     branches: [ main ]
     paths:
       - "StatusAnzeige/PlatformIO/src/**"
+      - "StatusAnzeige/PlatformIO/include/**"
       - "StatusAnzeige/PlatformIO/platformio.ini"
       - ".github/workflows/statusanzeige-firmware.yml"
   workflow_dispatch:
