@@ -77,7 +77,7 @@
 #define DEFAULT_STORAGE_TYPE_ESP32 STORAGE_SD
 #include <SimpleFTPServer.h>
 
-#define STATUSANZEIGE_VERSION "2.2.0"
+#define STATUSANZEIGE_VERSION "2.3.0"
 #define STATUSANZEIGE_BUILD "2026-10-25"
 
 // -----------------------------------------------------------------------------
@@ -390,6 +390,7 @@ String featuresPage();
 void handleFeaturesGet();
 void handleFeaturesSave();
 String buildHomePage();
+String buttonPage();
 void sendInfoJson();
 
 // -----------------------------------------------------------------------------
@@ -2303,21 +2304,21 @@ String featuresPage() {
     "<p>Kurzer weißer LED-Blitz beim manuellen oder externen Statuswechsel.</p></div>"
     "</div>"
 
-    "<div class='card'><h2>Geplant <span class='tag'>noch nicht verfügbar</span></h2>"
-    "<div class='feature planned'><label><input disabled type='checkbox'> Display-Energiesparen nach Inaktivität</label><p>Display und LEDs nach einer einstellbaren Zeit dimmen und bei Bedienung wieder aufwecken.</p></div>"
-    "<div class='feature planned'><label><input disabled type='checkbox'> Akku-Kalibrierung</label><p>Korrekturfaktor über die Weboberfläche einstellen und LiPo-Ladekurve genauer berechnen.</p></div>"
-    "<div class='feature planned'><label><input disabled type='checkbox'> Mehrere WLANs</label><p>Mehrere bekannte Netze speichern und automatisch das beste verfügbare auswählen.</p></div>"
-    "<div class='feature planned'><label><input disabled type='checkbox'> Status-Timer</label><p>Status für 15/30/60/120 Minuten setzen und danach automatisch zurückwechseln.</p></div>"
-    "<div class='feature planned'><label><input disabled type='checkbox'> Statusbilder per Web hochladen</label><p>PNG-Dateien ohne FTP direkt im Browser verwalten.</p></div>"
-    "<div class='feature planned'><label><input disabled type='checkbox'> Dynamische Statusverwaltung</label><p>Status anlegen, löschen, sortieren, Bild, Farbe und Effekt vollständig im Browser ändern.</p></div>"
-    "<div class='feature planned'><label><input disabled type='checkbox'> Status-Historie und Quelle</label><p>Letzte Statuswechsel mit Uhrzeit und Quelle wie Manuell, MQTT, API oder BLE protokollieren.</p></div>"
-    "<div class='feature planned'><label><input disabled type='checkbox'> Hardware-Selbsttest</label><p>Display, LEDs, Touch, Taster, SD, Akku und WLAN automatisch testen.</p></div>"
-    "<div class='feature planned'><label><input disabled type='checkbox'> Nachtmodus / zeitabhängige Helligkeit</label><p>Separate Helligkeit für Tag und Nacht sowie optional DND ohne blinkende Effekte.</p></div>"
-    "<div class='feature planned'><label><input disabled type='checkbox'> Touch-Gesten</label><p>Wischen für Statuswechsel, Schnellmenü und Helligkeitssteuerung.</p></div>"
-    "<div class='feature planned'><label><input disabled type='checkbox'> Sperrmodus</label><p>Lokale Bedienung sperren und Änderungen nur noch über freigegebene Schnittstellen zulassen.</p></div>"
-    "<div class='feature planned'><label><input disabled type='checkbox'> Diagnose-/Fehlerprotokoll</label><p>Neustartgrund, NTP-Status, Warnungen und Fehler auf SD protokollieren.</p></div>"
-    "<div class='feature planned'><label><input disabled type='checkbox'> Erweiterte HA-/Streamer.bot-Automatik</label><p>Prioritäten, Quellen und automatische Zustände für Stream, Meeting und andere Ereignisse.</p></div>"
-    "<div class='feature planned'><label><input disabled type='checkbox'> Kalenderstatus</label><p>Meetings aus einem Kalender automatisch auf der Anzeige darstellen.</p></div>"
+    "<div class='card'><h2>Erweiterte Module</h2>"
+    "<div class='feature'><label><input id='f_powersave' type='checkbox'> Display-Energiesparen nach Inaktivität</label><p>Display und LEDs nach einer einstellbaren Zeit dimmen und bei Bedienung wieder aufwecken.<br><span class='tag'>Schalter wird gespeichert; Backend-Funktion folgt schrittweise.</span></p></div>"
+    "<div class='feature'><label><input id='f_batcal' type='checkbox'> Akku-Kalibrierung</label><p>Korrekturfaktor und realistischere LiPo-Ladekurve vorbereiten.<br><span class='tag'>Schalter wird gespeichert; Backend-Funktion folgt schrittweise.</span></p></div>"
+    "<div class='feature'><label><input id='f_multiwifi' type='checkbox'> Mehrere WLANs</label><p>Mehrere bekannte Netze speichern und automatisch auswählen.<br><span class='tag'>Schalter wird gespeichert; Backend-Funktion folgt schrittweise.</span></p></div>"
+    "<div class='feature'><label><input id='f_timer' type='checkbox'> Status-Timer</label><p>Status zeitlich begrenzen und anschließend automatisch zurückwechseln.<br><span class='tag'>Schalter wird gespeichert; Backend-Funktion folgt schrittweise.</span></p></div>"
+    "<div class='feature'><label><input id='f_imageupload' type='checkbox'> Statusbilder per Web hochladen</label><p>PNG-Dateien direkt im Browser verwalten.<br><span class='tag'>Schalter wird gespeichert; Backend-Funktion folgt schrittweise.</span></p></div>"
+    "<div class='feature'><label><input id='f_dynamicstatus' type='checkbox'> Dynamische Statusverwaltung</label><p>Status anlegen, löschen, sortieren und vollständig bearbeiten.<br><span class='tag'>Schalter wird gespeichert; Backend-Funktion folgt schrittweise.</span></p></div>"
+    "<div class='feature'><label><input id='f_history' type='checkbox'> Status-Historie und Quelle</label><p>Letzte Statuswechsel mit Uhrzeit und Quelle protokollieren.<br><span class='tag'>Schalter wird gespeichert; Backend-Funktion folgt schrittweise.</span></p></div>"
+    "<div class='feature'><label><input id='f_selftest' type='checkbox'> Hardware-Selbsttest</label><p>Display, LEDs, Touch, Taster, SD, Akku und WLAN testen.<br><span class='tag'>Schalter wird gespeichert; Backend-Funktion folgt schrittweise.</span></p></div>"
+    "<div class='feature'><label><input id='f_nightmode' type='checkbox'> Nachtmodus / zeitabhängige Helligkeit</label><p>Separate Tag-/Nacht-Helligkeit und DND vorbereiten.<br><span class='tag'>Schalter wird gespeichert; Backend-Funktion folgt schrittweise.</span></p></div>"
+    "<div class='feature'><label><input id='f_gestures' type='checkbox'> Touch-Gesten</label><p>Wischen für Statuswechsel und Schnellfunktionen.<br><span class='tag'>Schalter wird gespeichert; Backend-Funktion folgt schrittweise.</span></p></div>"
+    "<div class='feature'><label><input id='f_lockmode' type='checkbox'> Sperrmodus</label><p>Lokale Bedienung sperren und nur freigegebene Schnittstellen erlauben.<br><span class='tag'>Schalter wird gespeichert; Backend-Funktion folgt schrittweise.</span></p></div>"
+    "<div class='feature'><label><input id='f_errorlog' type='checkbox'> Diagnose-/Fehlerprotokoll</label><p>Neustartgrund, NTP-Status, Warnungen und Fehler protokollieren.<br><span class='tag'>Schalter wird gespeichert; Backend-Funktion folgt schrittweise.</span></p></div>"
+    "<div class='feature'><label><input id='f_advancedauto' type='checkbox'> Erweiterte HA-/Streamer.bot-Automatik</label><p>Prioritäten und automatische Zustände für externe Integrationen.<br><span class='tag'>Schalter wird gespeichert; Backend-Funktion folgt schrittweise.</span></p></div>"
+    "<div class='feature'><label><input id='f_calendar' type='checkbox'> Kalenderstatus</label><p>Meetings aus einem Kalender automatisch darstellen.<br><span class='tag'>Schalter wird gespeichert; Backend-Funktion folgt schrittweise.</span></p></div>"
     "</div>"
 
     "<div class='card'>"
@@ -2328,7 +2329,7 @@ String featuresPage() {
     "</div>"
 
     "<script>"
-    "const ids=['ble','ftp','mqtt','ha','touch','clock','statusbar','captive','webupdate','sdupdate','remember','batprotect','ledeffects','confirm'];"
+    "const ids=['ble','ftp','mqtt','ha','touch','clock','statusbar','captive','webupdate','sdupdate','remember','batprotect','ledeffects','confirm','powersave','batcal','multiwifi','timer','imageupload','dynamicstatus','history','selftest','nightmode','gestures','lockmode','errorlog','advancedauto','calendar'];"
     "async function loadFeatures(){"
       "let r=await fetch('/api/features');let j=await r.json();"
       "if(!j.ok)return;"
@@ -2366,6 +2367,27 @@ void handleFeaturesGet() {
   d["batprotect"] = cfg.lowBatteryProtectionEnabled;
   d["ledeffects"] = cfg.ledEffectsEnabled;
   d["confirm"] = cfg.confirmationFlashEnabled;
+  File ef = SD.open("/config/config.json", FILE_READ);
+  if (ef) {
+    JsonDocument ed;
+    if (!deserializeJson(ed, ef)) {
+      d["powersave"] = ed["experimental"]["powersave"] | false;
+      d["batcal"] = ed["experimental"]["batcal"] | false;
+      d["multiwifi"] = ed["experimental"]["multiwifi"] | false;
+      d["timer"] = ed["experimental"]["timer"] | false;
+      d["imageupload"] = ed["experimental"]["imageupload"] | false;
+      d["dynamicstatus"] = ed["experimental"]["dynamicstatus"] | false;
+      d["history"] = ed["experimental"]["history"] | false;
+      d["selftest"] = ed["experimental"]["selftest"] | false;
+      d["nightmode"] = ed["experimental"]["nightmode"] | false;
+      d["gestures"] = ed["experimental"]["gestures"] | false;
+      d["lockmode"] = ed["experimental"]["lockmode"] | false;
+      d["errorlog"] = ed["experimental"]["errorlog"] | false;
+      d["advancedauto"] = ed["experimental"]["advancedauto"] | false;
+      d["calendar"] = ed["experimental"]["calendar"] | false;
+    }
+    ef.close();
+  }
   String out;
   serializeJson(d, out);
   web.send(200, "application/json; charset=utf-8", out);
@@ -2404,6 +2426,20 @@ void handleFeaturesSave() {
   if (web.hasArg("batprotect")) d["features"]["low_battery_protection"] = on(web.arg("batprotect"));
   if (web.hasArg("ledeffects")) d["features"]["led_effects"] = on(web.arg("ledeffects"));
   if (web.hasArg("confirm")) d["features"]["confirmation_flash"] = on(web.arg("confirm"));
+  if (web.hasArg("powersave")) d["experimental"]["powersave"] = on(web.arg("powersave"));
+  if (web.hasArg("batcal")) d["experimental"]["batcal"] = on(web.arg("batcal"));
+  if (web.hasArg("multiwifi")) d["experimental"]["multiwifi"] = on(web.arg("multiwifi"));
+  if (web.hasArg("timer")) d["experimental"]["timer"] = on(web.arg("timer"));
+  if (web.hasArg("imageupload")) d["experimental"]["imageupload"] = on(web.arg("imageupload"));
+  if (web.hasArg("dynamicstatus")) d["experimental"]["dynamicstatus"] = on(web.arg("dynamicstatus"));
+  if (web.hasArg("history")) d["experimental"]["history"] = on(web.arg("history"));
+  if (web.hasArg("selftest")) d["experimental"]["selftest"] = on(web.arg("selftest"));
+  if (web.hasArg("nightmode")) d["experimental"]["nightmode"] = on(web.arg("nightmode"));
+  if (web.hasArg("gestures")) d["experimental"]["gestures"] = on(web.arg("gestures"));
+  if (web.hasArg("lockmode")) d["experimental"]["lockmode"] = on(web.arg("lockmode"));
+  if (web.hasArg("errorlog")) d["experimental"]["errorlog"] = on(web.arg("errorlog"));
+  if (web.hasArg("advancedauto")) d["experimental"]["advancedauto"] = on(web.arg("advancedauto"));
+  if (web.hasArg("calendar")) d["experimental"]["calendar"] = on(web.arg("calendar"));
 
   copySdFile("/config/config.json", "/config/config.bak");
   SD.remove("/config/config.json");
@@ -2633,29 +2669,76 @@ void handleFirmwareUploadDone() {
 // -----------------------------------------------------------------------------
 String buildHomePage() {
   String html;
-  html.reserve(9000);
+  html.reserve(14000);
+
   html += F(
     "<!doctype html><html><head><meta charset='utf-8'>"
     "<meta name='viewport' content='width=device-width,initial-scale=1'>"
-    "<title>StatusAnzeige – Schnellstatus</title>"
+    "<title>StatusAnzeige – Alle Status</title>"
     "<style>"
     "body{margin:0;background:#080b10;color:#eef2f7;font-family:Arial,sans-serif}"
-    ".wrap{max-width:760px;margin:auto;padding:22px}"
-    ".top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}"
-    ".title{font-size:28px;font-weight:700}.sub{color:#9aa8ba;font-size:13px}"
+    ".wrap{max-width:980px;margin:auto;padding:22px}"
+    ".title{font-size:28px;font-weight:700}.sub{color:#9aa8ba;font-size:13px;margin-top:4px}"
     ".card{background:#121822;border:1px solid #273142;border-radius:14px;padding:18px;margin-bottom:16px}"
-    ".quick{display:grid;grid-template-columns:1fr 1fr;gap:12px}"
-    "@media(max-width:560px){.quick{grid-template-columns:1fr}}"
-    ".statusBtn{min-height:70px;background:#182130;color:#fff;border:1px solid #334159;border-radius:12px;font-size:17px;font-weight:700;cursor:pointer;padding:14px}"
+    ".grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}"
+    ".statusBtn{min-height:68px;background:#182130;color:#fff;border:1px solid #334159;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;padding:13px}"
     ".statusBtn:hover{background:#20304a}.statusBtn.active{outline:2px solid #1f6feb;background:#17345b}"
-    ".nav{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}"
-    "@media(max-width:620px){.nav{grid-template-columns:1fr 1fr}}"
+    ".nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:9px}"
     ".nav a{display:block;text-align:center;text-decoration:none;background:#283241;color:#fff;border-radius:9px;padding:11px 10px}"
     "label{display:block;color:#aab5c5;font-size:13px;margin-bottom:6px}"
     "input{width:100%;box-sizing:border-box;background:#090d13;color:#fff;border:1px solid #39465a;border-radius:9px;padding:11px}"
     ".ok{color:#62d98b}.bad{color:#ff6b6b}.muted{color:#9aa8ba}.msg{margin-top:10px;min-height:20px}"
     "</style></head><body><div class='wrap'>"
-    "<div class='top'><div><div class='title'>StatusAnzeige</div><div class='sub'>Schnellstatus via WLAN</div></div></div>"
+    "<div class='title'>StatusAnzeige</div><div class='sub'>Alle verfügbaren Status</div>"
+    "<div class='card'><div class='grid'>"
+  );
+
+  for (size_t i = 0; i < statusCount; i++) {
+    html += "<button id='st_" + statuses[i].id + "' class='statusBtn";
+    if ((int)i == currentStatusIndex) html += " active";
+    html += "' onclick=\"setStatus('" + statuses[i].id + "')\">";
+    html += statuses[i].label;
+    html += "</button>";
+  }
+
+  html += F(
+    "</div></div>"
+    "<div class='card'><label>PASSCODE</label><input id='apiPs' type='password' inputmode='numeric' placeholder='API-Passcode'>"
+    "<div id='uiMsg' class='msg muted'>Bereit.</div></div>"
+    "<div class='card'><div class='nav'>"
+    "<a href='/btn'>6er Schnellmenü</a><a href='/wifi'>WLAN</a><a href='/config'>Konfiguration</a>"
+    "<a href='/features'>Optionen</a><a href='/statuses'>Statusfarben</a><a href='/system'>System</a><a href='/update'>Update</a>"
+    "</div></div>"
+    "<script>"
+    "const psEl=document.getElementById('apiPs'),msg=document.getElementById('uiMsg');"
+    "function showMsg(t,ok){msg.textContent=t;msg.className='msg '+(ok?'ok':'bad');}"
+    "async function callApi(path){let ps=psEl.value.trim();if(!ps){showMsg('Bitte Passcode eingeben.',false);throw new Error('Passcode fehlt');}"
+    "sessionStorage.setItem('statusanzeige_ps',ps);let sep=path.includes('?')?'&':'?';let r=await fetch(path+sep+'ps='+encodeURIComponent(ps),{cache:'no-store'});let j={};try{j=await r.json()}catch(e){}if(!r.ok||j.ok===false)throw new Error(j.error||('HTTP '+r.status));return j;}"
+    "async function setStatus(id){try{let j=await callApi('/api/status?id='+encodeURIComponent(id));document.querySelectorAll('.statusBtn').forEach(b=>b.classList.remove('active'));let b=document.getElementById('st_'+id);if(b)b.classList.add('active');showMsg('Status gesetzt: '+(j.status||id),true)}catch(e){showMsg('Fehler: '+e.message,false)}}"
+    "psEl.value=sessionStorage.getItem('statusanzeige_ps')||'';"
+    "</script></div></body></html>"
+  );
+
+  return html;
+}
+
+String buttonPage() {
+  return String(F(
+    "<!doctype html><html><head><meta charset='utf-8'>"
+    "<meta name='viewport' content='width=device-width,initial-scale=1'>"
+    "<title>StatusAnzeige – Schnellmenü</title>"
+    "<style>"
+    "body{margin:0;background:#080b10;color:#eef2f7;font-family:Arial,sans-serif}"
+    ".wrap{max-width:760px;margin:auto;padding:22px}.title{font-size:28px;font-weight:700}.sub{color:#9aa8ba;font-size:13px;margin:4px 0 18px}"
+    ".card{background:#121822;border:1px solid #273142;border-radius:14px;padding:18px;margin-bottom:16px}"
+    ".quick{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:560px){.quick{grid-template-columns:1fr}}"
+    ".statusBtn{min-height:72px;background:#182130;color:#fff;border:1px solid #334159;border-radius:12px;font-size:17px;font-weight:700;cursor:pointer;padding:14px}"
+    ".statusBtn:hover{background:#20304a}.statusBtn.active{outline:2px solid #1f6feb;background:#17345b}"
+    "label{display:block;color:#aab5c5;font-size:13px;margin-bottom:6px}input{width:100%;box-sizing:border-box;background:#090d13;color:#fff;border:1px solid #39465a;border-radius:9px;padding:11px}"
+    ".nav{display:flex;gap:9px;flex-wrap:wrap}.nav a{background:#283241;color:#fff;text-decoration:none;border-radius:9px;padding:11px 14px}"
+    ".ok{color:#62d98b}.bad{color:#ff6b6b}.muted{color:#9aa8ba}.msg{margin-top:10px;min-height:20px}"
+    "</style></head><body><div class='wrap'>"
+    "<div class='title'>Schnellstatus</div><div class='sub'>6 feste Tasten via WLAN</div>"
     "<div class='card'><div class='quick'>"
     "<button id='st_frei' class='statusBtn' onclick=\"setStatus('frei')\">FREI</button>"
     "<button id='st_busy' class='statusBtn' onclick=\"setStatus('busy')\">BUSSY</button>"
@@ -2664,22 +2747,17 @@ String buildHomePage() {
     "<button id='st_mail' class='statusBtn' onclick=\"setStatus('mail')\">SENDE EMAIL</button>"
     "<button id='st_bitte_warten' class='statusBtn' onclick=\"setStatus('bitte_warten')\">BITTE WARTEN</button>"
     "</div></div>"
-    "<div class='card'><label>PASSCODE</label><input id='apiPs' type='password' inputmode='numeric' placeholder='API-Passcode'>"
-    "<div id='uiMsg' class='msg muted'>Bereit.</div></div>"
-    "<div class='card'><div class='nav'>"
-    "<a href='/wifi'>WLAN</a><a href='/config'>Konfiguration</a><a href='/features'>Optionen</a>"
-    "<a href='/statuses'>Statusfarben</a><a href='/system'>System</a><a href='/update'>Update</a>"
-    "</div></div>"
+    "<div class='card'><label>PASSCODE</label><input id='apiPs' type='password' inputmode='numeric' placeholder='API-Passcode'><div id='uiMsg' class='msg muted'>Bereit.</div></div>"
+    "<div class='card'><div class='nav'><a href='/'>Alle Status</a><a href='/config'>Konfiguration</a></div></div>"
     "<script>"
     "const psEl=document.getElementById('apiPs'),msg=document.getElementById('uiMsg');"
     "function showMsg(t,ok){msg.textContent=t;msg.className='msg '+(ok?'ok':'bad');}"
-    "async function callApi(path){let ps=psEl.value.trim();if(!ps){showMsg('Bitte Passcode eingeben.',false);throw new Error('Passcode fehlt');}"
-    "sessionStorage.setItem('statusanzeige_ps',ps);let sep=path.includes('?')?'&':'?';let r=await fetch(path+sep+'ps='+encodeURIComponent(ps),{cache:'no-store'});let j={};try{j=await r.json()}catch(e){}if(!r.ok||j.ok===false)throw new Error(j.error||('HTTP '+r.status));return j;}"
+    "async function callApi(path){let ps=psEl.value.trim();if(!ps){showMsg('Bitte Passcode eingeben.',false);throw new Error('Passcode fehlt');}sessionStorage.setItem('statusanzeige_ps',ps);let sep=path.includes('?')?'&':'?';let r=await fetch(path+sep+'ps='+encodeURIComponent(ps),{cache:'no-store'});let j={};try{j=await r.json()}catch(e){}if(!r.ok||j.ok===false)throw new Error(j.error||('HTTP '+r.status));return j;}"
     "async function setStatus(id){try{let j=await callApi('/api/status?id='+encodeURIComponent(id));document.querySelectorAll('.statusBtn').forEach(b=>b.classList.remove('active'));let b=document.getElementById('st_'+id);if(b)b.classList.add('active');showMsg('Status gesetzt: '+(j.status||id),true)}catch(e){showMsg('Fehler: '+e.message,false)}}"
-    "psEl.value=sessionStorage.getItemById?sessionStorage.getItemById('statusanzeige_ps'):sessionStorage.getItem('statusanzeige_ps')||'';"
+    "async function current(){try{let j=await (await fetch('/api/info',{cache:'no-store'})).json();let b=document.getElementById('st_'+j.status);if(b)b.classList.add('active')}catch(e){}}"
+    "psEl.value=sessionStorage.getItem('statusanzeige_ps')||'';current();"
     "</script></div></body></html>"
-  );
-  return html;
+  ));
 }
 
 
@@ -2799,6 +2877,10 @@ web.on("/update", HTTP_POST, [](){ handleFirmwareUploadDone(); }, [](){ handleFi
 
   web.on("/", HTTP_GET, []() {
     web.send(200, "text/html; charset=utf-8", buildHomePage());
+  });
+
+  web.on("/btn", HTTP_GET, []() {
+    web.send(200, "text/html; charset=utf-8", buttonPage());
   });
 
   web.on("/api/info", HTTP_GET, []() {
