@@ -224,7 +224,7 @@ struct AppConfig {
   bool mqttDiscovery = true;
 
   bool webUpdateEnabled = true;
-  String githubFirmwareUrl = "";
+  String githubFirmwareUrl = "https://raw.githubusercontent.com/Technox90/projekte/main/StatusAnzeige/firmware/firmware.bin";
   bool captivePortalEnabled = true;
 
   // Optionale Funktionen
