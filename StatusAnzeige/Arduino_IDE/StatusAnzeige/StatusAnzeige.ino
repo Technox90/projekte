@@ -45,6 +45,8 @@
 #include <SD.h>
 #include <FS.h>
 #include <WiFi.h>
+#include <HTTPClient.h>
+#include <WiFiClientSecure.h>
 #include <WebServer.h>
 #include <DNSServer.h>
 #include <Wire.h>
@@ -77,7 +79,7 @@
 #define DEFAULT_STORAGE_TYPE_ESP32 STORAGE_SD
 #include <SimpleFTPServer.h>
 
-#define STATUSANZEIGE_VERSION "2.3.0"
+#define STATUSANZEIGE_VERSION "2.4.0"
 #define STATUSANZEIGE_BUILD "2026-10-25"
 
 // -----------------------------------------------------------------------------
@@ -222,6 +224,7 @@ struct AppConfig {
   bool mqttDiscovery = true;
 
   bool webUpdateEnabled = true;
+  String githubFirmwareUrl = "";
   bool captivePortalEnabled = true;
 
   // Optionale Funktionen
@@ -348,6 +351,10 @@ void updateLowBatteryProtection();
 String updatePage();
 void handleFirmwareUpload();
 void handleFirmwareUploadDone();
+void handleUpdateInfo();
+void handleUpdateUrlSave();
+void handleGithubFirmwareUpdate();
+bool performFirmwareUpdateFromUrl(const String &url, String &error);
 uint32_t parseColor(const String &s, uint32_t fallback);
 uint32_t scaleColor(uint32_t rgb, uint8_t percent);
 
@@ -581,6 +588,7 @@ cfg.mqttBaseTopic = doc["mqtt"]["base_topic"] | cfg.mqttBaseTopic;
 cfg.mqttDiscovery = doc["mqtt"]["home_assistant_discovery"] | cfg.mqttDiscovery;
 
 cfg.webUpdateEnabled = doc["web_update"]["enabled"] | cfg.webUpdateEnabled;
+cfg.githubFirmwareUrl = doc["web_update"]["github_url"] | cfg.githubFirmwareUrl;
 cfg.captivePortalEnabled = doc["wifi"]["fallback_ap"]["captive_portal"] | cfg.captivePortalEnabled;
 cfg.lowBatteryProtectionEnabled = doc["features"]["low_battery_protection"] | cfg.lowBatteryProtectionEnabled;
 cfg.ledEffectsEnabled = doc["features"]["led_effects"] | cfg.ledEffectsEnabled;
@@ -2634,21 +2642,34 @@ String updatePage() {
   return String(F(
     "<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>"
     "<title>StatusAnzeige – Update</title><style>"
-    "body{margin:0;background:#080b10;color:#eef2f7;font-family:Arial,sans-serif}.wrap{max-width:720px;margin:auto;padding:22px}"
+    "body{margin:0;background:#080b10;color:#eef2f7;font-family:Arial,sans-serif}.wrap{max-width:760px;margin:auto;padding:22px}"
     ".card{background:#121822;border:1px solid #273142;border-radius:14px;padding:18px;margin-bottom:16px}"
     "input{width:100%;box-sizing:border-box;background:#090d13;color:#fff;border:1px solid #39465a;border-radius:9px;padding:11px;margin:8px 0 14px}"
-    "button,.nav a{background:#1f6feb;color:#fff;border:0;border-radius:9px;padding:11px 14px;text-decoration:none;cursor:pointer}.nav a{background:#283241}"
-    ".nav{display:flex;gap:9px;flex-wrap:wrap}.muted{color:#9aa8ba}"
+    "button,.nav a{background:#1f6feb;color:#fff;border:0;border-radius:9px;padding:11px 14px;text-decoration:none;cursor:pointer;margin-right:7px;margin-bottom:7px}"
+    ".secondary,.nav a{background:#283241}.danger{background:#b42318}.nav{display:flex;gap:9px;flex-wrap:wrap}.muted{color:#9aa8ba}.ok{color:#62d98b}.bad{color:#ff6b6b}"
+    "code{color:#8cc8ff;word-break:break-all}"
     "</style></head><body><div class='wrap'><h1>Firmware Update</h1>"
-    "<div class='card'><p class='muted'>Nur eine passende .bin-Datei aus Arduino IDE oder PlatformIO verwenden.</p>"
+    "<div class='card'><h2>Lokale Firmware</h2><p class='muted'>Eine passende firmware.bin vom Computer hochladen.</p>"
     "<form id='f'><label>Firmware</label><input id='b' type='file' accept='.bin' required>"
-    "<label>API-Passcode</label><input id='p' type='password' inputmode='numeric' required><button>Update starten</button></form><pre id='o'></pre></div>"
-    "<div class='card'><div class='nav'><a href='/'>Schnellstatus</a><a href='/config'>Konfiguration</a></div></div>"
-    "<script>p.value=sessionStorage.getItem('statusanzeige_ps')||'';f.onsubmit=async e=>{e.preventDefault();sessionStorage.setItem('statusanzeige_ps',p.value);let d=new FormData();d.append('firmware',b.files[0]);let r=await fetch('/update?ps='+encodeURIComponent(p.value),{method:'POST',body:d});o.textContent=await r.text()}</script>"
-    "</div></body></html>"
+    "<label>API-Passcode</label><input id='p' type='password' inputmode='numeric' required>"
+    "<button>Update starten</button></form><pre id='o'></pre></div>"
+    "<div class='card'><h2>GitHub Update</h2>"
+    "<p class='muted'>Direkter Link auf eine firmware.bin. Der Link wird dauerhaft in config.json gespeichert.</p>"
+    "<label>GitHub-Firmware-Link</label><input id='u' type='url' placeholder='https://raw.githubusercontent.com/.../firmware.bin'>"
+    "<button class='secondary' onclick='saveUrl()'>Link speichern</button>"
+    "<button onclick='githubUpdate()'>Von GitHub aktualisieren</button>"
+    "<div id='g' class='muted' style='margin-top:10px'></div></div>"
+    "<div class='card'><div class='nav'><a href='/'>Alle Status</a><a href='/btn'>Schnellstatus</a><a href='/config'>Konfiguration</a></div></div>"
+    "<script>"
+    "p.value=sessionStorage.getItem('statusanzeige_ps')||'';"
+    "async function info(){try{let j=await (await fetch('/api/update/info',{cache:'no-store'})).json();u.value=j.github_url||'';}catch(e){g.textContent='Link konnte nicht geladen werden.'}}"
+    "f.onsubmit=async e=>{e.preventDefault();sessionStorage.setItem('statusanzeige_ps',p.value);o.textContent='Update läuft...';let d=new FormData();d.append('firmware',b.files[0]);let r=await fetch('/update?ps='+encodeURIComponent(p.value),{method:'POST',body:d});o.textContent=await r.text()};"
+    "async function saveUrl(){let ps=p.value.trim();if(!ps){g.innerHTML='<span class=bad>Passcode fehlt.</span>';return;}sessionStorage.setItem('statusanzeige_ps',ps);let q=new URLSearchParams({url:u.value.trim()});let r=await fetch('/api/update/url?ps='+encodeURIComponent(ps),{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:q});let j=await r.json().catch(()=>({ok:false,error:'Antwort ungültig'}));g.innerHTML=j.ok?'<span class=ok>GitHub-Link gespeichert.</span>':'<span class=bad>'+String(j.error||'Fehler')+'</span>';}"
+    "async function githubUpdate(){let ps=p.value.trim();if(!ps){g.innerHTML='<span class=bad>Passcode fehlt.</span>';return;}if(!u.value.trim()){g.innerHTML='<span class=bad>GitHub-Link fehlt.</span>';return;}sessionStorage.setItem('statusanzeige_ps',ps);g.textContent='Firmware wird von GitHub geladen und installiert...';let q=new URLSearchParams({url:u.value.trim()});let r=await fetch('/api/update/github?ps='+encodeURIComponent(ps),{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:q});let t=await r.text();g.textContent=t;}"
+    "info();"
+    "</script></div></body></html>"
   ));
 }
-
 
 void handleFirmwareUpload() {
   if (!cfg.webUpdateEnabled || !checkApiPasscode()) return;
@@ -2662,6 +2683,158 @@ void handleFirmwareUploadDone() {
   if (!cfg.webUpdateEnabled) { web.send(403,"text/plain","Webupdate deaktiviert"); return; }
   if(Update.hasError()) web.send(500,"text/plain","Update fehlgeschlagen");
   else { web.send(200,"text/plain","Update OK - Neustart"); delay(500); ESP.restart(); }
+}
+
+
+void handleUpdateInfo() {
+  JsonDocument d;
+  d["ok"] = true;
+  d["github_url"] = cfg.githubFirmwareUrl;
+  d["version"] = STATUSANZEIGE_VERSION;
+  String out;
+  serializeJson(d, out);
+  web.send(200, "application/json; charset=utf-8", out);
+}
+
+void handleUpdateUrlSave() {
+  if (!checkApiPasscode()) return;
+  if (!web.hasArg("url")) {
+    web.send(400, "application/json", "{\"ok\":false,\"error\":\"URL fehlt\"}");
+    return;
+  }
+
+  String url = web.arg("url");
+  url.trim();
+  if (!url.isEmpty() && !(url.startsWith("https://") || url.startsWith("http://"))) {
+    web.send(400, "application/json", "{\"ok\":false,\"error\":\"URL muss mit http:// oder https:// beginnen\"}");
+    return;
+  }
+
+  File f = SD.open("/config/config.json", FILE_READ);
+  if (!f) {
+    web.send(500, "application/json", "{\"ok\":false,\"error\":\"config.json nicht lesbar\"}");
+    return;
+  }
+
+  JsonDocument d;
+  DeserializationError err = deserializeJson(d, f);
+  f.close();
+  if (err) {
+    web.send(500, "application/json", "{\"ok\":false,\"error\":\"config.json ungueltig\"}");
+    return;
+  }
+
+  d["web_update"]["github_url"] = url;
+  copySdFile("/config/config.json", "/config/config.bak");
+  SD.remove("/config/config.json");
+
+  File out = SD.open("/config/config.json", FILE_WRITE);
+  if (!out || serializeJsonPretty(d, out) == 0) {
+    if (out) out.close();
+    web.send(500, "application/json", "{\"ok\":false,\"error\":\"Speichern fehlgeschlagen\"}");
+    return;
+  }
+  out.close();
+
+  cfg.githubFirmwareUrl = url;
+  web.send(200, "application/json", "{\"ok\":true}");
+}
+
+bool performFirmwareUpdateFromUrl(const String &url, String &error) {
+  if (!wifiConnected) {
+    error = "WLAN nicht verbunden";
+    return false;
+  }
+  if (!(url.startsWith("https://") || url.startsWith("http://"))) {
+    error = "Ungueltige URL";
+    return false;
+  }
+
+  WiFiClientSecure secureClient;
+  WiFiClient plainClient;
+  HTTPClient http;
+  http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+  http.setTimeout(20000);
+
+  bool begun = false;
+  if (url.startsWith("https://")) {
+    secureClient.setInsecure();
+    begun = http.begin(secureClient, url);
+  } else {
+    begun = http.begin(plainClient, url);
+  }
+
+  if (!begun) {
+    error = "HTTP-Verbindung konnte nicht gestartet werden";
+    return false;
+  }
+
+  int code = http.GET();
+  if (code != HTTP_CODE_OK) {
+    error = "HTTP " + String(code);
+    http.end();
+    return false;
+  }
+
+  int contentLength = http.getSize();
+  if (contentLength > 0 && contentLength < 100000) {
+    error = "Firmware-Datei unplausibel klein";
+    http.end();
+    return false;
+  }
+
+  if (!Update.begin(contentLength > 0 ? (size_t)contentLength : UPDATE_SIZE_UNKNOWN, U_FLASH)) {
+    error = "Update.begin fehlgeschlagen";
+    http.end();
+    return false;
+  }
+
+  WiFiClient *stream = http.getStreamPtr();
+  size_t written = Update.writeStream(*stream);
+  http.end();
+
+  if (contentLength > 0 && written != (size_t)contentLength) {
+    Update.abort();
+    error = "Download unvollstaendig: " + String(written) + "/" + String(contentLength);
+    return false;
+  }
+
+  if (!Update.end(true)) {
+    error = "Update.end fehlgeschlagen";
+    return false;
+  }
+
+  if (!Update.isFinished()) {
+    error = "Update nicht vollstaendig";
+    return false;
+  }
+
+  return true;
+}
+
+void handleGithubFirmwareUpdate() {
+  if (!cfg.webUpdateEnabled) {
+    web.send(403, "text/plain", "Webupdate deaktiviert");
+    return;
+  }
+  if (!checkApiPasscode()) return;
+
+  String url = web.hasArg("url") ? web.arg("url") : cfg.githubFirmwareUrl;
+  url.trim();
+  if (url.isEmpty()) {
+    web.send(400, "text/plain", "Kein GitHub-Firmware-Link gespeichert.");
+    return;
+  }
+
+  String error;
+  if (!performFirmwareUpdateFromUrl(url, error)) {
+    web.send(500, "text/plain", "GitHub-Update fehlgeschlagen: " + error);
+    return;
+  }
+
+  web.send(200, "text/plain", "GitHub-Update OK - Neustart");
+  delay(700);
+  ESP.restart();
 }
 
 // -----------------------------------------------------------------------------
@@ -2862,6 +3035,9 @@ web.on("/config/restore-backup", HTTP_POST, [](){
 });
 web.on("/update", HTTP_GET, [](){ web.send(200,"text/html; charset=utf-8",updatePage()); });
 web.on("/update", HTTP_POST, [](){ handleFirmwareUploadDone(); }, [](){ handleFirmwareUpload(); });
+web.on("/api/update/info", HTTP_GET, [](){ handleUpdateInfo(); });
+web.on("/api/update/url", HTTP_POST, [](){ handleUpdateUrlSave(); });
+web.on("/api/update/github", HTTP_POST, [](){ handleGithubFirmwareUpdate(); });
 
   web.on("/wifi", HTTP_GET, []() {
     web.send(200, "text/html; charset=utf-8", wifiSetupPage());
