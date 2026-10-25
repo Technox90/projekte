@@ -272,7 +272,7 @@ struct StatusItem {
   uint16_t effectPeriodMs = 1000;
 };
 
-static constexpr size_t MAX_STATUSES = 24;
+static constexpr size_t MAX_STATUSES = 64;
 StatusItem statuses[MAX_STATUSES];
 size_t statusCount = 0;
 int currentStatusIndex = -1;
@@ -2536,7 +2536,7 @@ String statusesConfigPage() {
     "</style></head><body><div class='wrap'><h1>Statusfarben & Effekte</h1>"
     "<div class='card'><div id='x'>Lade...</div></div>"
     "<div class='card'><label>API-Passcode</label><br><input id='ps' type='password' inputmode='numeric'>"
-    "<div class='nav' style='margin-top:12px'><a href='/'>Schnellstatus</a><a href='/config'>Konfiguration</a></div></div>"
+    "<div class='nav' style='margin-top:12px'><a href='/'>Alle Status</a><a href='/btn'>Schnellmenü</a><a href='/config'>Konfiguration</a></div>"</div>"
     "<script>"
     "async function L(){let j=await (await fetch('/api/statuses')).json();let h='<table><tr><th>Status</th><th>Farbe</th><th>Effekt</th><th>Periode</th><th></th></tr>';"
     "j.statuses.forEach((s,i)=>{h+='<tr><td>'+s.label+'</td><td><input id=\"c'+i+'\" type=\"color\" value=\"'+s.color+'\"></td><td><select id=\"e'+i+'\"><option>static</option><option>pulse</option><option>blink</option></select></td><td><input id=\"p'+i+'\" type=\"number\" value=\"'+s.period+'\" min=\"200\" max=\"10000\"></td><td><button onclick=\"S('+i+',\\\''+s.id+'\\\')\">Speichern</button></td></tr>'});"
@@ -2598,7 +2598,7 @@ String restorePage() {
     "<div class='card'><p class='muted'>Eine zuvor gesicherte config.json hochladen.</p><form id='f'><label>config.json</label><input id='j' type='file' accept='.json' required>"
     "<label>API-Passcode</label><input id='p' type='password' inputmode='numeric' required><button>Config hochladen</button></form><pre id='o'></pre></div>"
     "<div class='card'><h2>Automatisches Backup</h2><p class='muted'>Stellt die zuletzt automatisch gesicherte config.bak wieder her.</p><button class='secondary' onclick='R()'>config.bak wiederherstellen</button></div>"
-    "<div class='card'><div class='nav'><a href='/'>Schnellstatus</a><a href='/config'>Konfiguration</a></div></div>"
+    "<div class='card'><div class='nav'><a href='/'>Alle Status</a><a href='/btn'>Schnellmenü</a><a href='/config'>Konfiguration</a></div></div>"
     "<script>p.value=sessionStorage.getItem('statusanzeige_ps')||'';"
     "f.onsubmit=async e=>{e.preventDefault();sessionStorage.setItem('statusanzeige_ps',p.value);let d=new FormData();d.append('config',j.files[0]);let r=await fetch('/config/restore?ps='+encodeURIComponent(p.value),{method:'POST',body:d});o.textContent=await r.text()};"
     "async function R(){sessionStorage.setItem('statusanzeige_ps',p.value);let r=await fetch('/config/restore-backup?ps='+encodeURIComponent(p.value),{method:'POST'});o.textContent=await r.text()}"
