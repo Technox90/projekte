@@ -4,16 +4,23 @@ on:
   push:
     branches: [ main ]
     paths:
-      - "StatusAnzeige/**"
+      - "StatusAnzeige/PlatformIO/src/**"
+      - "StatusAnzeige/PlatformIO/platformio.ini"
       - ".github/workflows/statusanzeige-firmware.yml"
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -29,13 +36,29 @@ jobs:
 
       - name: Prepare firmware
         run: |
-          mkdir -p build-output
-          cp StatusAnzeige/PlatformIO/.pio/build/statusanzeige/firmware.bin build-output/firmware.bin
-          cp StatusAnzeige/PlatformIO/.pio/build/statusanzeige/firmware.elf build-output/firmware.elf
+          mkdir -p StatusAnzeige/firmware
+          cp StatusAnzeige/PlatformIO/.pio/build/statusanzeige/firmware.bin StatusAnzeige/firmware/firmware.bin
+          sha256sum StatusAnzeige/firmware/firmware.bin | awk '{print $1}' > StatusAnzeige/firmware/firmware.sha256
+          printf '%s\n' "2.4.0" > StatusAnzeige/firmware/version.txt
 
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
         with:
           name: StatusAnzeige-Firmware
-          path: build-output/*
+          path: |
+            StatusAnzeige/firmware/firmware.bin
+            StatusAnzeige/firmware/firmware.sha256
+            StatusAnzeige/firmware/version.txt
           retention-days: 30
+
+      - name: Publish firmware in repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add StatusAnzeige/firmware/firmware.bin StatusAnzeige/firmware/firmware.sha256 StatusAnzeige/firmware/version.txt
+          if git diff --cached --quiet; then
+            echo "Firmware unchanged."
+          else
+            git commit -m "Build StatusAnzeige firmware 2.4.0 [skip ci]"
+            git push
+          fi
