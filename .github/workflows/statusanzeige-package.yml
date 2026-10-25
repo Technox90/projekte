@@ -19,11 +19,11 @@ jobs:
           mkdir -p package
           cp -a StatusAnzeige package/StatusAnzeige
           cd package
-          zip -qr ../StatusAnzeige_2.4.0_Komplett.zip StatusAnzeige
+          zip -qr ../StatusAnzeige_2.5.0_Komplett.zip StatusAnzeige
 
       - name: Upload complete package
         uses: actions/upload-artifact@v4
         with:
-          name: StatusAnzeige-2.4.0-Komplett
-          path: StatusAnzeige_2.4.0_Komplett.zip
+          name: StatusAnzeige-2.5.0-Komplett
+          path: StatusAnzeige_2.5.0_Komplett.zip
           retention-days: 30
