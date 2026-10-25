@@ -1,0 +1,29 @@
+name: Package StatusAnzeige Complete
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - ".github/workflows/statusanzeige-package.yml"
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create complete package
+        run: |
+          mkdir -p package
+          cp -a StatusAnzeige package/StatusAnzeige
+          cd package
+          zip -qr ../StatusAnzeige_2.4.0_Komplett.zip StatusAnzeige
+
+      - name: Upload complete package
+        uses: actions/upload-artifact@v4
+        with:
+          name: StatusAnzeige-2.4.0-Komplett
+          path: StatusAnzeige_2.4.0_Komplett.zip
+          retention-days: 30
