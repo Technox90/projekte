@@ -254,5 +254,21 @@
     "errorlog": false,
     "advancedauto": false,
     "calendar": false
+  },
+  "calendar": {
+    "enabled": false,
+    "source": "ical",
+    "ical_url": "",
+    "ha_url": "",
+    "ha_token": "",
+    "ha_entity": "",
+    "status_id": "meeting",
+    "restore_mode": "previous",
+    "pre_minutes": 0,
+    "post_minutes": 0,
+    "poll_seconds": 60,
+    "ignore_all_day": true,
+    "show_title": false,
+    "keywords": ""
   }
 }
