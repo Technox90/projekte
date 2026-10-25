@@ -237,5 +237,21 @@
     "low_battery_protection": true,
     "led_effects": true,
     "confirmation_flash": true
+  },
+  "experimental": {
+    "powersave": false,
+    "batcal": false,
+    "multiwifi": false,
+    "timer": false,
+    "imageupload": false,
+    "dynamicstatus": false,
+    "history": false,
+    "selftest": false,
+    "nightmode": false,
+    "gestures": false,
+    "lockmode": false,
+    "errorlog": false,
+    "advancedauto": false,
+    "calendar": false
   }
 }
