@@ -2526,16 +2526,23 @@ struct CalendarEvent {
   time_t end = 0;
 };
 
+int64_t daysFromCivil(int y, unsigned m, unsigned d) {
+  y -= m <= 2;
+  const int era = (y >= 0 ? y : y - 399) / 400;
+  const unsigned yoe = (unsigned)(y - era * 400);
+  const unsigned doy = (153 * (m + (m > 2 ? -3 : 9)) + 2) / 5 + d - 1;
+  const unsigned doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+  return (int64_t)era * 146097 + (int64_t)doe - 719468;
+}
+
 time_t makeEpochUtc(int y, int mo, int d, int h, int mi, int se) {
-  struct tm t = {};
-  t.tm_year = y - 1900;
-  t.tm_mon = mo - 1;
-  t.tm_mday = d;
-  t.tm_hour = h;
-  t.tm_min = mi;
-  t.tm_sec = se;
-  t.tm_isdst = -1;
-  return timegm(&t);
+  int64_t days = daysFromCivil(y, (unsigned)mo, (unsigned)d);
+  int64_t seconds =
+    days * 86400LL +
+    (int64_t)h * 3600LL +
+    (int64_t)mi * 60LL +
+    se;
+  return (time_t)seconds;
 }
 
 time_t makeEpochLocal(int y, int mo, int d, int h, int mi, int se) {
