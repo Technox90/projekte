@@ -14,6 +14,8 @@
 | [nightscout-updater-install.sh](nightscout-updater-install.sh) | Installation des wöchentlichen Patch-Updaters |
 | [nightscout-export-install.sh](nightscout-export-install.sh) | Installation des Nur-Lese-Exports |
 | [README-export.md](README-export.md) | Ausführliche Beschreibung des Exports |
+| [nightscout-bericht-zip.py](nightscout-bericht-zip.py) | ZIP-Bericht mit Messwerten, Behandlungen, Profilen und Gerätestatus aus lokalen Exporten |
+| [README-bericht-zip.md](README-bericht-zip.md) | Copy-Paste-SSH-Befehl und Anleitung für den 90-Tage-Bericht |
 
 **Sicherheit:** Produktive Daten und API-Geheimnisse nicht auf GitHub ablegen. Anleitungen zur geprüften Installation folgen unten.
 
