@@ -28,7 +28,7 @@ Firmware und Anleitung zur PC-Power-Taster-Steuerung mit Home Assistant, Statuss
 
 Systemd-gestützte Nightscout-Aktualisierung und separater Nur-Lese-Datenexport einschließlich Prüf- und Installationshinweisen.
 
-[Dateien](nightscout/) · [Export-Anleitung](nightscout/README-export.md) · [Projekt-Prompt](promts/module/projekte--nightscout.md)
+[Dateien](nightscout/) · [Export-Anleitung](nightscout/README-export.md) · [ZIP-Bericht erstellen](nightscout/README-bericht-zip.md) · [Projekt-Prompt](promts/module/projekte--nightscout.md)
 
 ### 🧠 [Prompts für meine GitHub-Projekte](promts/README.md)
 
